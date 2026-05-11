@@ -1,0 +1,6 @@
+@RouteOptimizer.API_HostAddress = http://localhost:5011
+
+GET {{RouteOptimizer.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

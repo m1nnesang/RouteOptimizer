@@ -1,0 +1,33 @@
+# Build output
+bin/
+obj/
+
+# IDE
+.idea/
+.vs/
+*.user
+*.suo
+
+# NuGet
+*.nupkg
+.nuget/
+packages/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Environment / secrets
+.env
+appsettings.Local.json
+appsettings.*.Local.json
+
+# Test results
+TestResults/
+coverage/
+*.coverage
+*.coveragexml
