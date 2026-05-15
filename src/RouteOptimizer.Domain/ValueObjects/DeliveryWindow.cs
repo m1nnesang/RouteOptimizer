@@ -28,9 +28,9 @@ public class DeliveryWindow : ValueObject
         if (Strictness == WindowStrictness.Strict)
             return arrivalTime > End;
 
-        var arrivalWithTolerance = arrivalTime.Add(Tolerance ?? TimeSpan.Zero);
+        var endWithTolerance = End.Value.Add(Tolerance ?? TimeSpan.Zero);
         
-        return arrivalWithTolerance > End;
+        return arrivalTime > endWithTolerance;
     }
 
     public static DeliveryWindow Between(TimeOnly start, TimeOnly end, WindowStrictness strictness,

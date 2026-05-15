@@ -24,6 +24,9 @@ public abstract class Order : AggregateRoot<Guid>
 
     public void AssignToRoute(Guid routeId)
     {
+        if (Status ==  OrderStatus.AssignedToRoute)
+            throw new InvalidOperationException("Order already assigned to route");
+        
         if (Status != OrderStatus.Created)
             throw new InvalidOperationException("Only created orders can be assigned to route");
     

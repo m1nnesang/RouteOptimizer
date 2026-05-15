@@ -5,8 +5,8 @@ namespace RouteOptimizer.Domain.ValueObjects;
 
 public class GeoCoordinate : ValueObject
 {
-    double Latitude { get; }
-    double Longitude { get; }
+    public double Latitude { get; }
+    public double Longitude { get; }
     
     private GeoCoordinate(double latitude, double longitude)
     {
