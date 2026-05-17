@@ -13,14 +13,16 @@ public abstract class Order : AggregateRoot<Guid>
     public Weight Weight { get; }
     public Volume Volume { get; }
     
+    public DeliveryWindow? DeliveryWindow { get; }
+    
     public PhoneNumber Number { get; }
     public CargoType CargoType { get; }
     public OrderStatus Status { get; private set; } = OrderStatus.Created;
     public Guid? AssignedRouteId { get; private set; } = null;
     public string? Notes { get; }
     
-    protected Order(Guid id, Guid warehouseId, Address address, GeoCoordinate location, Weight weight, Volume volume, PhoneNumber number , CargoType cargoType, string? notes) : base(id)
-        => (WarehouseId, Address, Location, Weight, Volume, Number ,CargoType, Notes) = (warehouseId, address, location, weight, volume, number, cargoType, notes);
+    protected Order(Guid id, Guid warehouseId, Address address, GeoCoordinate location, Weight weight, Volume volume, DeliveryWindow? deliveryWindow, PhoneNumber number , CargoType cargoType, string? notes) : base(id)
+        => (WarehouseId, Address, Location, Weight, Volume, DeliveryWindow , Number ,CargoType, Notes) = (warehouseId, address, location, weight, volume, deliveryWindow , number, cargoType, notes);
 
     public void AssignToRoute(Guid routeId)
     {

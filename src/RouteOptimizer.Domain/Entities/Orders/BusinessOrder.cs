@@ -10,24 +10,23 @@ public class BusinessOrder : Order
     public string CompanyName { get; }
     public string? ContactPerson { get; }
     public bool RequiresSignature { get; }
-    public DeliveryWindow TimeWindow { get; }
     
     private BusinessOrder(Guid id, Guid warehouseId, Address address, GeoCoordinate location,
-        Weight weight, Volume volume, PhoneNumber number ,CargoType cargoType, string? notes,
-        string companyName, string contactPerson, DeliveryWindow timeWindow) 
-        : base(id, warehouseId, address, location, weight, volume, number , cargoType, notes) => 
-        (CompanyName, ContactPerson, TimeWindow, RequiresSignature) = (companyName, contactPerson, timeWindow , true);
+        Weight weight, Volume volume, DeliveryWindow deliveryWindow ,PhoneNumber number ,CargoType cargoType, string? notes,
+        string companyName, string contactPerson) 
+        : base(id, warehouseId, address, location, weight, volume, deliveryWindow ,number , cargoType, notes) => 
+        (CompanyName, ContactPerson, RequiresSignature) = (companyName, contactPerson, true);
 
     public static Result<BusinessOrder> Create(
         Guid warehouseId, Address address, GeoCoordinate location,
-        Weight weight, Volume volume, PhoneNumber number ,CargoType cargoType, string? notes,
-        string companyName, string contactPerson, DeliveryWindow timeWindow)
+        Weight weight, Volume volume, DeliveryWindow deliveryWindow ,PhoneNumber number ,CargoType cargoType, string? notes,
+        string companyName, string contactPerson)
     {
         if (string.IsNullOrWhiteSpace(companyName)|| string.IsNullOrWhiteSpace(contactPerson))
             return Result<BusinessOrder>.Failure("Company name and contact person are required");
 
-        var order = new BusinessOrder(Guid.NewGuid(), warehouseId, address, location, weight, volume, number, cargoType,
-            notes, companyName, contactPerson, timeWindow);
+        var order = new BusinessOrder(Guid.NewGuid(), warehouseId, address, location, weight, volume, deliveryWindow , number, cargoType,
+            notes, companyName, contactPerson);
 
         order.AddDomainEvent(new OrderCreated(order.Id, order.WarehouseId));
         

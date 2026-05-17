@@ -21,7 +21,7 @@ public class OrderTests
         var allowLeaveAtDoor = true;
         var time = DeliveryWindow.AnyTime();
     
-        return IndividualOrder.Create(warehouse , address , location, weight, volume, phone, cargoType , notes, customerName, allowLeaveAtDoor, time).Value!;
+        return IndividualOrder.Create(warehouse , address , location, weight, volume,time, phone , cargoType, notes, customerName, allowLeaveAtDoor).Value!;
     }
     
     

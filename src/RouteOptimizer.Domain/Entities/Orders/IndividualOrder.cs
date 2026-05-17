@@ -11,24 +11,21 @@ public class IndividualOrder : Order
 
     private bool AllowLeaveAtDoor { get; }
     
-    public DeliveryWindow? TimeWindow { get; }
-    
     private IndividualOrder(Guid id, Guid warehouseId, Address address, GeoCoordinate location,
-        Weight weight, Volume volume, PhoneNumber number , CargoType cargoType, string? notes,
-        string customerName, bool allowLeaveAtDoor,DeliveryWindow? timeWindow) 
-        : base(id, warehouseId, address, location, weight, volume, number ,cargoType, notes) 
-        => (CustomerName, AllowLeaveAtDoor, TimeWindow) = (customerName, allowLeaveAtDoor,timeWindow);
+        Weight weight, Volume volume, DeliveryWindow? deliveryWindow ,PhoneNumber number , CargoType cargoType, string? notes,
+        string customerName, bool allowLeaveAtDoor) 
+        : base(id, warehouseId, address, location, weight, volume, deliveryWindow  ,number ,cargoType, notes) 
+        => (CustomerName, AllowLeaveAtDoor ) = (customerName, allowLeaveAtDoor);
 
     public static Result<IndividualOrder> Create(
         Guid warehouseId, Address address, GeoCoordinate location,
-        Weight weight, Volume volume, PhoneNumber number ,CargoType cargoType, string? notes, string customerName, bool allowLeaveAtDoor,
-        DeliveryWindow? timeWindow)
+        Weight weight, Volume volume, DeliveryWindow deliveryWindow ,PhoneNumber number ,CargoType cargoType, string? notes, string customerName, bool allowLeaveAtDoor)
     {
         if (string.IsNullOrWhiteSpace(customerName))
             return Result<IndividualOrder>.Failure("Customer name need to be filled");
 
-        var order = new IndividualOrder(Guid.NewGuid(), warehouseId, address, location, weight, volume, number,
-            cargoType, notes, customerName, allowLeaveAtDoor, timeWindow);
+        var order = new IndividualOrder(Guid.NewGuid(), warehouseId, address, location, weight, volume, deliveryWindow ,number,
+            cargoType, notes, customerName, allowLeaveAtDoor);
         
         order.AddDomainEvent(new OrderCreated(order.Id, order.WarehouseId));
         
