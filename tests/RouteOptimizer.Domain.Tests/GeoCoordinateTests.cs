@@ -21,11 +21,11 @@ public class GeoCoordinateTests
     {
         var warsaw = GeoCoordinate.Create(52.2322, 21.0083).Value!;
         var krakow = GeoCoordinate.Create(50.0614, 19.9383).Value!;
-        
+
         var distance = warsaw.DistanceTo(krakow);
         distance.Should().BeApproximately(252, 5);
     }
-    
+
     [Fact]
     public void Create_WithValidCoordinates_ReturnsSuccess()
     {

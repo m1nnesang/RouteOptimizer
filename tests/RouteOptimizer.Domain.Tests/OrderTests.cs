@@ -20,20 +20,20 @@ public class OrderTests
         var customerName = "New Customer";
         var allowLeaveAtDoor = true;
         var time = DeliveryWindow.AnyTime();
-    
-        return IndividualOrder.Create(warehouse , address , location, weight, volume,time, phone , cargoType, notes, customerName, allowLeaveAtDoor).Value!;
+
+        return IndividualOrder.Create(warehouse, address, location, weight, volume, time, phone, cargoType, notes,
+            customerName, allowLeaveAtDoor).Value!;
     }
-    
-    
-    
+
+
     [Fact]
     public void AssignToRoute_WhenCreated_ChangesStatusToAssigned()
     {
         var route = Guid.NewGuid();
         var order = CreateOrder();
-        
+
         order.AssignToRoute(route);
-        
+
         order.Status.Should().Be(OrderStatus.AssignedToRoute);
         order.AssignedRouteId.Should().Be(route);
     }
@@ -53,11 +53,11 @@ public class OrderTests
     public void MarkAsDelivered_WhenInTransit_ChangesStatusToDelivered()
     {
         var order = CreateOrder();
-        
+
         order.AssignToRoute(Guid.NewGuid());
         order.MarkAsInTransit();
         order.MarkAsDelivered();
-        
+
         order.Status.Should().Be(OrderStatus.Delivered);
     }
 
@@ -66,9 +66,9 @@ public class OrderTests
     {
         var order = CreateOrder();
         order.AssignToRoute(Guid.NewGuid());
-        
+
         var act = () => order.MarkAsDelivered();
-        
+
         act.Should().Throw<InvalidOperationException>();
     }
 
@@ -79,7 +79,7 @@ public class OrderTests
         order.AssignToRoute(Guid.NewGuid());
         order.MarkAsInTransit();
         order.MarkAsFailed();
-        
+
         order.AssignedRouteId.Should().Be(null);
     }
 
@@ -90,9 +90,9 @@ public class OrderTests
         order.AssignToRoute(Guid.NewGuid());
         order.MarkAsInTransit();
         order.MarkAsDelivered();
-        
+
         var act = () => order.MarkAsFailed();
-        
+
         act.Should().Throw<InvalidOperationException>();
     }
 }

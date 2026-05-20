@@ -3,5 +3,5 @@
 public enum DeliveryOutcome
 {
     Delivered,
-    Failed,
+    Failed
 }

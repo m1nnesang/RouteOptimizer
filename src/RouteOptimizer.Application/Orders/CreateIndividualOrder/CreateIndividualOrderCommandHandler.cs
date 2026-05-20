@@ -11,22 +11,22 @@ public class CreateIndividualOrderCommandHandler : IRequestHandler<CreateIndivid
 {
     private readonly IGeocodingService _geocodingService;
     private readonly IOrderRepository _orderRepository;
-    
+
     public CreateIndividualOrderCommandHandler(IGeocodingService geocodingService, IOrderRepository orderRepository)
     {
         _geocodingService = geocodingService;
         _orderRepository = orderRepository;
     }
-    
-    
+
+
     public async Task<Result<Guid>> Handle(CreateIndividualOrderCommand request, CancellationToken ct)
     {
         var address = Address.Create(request.Street, request.City, request.Postcode, request.Country);
         if (address.IsFailure) return Result<Guid>.Failure(address.Error ?? "Address is invalid");
-        
+
         var geocodeResult = await _geocodingService.GeocodeAsync(address.Value!, ct);
         if (geocodeResult.IsFailure) return Result<Guid>.Failure(geocodeResult.Error ?? "Geocoding failed");
-        
+
         var weight = Weight.Create(request.Weight);
         if (weight.IsFailure) return Result<Guid>.Failure(weight.Error ?? "Invalid weight");
 
@@ -35,18 +35,19 @@ public class CreateIndividualOrderCommandHandler : IRequestHandler<CreateIndivid
 
         var phone = PhoneNumber.Create(request.PhoneNumber);
         if (phone.IsFailure) return Result<Guid>.Failure(phone.Error ?? "Invalid phone");
-        
-      
+
+
         if (!Enum.TryParse<CargoType>(request.CargoType, out var cargoType))
             return Result<Guid>.Failure("Invalid cargo type");
-      
-        
-        
+
+
         DeliveryWindow? window = null;
+
         #region DeliveryWindowLogic
+
         if (request.Start.HasValue && request.End.HasValue)
         {
-            if (!Enum.TryParse<WindowStrictness>(request.WindowStrictness, out var windowStrictness)) 
+            if (!Enum.TryParse<WindowStrictness>(request.WindowStrictness, out var windowStrictness))
                 return Result<Guid>.Failure("Invalid window strictness");
 
             window = DeliveryWindow.Between(request.Start.Value, request.End.Value, windowStrictness);
@@ -54,21 +55,22 @@ public class CreateIndividualOrderCommandHandler : IRequestHandler<CreateIndivid
 
         else if (request.Start.HasValue)
         {
-            if (!Enum.TryParse<WindowStrictness>(request.WindowStrictness, out var windowStrictness)) 
+            if (!Enum.TryParse<WindowStrictness>(request.WindowStrictness, out var windowStrictness))
                 return Result<Guid>.Failure("Invalid window strictness");
-            
+
             window = DeliveryWindow.From(request.Start.Value, windowStrictness);
         }
 
         else if (request.End.HasValue)
         {
-            if (!Enum.TryParse<WindowStrictness>(request.WindowStrictness, out var windowStrictness)) 
+            if (!Enum.TryParse<WindowStrictness>(request.WindowStrictness, out var windowStrictness))
                 return Result<Guid>.Failure("Invalid window strictness");
-            
+
             window = DeliveryWindow.Until(request.End.Value, windowStrictness);
         }
+
         #endregion
-        
+
         var order = IndividualOrder.Create(
             request.WarehouseId,
             address.Value!,

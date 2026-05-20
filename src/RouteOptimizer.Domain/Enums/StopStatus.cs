@@ -5,7 +5,7 @@ public enum StopStatus
     Pending,
     InProgress,
     Completed,
-    PartiallyCompleted, 
-    Skipped, 
+    PartiallyCompleted,
+    Skipped,
     Failed
 }

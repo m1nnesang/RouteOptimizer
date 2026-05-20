@@ -14,9 +14,9 @@ public class DeliveryWindowTests
             new TimeOnly(15, 0),
             WindowStrictness.Soft
         );
-        
+
         var arrivalTime = new TimeOnly(10, 0);
-        
+
         window.IsViolatedAt(arrivalTime).Should().BeFalse();
     }
 
@@ -28,10 +28,10 @@ public class DeliveryWindowTests
             new TimeOnly(11, 0),
             WindowStrictness.Soft,
             new TimeSpan(0, 5, 30));
-        
-        
+
+
         var arrivalTime = new TimeOnly(11, 5);
-        
+
         window.IsViolatedAt(arrivalTime).Should().BeFalse();
     }
 
@@ -44,9 +44,9 @@ public class DeliveryWindowTests
             WindowStrictness.Strict,
             new TimeSpan(0, 5, 30)
         );
-        
+
         var arrivalTime = new TimeOnly(11, 5);
-        
+
         window.IsViolatedAt(arrivalTime).Should().BeTrue();
     }
 }

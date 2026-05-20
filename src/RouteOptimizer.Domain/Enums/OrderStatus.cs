@@ -2,10 +2,10 @@
 
 public enum OrderStatus
 {
-    Created, 
-    AssignedToRoute, 
-    InTransit, 
-    Delivered, 
-    Failed, 
+    Created,
+    AssignedToRoute,
+    InTransit,
+    Delivered,
+    Failed,
     Cancelled
 }

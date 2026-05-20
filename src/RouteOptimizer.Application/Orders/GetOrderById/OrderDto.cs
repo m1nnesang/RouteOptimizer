@@ -1,17 +1,15 @@
-﻿using RouteOptimizer.Domain.Enums;
-using RouteOptimizer.Domain.ValueObjects;
+﻿namespace RouteOptimizer.Application.Orders.GetOrderById;
 
-namespace RouteOptimizer.Application.Orders.GetOrderById;
-
-public record OrderDto(Guid Id,
-    string City, 
+public record OrderDto(
+    Guid Id,
+    string City,
     string Street,
     string PostalCode,
     string Country,
-    double  Latitude,
+    double Latitude,
     double Longitude,
-    TimeOnly? Start, 
-    TimeOnly? End, 
+    TimeOnly? Start,
+    TimeOnly? End,
     string? CompanyName,
     string? ContactPerson,
     string? CustomerName,

@@ -9,7 +9,10 @@ public class GetOrderByIdQueryHandler : IRequestHandler<GetOrderByIdQuery, Resul
 {
     private readonly IOrderRepository _orderRepository;
 
-    public GetOrderByIdQueryHandler(IOrderRepository orderRepository) => _orderRepository = orderRepository;
+    public GetOrderByIdQueryHandler(IOrderRepository orderRepository)
+    {
+        _orderRepository = orderRepository;
+    }
 
     public async Task<Result<OrderDto>> Handle(GetOrderByIdQuery request, CancellationToken ct)
     {
@@ -18,8 +21,20 @@ public class GetOrderByIdQueryHandler : IRequestHandler<GetOrderByIdQuery, Resul
         if (result is null)
             return Result<OrderDto>.Failure("Order not found");
 
-        return Result<OrderDto>.Success(new OrderDto(result.Id, result.Address.City, result.Address.Street,
-            result.Address.PostalCode, result.Address.Country, result.Location.Latitude, result.Location.Longitude,
-            result.DeliveryWindow?.Start, result.DeliveryWindow?.End, (result as BusinessOrder)?.CompanyName, (result as BusinessOrder)?.ContactPerson , (result as IndividualOrder)?.CustomerName, result.Number.Value, result.Weight.Value, result.Volume.Value, result.CargoType.ToString(), result.Notes));
+        var dto = result switch
+        {
+            BusinessOrder b => new OrderDto(b.Id, b.Address.City, b.Address.Street, b.Address.PostalCode,
+                b.Address.Country, b.Location.Latitude, b.Location.Longitude, b.DeliveryWindow?.Start,
+                b.DeliveryWindow?.End, b.CompanyName, b.ContactPerson, null, b.Number.Value, b.Weight.Value,
+                b.Volume.Value, b.CargoType.ToString(), b.Notes),
+
+            IndividualOrder i => new OrderDto(i.Id, i.Address.City, i.Address.Street, i.Address.PostalCode,
+                i.Address.Country, i.Location.Latitude, i.Location.Longitude, i.DeliveryWindow?.Start,
+                i.DeliveryWindow?.End, null, null, i.CustomerName, i.Number.Value, i.Weight.Value, i.Volume.Value,
+                i.CargoType.ToString(), i.Notes),
+            _ => throw new InvalidOperationException("Invalid order type")
+        };
+
+        return Result<OrderDto>.Success(dto);
     }
 }

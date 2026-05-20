@@ -5,11 +5,10 @@ namespace RouteOptimizer.Domain.ValueObjects;
 
 public class DeliveryWindow : ValueObject
 {
-    public TimeOnly? Start { get; }
-    public TimeOnly? End { get; }
-    public WindowStrictness Strictness { get; }
-    public TimeSpan? Tolerance { get; }
-    
+    private DeliveryWindow()
+    {
+    } // EF Core
+
     private DeliveryWindow(TimeOnly? start, TimeOnly? end, WindowStrictness strictness, TimeSpan? tolerance)
     {
         Start = start;
@@ -17,9 +16,16 @@ public class DeliveryWindow : ValueObject
         Strictness = strictness;
         Tolerance = tolerance;
     }
-    
-    private static TimeSpan? ResolveTolerance(WindowStrictness strictness, TimeSpan? tolerance) =>
-        strictness == WindowStrictness.Strict ? null : tolerance ?? TimeSpan.FromMinutes(10);
+
+    public TimeOnly? Start { get; }
+    public TimeOnly? End { get; }
+    public WindowStrictness Strictness { get; }
+    public TimeSpan? Tolerance { get; }
+
+    private static TimeSpan? ResolveTolerance(WindowStrictness strictness, TimeSpan? tolerance)
+    {
+        return strictness == WindowStrictness.Strict ? null : tolerance ?? TimeSpan.FromMinutes(10);
+    }
 
     public bool IsViolatedAt(TimeOnly arrivalTime)
     {
@@ -29,7 +35,7 @@ public class DeliveryWindow : ValueObject
             return arrivalTime > End;
 
         var endWithTolerance = End.Value.Add(Tolerance ?? TimeSpan.Zero);
-        
+
         return arrivalTime > endWithTolerance;
     }
 
@@ -37,29 +43,29 @@ public class DeliveryWindow : ValueObject
         TimeSpan? tolerance = null)
     {
         var actualTolerance = ResolveTolerance(strictness, tolerance);
-        
-        return new(start, end, strictness, actualTolerance);
+
+        return new DeliveryWindow(start, end, strictness, actualTolerance);
     }
 
     public static DeliveryWindow From(TimeOnly start, WindowStrictness strictness, TimeSpan? tolerance = null)
     {
         var actualTolerance = ResolveTolerance(strictness, tolerance);
 
-        return new(start, null, strictness, actualTolerance);
+        return new DeliveryWindow(start, null, strictness, actualTolerance);
     }
 
     public static DeliveryWindow Until(TimeOnly end, WindowStrictness strictness, TimeSpan? tolerance = null)
     {
         var actualTolerance = ResolveTolerance(strictness, tolerance);
-        
-        return new (null, end, strictness, actualTolerance);
+
+        return new DeliveryWindow(null, end, strictness, actualTolerance);
     }
 
     public static DeliveryWindow AnyTime()
     {
-        return new (null, null, WindowStrictness.Soft , null);
+        return new DeliveryWindow(null, null, WindowStrictness.Soft, null);
     }
-    
+
     protected override IEnumerable<object?> GetEqualityComponents()
     {
         yield return Start;

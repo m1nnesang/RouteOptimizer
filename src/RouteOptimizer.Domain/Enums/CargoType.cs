@@ -3,7 +3,7 @@
 public enum CargoType
 {
     General,
-    Refrigerated, 
+    Refrigerated,
     Fragile,
-    Hazardous 
+    Hazardous
 }

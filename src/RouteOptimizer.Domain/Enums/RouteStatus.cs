@@ -2,11 +2,11 @@
 
 public enum RouteStatus
 {
-    Draft, 
-    Optimized, 
-    Assigned, 
+    Draft,
+    Optimized,
+    Assigned,
     InProgress,
-    Completed, 
-    Interrupted, 
+    Completed,
+    Interrupted,
     Cancelled
 }

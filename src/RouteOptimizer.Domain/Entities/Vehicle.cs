@@ -6,17 +6,29 @@ namespace RouteOptimizer.Domain.Entities;
 
 public class Vehicle : AggregateRoot<Guid>
 {
+    private Vehicle() : base(default)
+    {
+        Type = null!;
+        MaxWeightKg = null!;
+        MaxVolumeM3 = null!;
+        AllowedCargoTypes = null!;
+    } // EF Core
+
+    private Vehicle(Guid id, Guid warehouseId, string type, Weight maxWeightKg, Volume maxVolumeM3,
+        LicenseCategory licenseCategory, IReadOnlyList<CargoType> allowedCargoTypes) : base(id)
+    {
+        (WarehouseId, Type, MaxWeightKg, MaxVolumeM3, LicenseCategory, AllowedCargoTypes) = (warehouseId, type,
+            maxWeightKg, maxVolumeM3, licenseCategory, allowedCargoTypes);
+    }
+
     public Guid WarehouseId { get; }
     public string Type { get; }
-    
-    Weight MaxWeightKg { get; }
-    Volume MaxVolumeM3 { get; }
-    LicenseCategory LicenseCategory { get; }
-    
-    private IReadOnlyList<CargoType> AllowedCargoTypes { get; }
-    
-    private Vehicle(Guid id, Guid warehouseId, string type, Weight maxWeightKg, Volume maxVolumeM3, LicenseCategory licenseCategory, IReadOnlyList<CargoType> allowedCargoTypes) : base(id)
-        => (WarehouseId, Type, MaxWeightKg, MaxVolumeM3, LicenseCategory, AllowedCargoTypes) = (warehouseId, type, maxWeightKg, maxVolumeM3, licenseCategory, allowedCargoTypes);
+
+    public Weight MaxWeightKg { get; }
+    public Volume MaxVolumeM3 { get; }
+    public LicenseCategory LicenseCategory { get; }
+
+    public IReadOnlyList<CargoType> AllowedCargoTypes { get; }
 
     public static Result<Vehicle> Create(Guid warehouseId, string type, Weight maxWeightKg, Volume maxVolumeM3,
         LicenseCategory licenseCategory, IReadOnlyList<CargoType> allowedCargoTypes)

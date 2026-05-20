@@ -1,7 +1,5 @@
-﻿using MediatR;
-using RouteOptimizer.Application.Abstractions;
+﻿using RouteOptimizer.Application.Abstractions;
 using RouteOptimizer.Domain.Common;
-using RouteOptimizer.Domain.Enums;
 
 namespace RouteOptimizer.Application.Orders.CreateBusinessOrder;
 
@@ -20,4 +18,4 @@ public record CreateBusinessOrderCommand(
     decimal Volume,
     string CargoType,
     string? Notes,
-    string WindowStrictness) : IRequest<Result<Guid>>;
+    string WindowStrictness) : ICommand<Result<Guid>>;

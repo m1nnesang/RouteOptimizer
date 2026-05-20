@@ -1,6 +1,6 @@
-﻿using Microsoft.Extensions.Logging;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace RouteOptimizer.Application.Behaviors;
 
@@ -9,9 +9,12 @@ public class LoggingBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, 
 {
     private readonly ILogger<LoggingBehavior<TRequest, TResponse>> _logger;
 
-    
-    public  LoggingBehavior(ILogger<LoggingBehavior<TRequest, TResponse>> logger) => _logger = logger;
-    
+
+    public LoggingBehavior(ILogger<LoggingBehavior<TRequest, TResponse>> logger)
+    {
+        _logger = logger;
+    }
+
     public async Task<TResponse> Handle(
         TRequest request,
         RequestHandlerDelegate<TResponse> next,
@@ -23,7 +26,7 @@ public class LoggingBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, 
         var response = await next();
         stopwatch.Stop();
 
-        _logger.LogInformation("Handled {RequestName} in {ElapsedMs}ms", 
+        _logger.LogInformation("Handled {RequestName} in {ElapsedMs}ms",
             typeof(TRequest).Name, stopwatch.ElapsedMilliseconds);
 
         return response;

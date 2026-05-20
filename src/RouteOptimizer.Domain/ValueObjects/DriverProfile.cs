@@ -5,15 +5,22 @@ namespace RouteOptimizer.Domain.ValueObjects;
 
 public class DriverProfile : ValueObject
 {
-    public LicenseCategory HighestLicenseCategory { get; }
-    
-    public DriverProfile (LicenseCategory highestLicenseCategory)
+    private DriverProfile()
+    {
+    } // EF Core
+
+    public DriverProfile(LicenseCategory highestLicenseCategory)
     {
         HighestLicenseCategory = highestLicenseCategory;
     }
-    
-    public bool CanDrive(LicenseCategory required) => HighestLicenseCategory >= required;
-    
+
+    public LicenseCategory HighestLicenseCategory { get; }
+
+    public bool CanDrive(LicenseCategory required)
+    {
+        return HighestLicenseCategory >= required;
+    }
+
     protected override IEnumerable<object?> GetEqualityComponents()
     {
         yield return HighestLicenseCategory;

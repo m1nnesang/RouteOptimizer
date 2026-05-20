@@ -3,16 +3,17 @@ using MediatR;
 
 namespace RouteOptimizer.Application.Behaviors;
 
-public class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse> where TRequest : IRequest<TResponse>
+public class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
+    where TRequest : IRequest<TResponse>
 {
-    private readonly IEnumerable<IValidator<TRequest>>  _validators;
-    
+    private readonly IEnumerable<IValidator<TRequest>> _validators;
+
     public ValidationBehavior(IEnumerable<IValidator<TRequest>> validators)
     {
         _validators = validators;
     }
-    
-    
+
+
     public async Task<TResponse> Handle(
         TRequest request,
         RequestHandlerDelegate<TResponse> next,
@@ -26,12 +27,9 @@ public class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<TReques
         var errors = result.SelectMany(r => r.Errors)
             .Where(e => !string.IsNullOrEmpty(e.ErrorMessage))
             .ToList();
-        
-        if (errors.Any())
-        {
-            throw new ValidationException(errors);
-        }
-        
+
+        if (errors.Any()) throw new ValidationException(errors);
+
         return await next();
     }
 }

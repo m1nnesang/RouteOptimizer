@@ -2,9 +2,9 @@
 
 public enum LicenseCategory
 {
-    B, 
-    BE, 
-    C1, 
-    C, 
+    B,
+    BE,
+    C1,
+    C,
     CE
 }
