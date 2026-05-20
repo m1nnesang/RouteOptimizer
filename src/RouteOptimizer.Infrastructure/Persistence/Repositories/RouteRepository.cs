@@ -20,7 +20,9 @@ public class RouteRepository : IRouteRepository
 
     public async Task<Route?> GetByIdAsync(Guid id, CancellationToken ct)
     {
-        return await _db.Routes.FindAsync(new object[] { id }, ct);
+        return await _db.Routes
+            .Include(r => r.Stops)
+            .FirstOrDefaultAsync(r => r.Id == id, ct);
     }
 
     public async Task<IReadOnlyList<Route>> GetByWarehouseIdAsync(Guid warehouseId, CancellationToken ct)

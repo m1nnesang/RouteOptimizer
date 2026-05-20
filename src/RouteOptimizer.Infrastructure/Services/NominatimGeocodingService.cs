@@ -38,8 +38,8 @@ public class NominatimGeocodingService : IGeocodingService
 
     private sealed class NominatimResult
     {
-        [JsonPropertyName("lat")] public string Lat { get; } = null!;
+        [JsonPropertyName("lat")] public string Lat { get; init; } = null!;
 
-        [JsonPropertyName("lon")] public string Lon { get; } = null!;
+        [JsonPropertyName("lon")] public string Lon { get; init; } = null!;
     }
 }

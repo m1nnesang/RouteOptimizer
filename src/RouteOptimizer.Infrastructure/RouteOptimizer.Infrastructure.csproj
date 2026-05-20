@@ -13,6 +13,8 @@
         <PackageReference Include="Microsoft.Extensions.Http" />
         <PackageReference Include="MailKit" />
         <PackageReference Include="MimeKit" />
+        <PackageReference Include="BCrypt.Net-Next" />
+        <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
     </ItemGroup>
 
     <PropertyGroup>

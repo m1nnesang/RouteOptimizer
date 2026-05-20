@@ -6,6 +6,19 @@ namespace RouteOptimizer.Domain.Entities;
 
 public class User : AggregateRoot<Guid>
 {
+    public string Email { get; }
+    public string FirstName { get; }
+    public string LastName { get; }
+    public string PasswordHash { get; private set; }
+
+    public PhoneNumber PhoneNumber { get; }
+    public UserRole Role { get; }
+    public Guid? WarehouseId { get; }
+
+    public DriverProfile? DriverProfile { get; }
+
+    public bool IsActive { get; private set; }
+
     private User() : base(default)
     {
         Email = null!;
@@ -18,38 +31,25 @@ public class User : AggregateRoot<Guid>
     private User(Guid id, string email, string firstName, string lastName, string passwordHash, PhoneNumber phoneNumber,
         UserRole role, Guid? warehouseId, DriverProfile? driverProfile) : base(id)
     {
-        if (role == UserRole.Driver && driverProfile is null)
-            throw new InvalidOperationException($"{nameof(DriverProfile)} is required for Driver role");
-
-        if (role != UserRole.Driver && driverProfile is not null)
-            throw new ArgumentException($"Only Driver can have a {nameof(DriverProfile)}");
-
-        if (role != UserRole.Manager && warehouseId is null)
-            throw new InvalidOperationException("Warehouse is required for Driver and Dispatcher ");
-
-
         (Email, FirstName, LastName, PasswordHash, PhoneNumber, Role, WarehouseId, DriverProfile)
             = (email, firstName, lastName, passwordHash, phoneNumber, role, warehouseId, driverProfile);
 
         IsActive = true;
     }
 
-    public string Email { get; }
-    public string FirstName { get; }
-    public string LastName { get; }
-    public string PasswordHash { get; }
-
-    public PhoneNumber PhoneNumber { get; }
-    public UserRole Role { get; }
-    public Guid? WarehouseId { get; }
-
-    public DriverProfile? DriverProfile { get; }
-
-    public bool IsActive { get; private set; }
-
     public static Result<User> Create(string email, string firstName, string lastName, string passwordHash,
         PhoneNumber phoneNumber, UserRole role, Guid? warehouseId, DriverProfile? driverProfile)
     {
+
+        if (role == UserRole.Driver && driverProfile is null)
+            return Result<User>.Failure($"{nameof(DriverProfile)} is required for Driver role");
+
+        if (role != UserRole.Driver && driverProfile is not null)
+            return Result<User>.Failure($"Only Driver can have a {nameof(DriverProfile)}");
+
+        if (role != UserRole.Manager && warehouseId is null)
+            return Result<User>.Failure("Warehouse is required for Driver and Dispatcher ");
+
         if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(firstName) ||
             string.IsNullOrWhiteSpace(lastName))
 
@@ -65,5 +65,13 @@ public class User : AggregateRoot<Guid>
     public void Deactivate()
     {
         IsActive = false;
+    }
+
+
+     public void SetPassword(string passwordHash)
+    {
+        if (string.IsNullOrWhiteSpace(passwordHash))
+            throw new ArgumentException("Password hash cannot be empty", nameof(passwordHash));
+        PasswordHash = passwordHash;
     }
 }

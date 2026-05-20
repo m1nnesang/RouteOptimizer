@@ -1,4 +1,5 @@
 ﻿using FluentValidation;
+using RouteOptimizer.Domain.Enums;
 
 namespace RouteOptimizer.Application.Orders.CreateIndividualOrder;
 
@@ -18,5 +19,7 @@ public class CreateIndividualOrderCommandValidator : AbstractValidator<CreateInd
             .Must(x => x.Start.HasValue || x.End.HasValue)
             .When(x => !string.IsNullOrEmpty(x.WindowStrictness))
             .WithMessage("At least one of Start or End must be provided when Strictness is set");
+        RuleFor(x => x.PhoneNumber).NotEmpty().WithMessage("PhoneNumber is required");
+        RuleFor(x => x.CargoType).NotEmpty().Must(x => Enum.IsDefined(typeof(CargoType), x)).WithMessage("Invalid CargoType");
     }
 }

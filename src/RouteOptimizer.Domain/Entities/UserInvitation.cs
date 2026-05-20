@@ -5,6 +5,14 @@ namespace RouteOptimizer.Domain.Entities;
 
 public class UserInvitation : AggregateRoot<Guid>
 {
+    private UserInvitation() : base(default)
+    {
+        UserId = Guid.Empty;
+        Token = null!;
+        ExpiresAt = default;
+        UsedAt = null;
+    }
+
     private UserInvitation(Guid id, Guid userId, string token, DateTime expiresAt, DateTime? usedAt) : base(id)
     {
         (UserId, Token, ExpiresAt, UsedAt) = (userId, token, expiresAt, usedAt);

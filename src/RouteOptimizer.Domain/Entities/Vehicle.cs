@@ -11,7 +11,7 @@ public class Vehicle : AggregateRoot<Guid>
         Type = null!;
         MaxWeightKg = null!;
         MaxVolumeM3 = null!;
-        AllowedCargoTypes = null!;
+        AllowedCargoTypes = [];
     } // EF Core
 
     private Vehicle(Guid id, Guid warehouseId, string type, Weight maxWeightKg, Volume maxVolumeM3,
@@ -28,7 +28,7 @@ public class Vehicle : AggregateRoot<Guid>
     public Volume MaxVolumeM3 { get; }
     public LicenseCategory LicenseCategory { get; }
 
-    public IReadOnlyList<CargoType> AllowedCargoTypes { get; }
+    public IReadOnlyList<CargoType> AllowedCargoTypes { get; private set; }
 
     public static Result<Vehicle> Create(Guid warehouseId, string type, Weight maxWeightKg, Volume maxVolumeM3,
         LicenseCategory licenseCategory, IReadOnlyList<CargoType> allowedCargoTypes)
