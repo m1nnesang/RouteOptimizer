@@ -1,4 +1,5 @@
 ﻿using RouteOptimizer.Domain.Common;
+using RouteOptimizer.Domain.Entities.Orders;
 using RouteOptimizer.Domain.Enums;
 using RouteOptimizer.Domain.Events.Route;
 
@@ -120,5 +121,23 @@ public class Route : AggregateRoot<Guid>
             throw new InvalidOperationException("Cannot remove non-pending stop");
 
         _stops.Remove(stop);
+    }
+
+    public void ApplyOptimizedOrders(IReadOnlyList<Guid> orderedStopIds)
+    {
+        var stopIds = _stops.Select(s => s.Id).ToHashSet();
+
+        if (orderedStopIds.Count != _stops.Count ||
+            !orderedStopIds.All(id => stopIds.Contains(id)))
+            throw new InvalidOperationException("Ordered stop ids do not match route stops");
+
+        if (Status is not RouteStatus.Draft)
+            throw new InvalidOperationException("Route is not in draft state");
+
+        var order = orderedStopIds
+            .Select((id, index) => new { id, index })
+            .ToDictionary(x => x.id, x => x.index);
+
+        _stops.Sort((a, b) => order[a.Id].CompareTo(order[b.Id]));
     }
 }

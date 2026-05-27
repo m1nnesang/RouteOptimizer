@@ -31,6 +31,10 @@ public static class ServiceCollectionExtensions
         });
 
         services.AddScoped<IGeocodingService, NominatimGeocodingService>();
+        services.AddScoped<IPasswordHasher, Argon2PasswordHasher>();
+        services.Configure<JwtSettings>(configuration.GetSection("Jwt"));
+        services.AddSingleton<ITokenService, JwtTokenService>();
+        services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 
         #region minio
         var minioConfig = configuration.GetSection("Minio");

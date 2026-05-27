@@ -26,20 +26,15 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, Result<A
   {
     var user = await _userRepository.GetByEmailAsync(request.Email, ct);
 
-    if (user is null || !user.IsActive)
-      return Result<AuthTokenDto>.Failure("Invalid credentials");
-
-    var hash = _passwordHasher.Verify(request.Password, user.PasswordHash);
-
-    if (hash == false)
+    if (user is null || !user.IsActive || !_passwordHasher.Verify(request.Password, user.PasswordHash))
       return Result<AuthTokenDto>.Failure("Invalid credentials");
 
     var accessToken = _tokenService.GenerateAccessToken(user);
     var (rawToken, tokenHash) = _tokenService.GenerateRefreshToken();
 
-   var refreshToken = RefreshTokenEntity.Create(user.Id, tokenHash, _tokenService.RefreshTokenExpiration);
+    var refreshToken = RefreshTokenEntity.Create(user.Id, tokenHash, _tokenService.RefreshTokenExpiration);
 
-   await _refreshTokenRepository.AddAsync(refreshToken, ct);
+    await _refreshTokenRepository.AddAsync(refreshToken, ct);
     await _unitOfWork.SaveChangesAsync(ct);
 
     return Result<AuthTokenDto>.Success(new AuthTokenDto(accessToken, rawToken,refreshToken.ExpiresAt));

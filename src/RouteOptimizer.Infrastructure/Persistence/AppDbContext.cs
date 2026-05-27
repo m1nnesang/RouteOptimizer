@@ -28,6 +28,8 @@ public class AppDbContext : DbContext, IUnitOfWork
     public DbSet<UserInvitation> UserInvitations { get; set; } = null!;
     public DbSet<Vehicle> Vehicles { get; set; } = null!;
     public DbSet<DeliveryAttempt> DeliveryAttempts { get; set; } = null!;
+    public DbSet<RefreshToken> RefreshTokens { get; set; }
+    public DbSet<IdempotencyRecord> IdempotencyRecords { get; set; }
 
     #endregion
 }

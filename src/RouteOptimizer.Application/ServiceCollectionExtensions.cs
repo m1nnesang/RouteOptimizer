@@ -2,6 +2,8 @@
 using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
+using RouteOptimizer.Application.Abstractions;
+using RouteOptimizer.Application.Algorithms;
 using RouteOptimizer.Application.Behaviors;
 
 namespace RouteOptimizer.Application;
@@ -15,6 +17,16 @@ public static class ServiceCollectionExtensions
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(UnitOfWorkBehavior<,>));
+        services.AddSingleton<NearestNeighborOptimizer>();
+        services.AddSingleton<TwoOptOptimizer>();
+        services.AddSingleton<IRouteOptimizer>(sp => new CompositeRouteOptimizer(
+            [
+                sp.GetRequiredService<NearestNeighborOptimizer>(),
+                sp.GetRequiredService<TwoOptOptimizer>()
+            ]
+        ));
+
+
 
         return services;
     }
