@@ -1,16 +1,17 @@
 <Solution>
-    <Folder Name="/src/"/>
+    <Folder Name="/src/" />
     <Folder Name="/src/Api/">
-        <Project Path="src/RouteOptimizer.API/RouteOptimizer.API.csproj"/>
+        <Project Path="src/RouteOptimizer.API/RouteOptimizer.API.csproj" />
     </Folder>
     <Folder Name="/src/Core/">
-        <Project Path="src/RouteOptimizer.Application/RouteOptimizer.Application.csproj"/>
-        <Project Path="src/RouteOptimizer.Domain/RouteOptimizer.Domain.csproj"/>
+        <Project Path="src/RouteOptimizer.Application/RouteOptimizer.Application.csproj" />
+        <Project Path="src/RouteOptimizer.Domain/RouteOptimizer.Domain.csproj" />
     </Folder>
     <Folder Name="/src/Infrastructure/">
-        <Project Path="src/RouteOptimizer.Infrastructure/RouteOptimizer.Infrastructure.csproj"/>
+        <Project Path="src/RouteOptimizer.Infrastructure/RouteOptimizer.Infrastructure.csproj" />
     </Folder>
     <Folder Name="/tests/">
-        <Project Path="tests/RouteOptimizer.Domain.Tests/RouteOptimizer.Domain.Tests.csproj"/>
+        <Project Path="tests/RouteOptimizer.Application.Tests/RouteOptimizer.Application.Tests.csproj" />
+        <Project Path="tests/RouteOptimizer.Domain.Tests/RouteOptimizer.Domain.Tests.csproj" />
     </Folder>
 </Solution>
