@@ -9,7 +9,15 @@ public sealed class NearestNeighborOptimizer : IRouteOptimizer
 
     public Task<RouteOptimizerOutput> OptimizeAsync(RouteOptimizerInput input, CancellationToken ct = default)
     {
-        List<Guid> orderedStopIds = new List<Guid>();
+        if (input.Stops.Count == 0)
+            return Task.FromResult(new RouteOptimizerOutput
+            {
+                OrderedStopIds = [],
+                TotalDurationSeconds = 0,
+                AlgorithmName = Name
+            });
+
+        List<Guid> orderedStopIds = [];
         double totalDurationSeconds = 0;
 
         bool[] visited = new bool[input.Stops.Count];
@@ -34,6 +42,10 @@ public sealed class NearestNeighborOptimizer : IRouteOptimizer
                     }
                 }
             }
+
+            if (bestIndex == -1)
+                throw new InvalidOperationException("Best index not set");
+
             visited[bestIndex] = true;
             orderedStopIds.Add(input.Stops[bestIndex].StopId);
             totalDurationSeconds += bestDuration;

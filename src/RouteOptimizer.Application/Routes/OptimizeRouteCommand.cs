@@ -1,3 +1,5 @@
-﻿namespace RouteOptimizer.Application.Routes;
+﻿using RouteOptimizer.Application.Abstractions;
 
-public record OptimizeRouteCommand();
+namespace RouteOptimizer.Application.Routes;
+
+public record OptimizeRouteCommand(Guid RouteId, DateOnly RouteDate) : ICommand<OptimizeRouteResult>;

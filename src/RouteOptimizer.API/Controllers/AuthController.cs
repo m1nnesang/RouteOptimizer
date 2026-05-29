@@ -14,7 +14,6 @@ public class AuthController : ControllerBase
 {
     private readonly IMediator _mediator;
 
-
     public AuthController(IMediator mediator) => _mediator = mediator;
 
     private IActionResult ToResponse<T>(Result<T> result) =>

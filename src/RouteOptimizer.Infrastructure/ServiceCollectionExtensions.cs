@@ -52,6 +52,12 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IMailService, SmtpMailService>();
         #endregion
 
+        services.AddHttpClient("Osrm", client =>
+        {
+            client.BaseAddress = new Uri(configuration["Osrm:BaseUrl"]!);
+        });
+        services.AddScoped<IDistanceMatrixProvider, OsrmDistanceMatrixProvider>();
+
         return services;
     }
 }

@@ -17,16 +17,8 @@ public static class ServiceCollectionExtensions
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(UnitOfWorkBehavior<,>));
-        services.AddSingleton<NearestNeighborOptimizer>();
-        services.AddSingleton<TwoOptOptimizer>();
-        services.AddSingleton<IRouteOptimizer>(sp => new CompositeRouteOptimizer(
-            [
-                sp.GetRequiredService<NearestNeighborOptimizer>(),
-                sp.GetRequiredService<TwoOptOptimizer>()
-            ]
-        ));
-
-
+        services.AddSingleton<IRouteOptimizer, NearestNeighborOptimizer>();
+        services.AddSingleton<IRouteOptimizer, TwoOptOptimizer>();
 
         return services;
     }
