@@ -10,14 +10,14 @@ public class OrderTests
     private IndividualOrder CreateOrder()
     {
         var warehouse = Guid.NewGuid();
-        var address = Address.Create("Main St", "Amsterdam", "1234AB", "NL").Value!;
-        var location = GeoCoordinate.Create(52.3676, 4.9041).Value!;
+        var address = Address.Create("ul. Marszałkowska 1", "Warszawa", "00-001", "Poland").Value!;
+        var location = GeoCoordinate.Create(52.2297, 21.0122).Value!;
         var weight = Weight.Create(10).Value!;
         var volume = Volume.Create(5).Value!;
-        var phone = PhoneNumber.Create("+31612345678").Value!;
+        var phone = PhoneNumber.Create("+48601234567").Value!;
         var cargoType = CargoType.General;
         var notes = string.Empty;
-        var customerName = "New Customer";
+        var customerName = "Jan Kowalski";
         var allowLeaveAtDoor = true;
         var time = DeliveryWindow.AnyTime();
 

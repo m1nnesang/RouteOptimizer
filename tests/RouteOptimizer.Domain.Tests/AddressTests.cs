@@ -8,25 +8,25 @@ public class AddressTests
     [Fact]
     public void Create_WithValidData_ReturnsSuccess()
     {
-        var result = Address.Create("Main St 1", "Amsterdam", "1234AB", "NL");
+        var result = Address.Create("ul. Marszałkowska 1", "Warszawa", "00-001", "Poland");
 
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
-        result.Value!.Street.Should().Be("Main St 1");
-        result.Value.City.Should().Be("Amsterdam");
-        result.Value.PostalCode.Should().Be("1234AB");
-        result.Value.Country.Should().Be("NL");
+        result.Value!.Street.Should().Be("ul. Marszałkowska 1");
+        result.Value.City.Should().Be("Warszawa");
+        result.Value.PostalCode.Should().Be("00-001");
+        result.Value.Country.Should().Be("Poland");
     }
 
     [Theory]
-    [InlineData("", "Amsterdam", "1234AB", "NL")]
-    [InlineData("Main St", "", "1234AB", "NL")]
-    [InlineData("Main St", "Amsterdam", "", "NL")]
-    [InlineData("Main St", "Amsterdam", "1234AB", "")]
-    [InlineData("   ", "Amsterdam", "1234AB", "NL")]
-    [InlineData("Main St", "   ", "1234AB", "NL")]
-    [InlineData("Main St", "Amsterdam", "   ", "NL")]
-    [InlineData("Main St", "Amsterdam", "1234AB", "   ")]
+    [InlineData("", "Warszawa", "00-001", "Poland")]
+    [InlineData("ul. Marszałkowska", "", "00-001", "Poland")]
+    [InlineData("ul. Marszałkowska", "Warszawa", "", "Poland")]
+    [InlineData("ul. Marszałkowska", "Warszawa", "00-001", "")]
+    [InlineData("   ", "Warszawa", "00-001", "Poland")]
+    [InlineData("ul. Marszałkowska", "   ", "00-001", "Poland")]
+    [InlineData("ul. Marszałkowska", "Warszawa", "   ", "Poland")]
+    [InlineData("ul. Marszałkowska", "Warszawa", "00-001", "   ")]
     public void Create_WithEmptyOrWhitespaceField_ReturnsFailure(string street, string city, string postalCode, string country)
     {
         var result = Address.Create(street, city, postalCode, country);
@@ -39,8 +39,8 @@ public class AddressTests
     [Fact]
     public void Create_TwoAddressesWithSameData_AreEqual()
     {
-        var a1 = Address.Create("Main St", "Amsterdam", "1234AB", "NL").Value!;
-        var a2 = Address.Create("Main St", "Amsterdam", "1234AB", "NL").Value!;
+        var a1 = Address.Create("ul. Marszałkowska", "Warszawa", "00-001", "Poland").Value!;
+        var a2 = Address.Create("ul. Marszałkowska", "Warszawa", "00-001", "Poland").Value!;
 
         a1.Should().Be(a2);
     }
@@ -48,8 +48,8 @@ public class AddressTests
     [Fact]
     public void Create_TwoAddressesWithDifferentStreet_AreNotEqual()
     {
-        var a1 = Address.Create("Main St", "Amsterdam", "1234AB", "NL").Value!;
-        var a2 = Address.Create("Other St", "Amsterdam", "1234AB", "NL").Value!;
+        var a1 = Address.Create("ul. Marszałkowska", "Warszawa", "00-001", "Poland").Value!;
+        var a2 = Address.Create("ul. Krakowska", "Warszawa", "00-001", "Poland").Value!;
 
         a1.Should().NotBe(a2);
     }
@@ -57,8 +57,8 @@ public class AddressTests
     [Fact]
     public void Create_TwoAddressesWithDifferentCity_AreNotEqual()
     {
-        var a1 = Address.Create("Main St", "Amsterdam", "1234AB", "NL").Value!;
-        var a2 = Address.Create("Main St", "Rotterdam", "1234AB", "NL").Value!;
+        var a1 = Address.Create("ul. Marszałkowska", "Warszawa", "00-001", "Poland").Value!;
+        var a2 = Address.Create("ul. Marszałkowska", "Kraków", "00-001", "Poland").Value!;
 
         a1.Should().NotBe(a2);
     }
@@ -66,8 +66,8 @@ public class AddressTests
     [Fact]
     public void Create_TwoAddressesWithDifferentCountry_AreNotEqual()
     {
-        var a1 = Address.Create("Main St", "Amsterdam", "1234AB", "NL").Value!;
-        var a2 = Address.Create("Main St", "Amsterdam", "1234AB", "DE").Value!;
+        var a1 = Address.Create("ul. Marszałkowska", "Warszawa", "00-001", "Poland").Value!;
+        var a2 = Address.Create("ul. Marszałkowska", "Warszawa", "00-001", "Germany").Value!;
 
         a1.Should().NotBe(a2);
     }

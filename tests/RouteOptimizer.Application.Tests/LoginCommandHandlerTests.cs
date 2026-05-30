@@ -25,6 +25,8 @@ public class LoginCommandHandlerTests
             _refreshTokenRepo.Object);
     }
 
+    #region Failure Cases
+
     [Fact]
     public async Task Handle_UserNotFound_ReturnsFailure()
     {
@@ -71,6 +73,10 @@ public class LoginCommandHandlerTests
         result.Error.Should().Contain("Invalid credentials");
     }
 
+    #endregion
+
+    #region Happy Path
+
     [Fact]
     public async Task Handle_ValidCredentials_ReturnsAuthTokenDto()
     {
@@ -99,10 +105,12 @@ public class LoginCommandHandlerTests
         result.Value.RefreshToken.Should().Be("raw-token");
     }
 
+    #endregion
+
     private User CreateActiveUser()
     {
-        var phone = PhoneNumber.Create("+79001234567").Value!;
-        return User.Create("test@test.com", "John", "Doe", "hashedpassword", phone, UserRole.Dispatcher, Guid.NewGuid(),
+        var phone = PhoneNumber.Create("+48601234567").Value!;
+        return User.Create("test@test.com", "Jan", "Kowalski", "hashedpassword", phone, UserRole.Dispatcher, Guid.NewGuid(),
             null).Value!;
     }
 }

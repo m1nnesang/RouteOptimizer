@@ -18,6 +18,8 @@ public class GetOrderByIdQueryHandlerTests
         _handler = new GetOrderByIdQueryHandler(_orderRepository.Object);
     }
 
+    #region Failure Cases
+
     [Fact]
     public async Task Handle_OrderNotFound_ReturnsFailure()
     {
@@ -32,6 +34,10 @@ public class GetOrderByIdQueryHandlerTests
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Contain("Order not found");
     }
+
+    #endregion
+
+    #region Happy Path
 
     [Fact]
     public async Task Handle_IndividualOrderFound_ReturnsMappedDto()
@@ -49,8 +55,8 @@ public class GetOrderByIdQueryHandlerTests
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
         result.Value!.Id.Should().Be(order.Id);
-        result.Value.CustomerName.Should().Be("Ivan Ivanov");
-        result.Value.City.Should().Be("Moscow");
+        result.Value.CustomerName.Should().Be("Jan Kowalski");
+        result.Value.City.Should().Be("Warszawa");
         result.Value.CompanyName.Should().BeNull();
     }
 
@@ -70,35 +76,37 @@ public class GetOrderByIdQueryHandlerTests
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
         result.Value!.Id.Should().Be(order.Id);
-        result.Value.CompanyName.Should().Be("Acme Corp");
+        result.Value.CompanyName.Should().Be("Firma Logistyczna Sp. z o.o.");
         result.Value.CustomerName.Should().BeNull();
     }
 
+    #endregion
+
     private static IndividualOrder CreateIndividualOrder()
     {
-        var address = Address.Create("Tverskaya 1", "Moscow", "125009", "Russia").Value!;
-        var location = GeoCoordinate.Create(55.75, 37.61).Value!;
+        var address = Address.Create("ul. Marszałkowska 1", "Warszawa", "00-001", "Poland").Value!;
+        var location = GeoCoordinate.Create(52.2297, 21.0122).Value!;
         var weight = Weight.Create(5m).Value!;
         var volume = Volume.Create(0.5m).Value!;
-        var phone = PhoneNumber.Create("+79001234567").Value!;
+        var phone = PhoneNumber.Create("+48601234567").Value!;
         var window = DeliveryWindow.AnyTime();
 
         return IndividualOrder.Create(
             Guid.NewGuid(), address, location, weight, volume, window,
-            phone, CargoType.General, null, "Ivan Ivanov", false).Value!;
+            phone, CargoType.General, null, "Jan Kowalski", false).Value!;
     }
 
     private static BusinessOrder CreateBusinessOrder()
     {
-        var address = Address.Create("Lenina 5", "Saint Petersburg", "190000", "Russia").Value!;
-        var location = GeoCoordinate.Create(59.93, 30.32).Value!;
+        var address = Address.Create("ul. Floriańska 3", "Kraków", "31-019", "Poland").Value!;
+        var location = GeoCoordinate.Create(50.0614, 19.9366).Value!;
         var weight = Weight.Create(10m).Value!;
         var volume = Volume.Create(1m).Value!;
-        var phone = PhoneNumber.Create("+79009876543").Value!;
+        var phone = PhoneNumber.Create("+48122345678").Value!;
         var window = DeliveryWindow.AnyTime();
 
         return BusinessOrder.Create(
             Guid.NewGuid(), address, location, weight, volume, window,
-            phone, CargoType.General, null, "Acme Corp", "Jane Doe").Value!;
+            phone, CargoType.General, null, "Firma Logistyczna Sp. z o.o.", "Anna Nowak").Value!;
     }
 }

@@ -7,8 +7,8 @@ namespace RouteOptimizer.Tests;
 
 public class StopTests
 {
-    private static Address ValidAddress => Address.Create("Main St", "Amsterdam", "1234AB", "NL").Value!;
-    private static GeoCoordinate ValidLocation => GeoCoordinate.Create(52.3676, 4.9041).Value!;
+    private static Address ValidAddress => Address.Create("ul. Marszałkowska 1", "Warszawa", "00-001", "Poland").Value!;
+    private static GeoCoordinate ValidLocation => GeoCoordinate.Create(52.2297, 21.0122).Value!;
     private static Guid ValidRouteId => Guid.NewGuid();
 
     // --- Create() ---

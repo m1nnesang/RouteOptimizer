@@ -25,6 +25,8 @@ public class AcceptInvitationCommandHandlerTests
             _unitOfWork.Object);
     }
 
+    #region Failure Cases
+
     [Fact]
     public async Task Handle_InvitationNotFound_ReturnsFailure()
     {
@@ -90,6 +92,10 @@ public class AcceptInvitationCommandHandlerTests
         result.Error.Should().Contain("User not found");
     }
 
+    #endregion
+
+    #region Happy Path
+
     [Fact]
     public async Task Handle_ValidInvitation_SetsPasswordAndReturnsSuccess()
     {
@@ -113,10 +119,12 @@ public class AcceptInvitationCommandHandlerTests
         _unitOfWork.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
+    #endregion
+
     private User CreateActiveUser()
     {
-        var phone = PhoneNumber.Create("+79001234567").Value!;
-        return User.Create("test@test.com", "John", "Doe", "hashedpassword", phone, UserRole.Dispatcher, Guid.NewGuid(),
+        var phone = PhoneNumber.Create("+48601234567").Value!;
+        return User.Create("test@test.com", "Jan", "Kowalski", "hashedpassword", phone, UserRole.Dispatcher, Guid.NewGuid(),
             null).Value!;
     }
 }

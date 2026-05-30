@@ -11,8 +11,8 @@ public class RouteTests
 
     private static Stop CreateStop(Guid routeId)
     {
-        var address = Address.Create("Main St", "Amsterdam", "1234AB", "NL").Value!;
-        var location = GeoCoordinate.Create(52.3676, 4.9041).Value!;
+        var address = Address.Create("ul. Marszałkowska 1", "Warszawa", "00-001", "Poland").Value!;
+        var location = GeoCoordinate.Create(52.2297, 21.0122).Value!;
         return Stop.Create(routeId, address, location, null, 0, []).Value!;
     }
 

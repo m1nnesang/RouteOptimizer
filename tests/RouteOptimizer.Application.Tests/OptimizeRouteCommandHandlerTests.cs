@@ -30,6 +30,8 @@ public class OptimizeRouteCommandHandlerTests
             _unitOfWork.Object);
     }
 
+    #region Failure Cases
+
     [Fact]
     public async Task Handle_RouteNotFound_ThrowsNotFoundException()
     {
@@ -62,6 +64,10 @@ public class OptimizeRouteCommandHandlerTests
 
         await act.Should().ThrowAsync<NotFoundException>().WithMessage("*Warehouse not found*");
     }
+
+    #endregion
+
+    #region Happy Path
 
     [Fact]
     public async Task Handle_ValidRouteWithStops_ReturnsOptimizeRouteResult()
@@ -113,17 +119,19 @@ public class OptimizeRouteCommandHandlerTests
         _unitOfWork.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
+    #endregion
+
     private static Stop CreateStop(Guid routeId)
     {
-        var address = Address.Create("Tverskaya 1", "Moscow", "125009", "Russia").Value!;
-        var location = GeoCoordinate.Create(55.75, 37.61).Value!;
+        var address = Address.Create("ul. Marszałkowska 1", "Warszawa", "00-001", "Poland").Value!;
+        var location = GeoCoordinate.Create(52.2297, 21.0122).Value!;
         return Stop.Create(routeId, address, location, null, 0, new List<Guid>()).Value!;
     }
 
     private static Warehouse CreateWarehouse(Guid id)
     {
-        var address = Address.Create("Warehouse St 1", "Moscow", "101000", "Russia").Value!;
-        var location = GeoCoordinate.Create(55.80, 37.50).Value!;
-        return Warehouse.Create("Main Warehouse", address, location).Value!;
+        var address = Address.Create("ul. Magazynowa 1", "Warszawa", "02-274", "Poland").Value!;
+        var location = GeoCoordinate.Create(52.1800, 20.9700).Value!;
+        return Warehouse.Create("Magazyn Główny", address, location).Value!;
     }
 }

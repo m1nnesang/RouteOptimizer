@@ -21,6 +21,8 @@ public class RevokeTokenCommandHandlerTests
             _unitOfWork.Object);
     }
 
+    #region Failure Cases
+
     [Fact]
     public async Task Handle_TokenNotFound_ReturnsFailure()
     {
@@ -71,6 +73,10 @@ public class RevokeTokenCommandHandlerTests
         result.Error.Should().Contain("Invalid or expired token");
     }
 
+    #endregion
+
+    #region Happy Path
+
     [Fact]
     public async Task Handle_ValidToken_RevokesTokenAndReturnsSuccess()
     {
@@ -90,4 +96,6 @@ public class RevokeTokenCommandHandlerTests
         token.IsRevoked.Should().BeTrue();
         _unitOfWork.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
+
+    #endregion
 }

@@ -7,7 +7,7 @@ namespace RouteOptimizer.Tests;
 
 public class UserTests
 {
-    private static PhoneNumber ValidPhone => PhoneNumber.Create("+31612345678").Value!;
+    private static PhoneNumber ValidPhone => PhoneNumber.Create("+48601234567").Value!;
     private static DriverProfile ValidDriverProfile => new DriverProfile(LicenseCategory.C);
     private static Guid ValidWarehouseId => Guid.NewGuid();
 

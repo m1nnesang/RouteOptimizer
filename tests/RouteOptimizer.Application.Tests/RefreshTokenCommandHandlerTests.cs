@@ -23,6 +23,8 @@ public class RefreshTokenCommandHandlerTests
             _userRepo.Object);
     }
 
+    #region Failure Cases
+
     [Fact]
     public async Task Handle_TokenNotFound_ReturnsFailure()
     {
@@ -113,6 +115,10 @@ public class RefreshTokenCommandHandlerTests
         result.Error.Should().Contain("Invalid or expired token");
     }
 
+    #endregion
+
+    #region Happy Path
+
     [Fact]
     public async Task Handle_ValidToken_ReturnsNewAuthTokenDto()
     {
@@ -140,10 +146,12 @@ public class RefreshTokenCommandHandlerTests
         result.Value.RefreshToken.Should().Be("new-raw-token");
     }
 
+    #endregion
+
     private User CreateActiveUser()
     {
-        var phone = PhoneNumber.Create("+79001234567").Value!;
-        return User.Create("test@test.com", "John", "Doe", "hashedpassword", phone, UserRole.Dispatcher, Guid.NewGuid(),
+        var phone = PhoneNumber.Create("+48601234567").Value!;
+        return User.Create("test@test.com", "Jan", "Kowalski", "hashedpassword", phone, UserRole.Dispatcher, Guid.NewGuid(),
             null).Value!;
     }
 }

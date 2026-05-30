@@ -21,6 +21,8 @@ public class CreateIndividualOrderCommandHandlerTests
             _orderRepository.Object);
     }
 
+    #region Failure Cases
+
     [Fact]
     public async Task Handle_InvalidAddress_ReturnsFailure()
     {
@@ -107,6 +109,10 @@ public class CreateIndividualOrderCommandHandlerTests
         result.Error.Should().Contain("Invalid cargo type");
     }
 
+    #endregion
+
+    #region Happy Path
+
     [Fact]
     public async Task Handle_ValidCommand_CreatesOrderAndReturnsId()
     {
@@ -127,15 +133,17 @@ public class CreateIndividualOrderCommandHandlerTests
         _orderRepository.Verify(x => x.AddAsync(It.IsAny<Order>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
+    #endregion
+
     private static CreateIndividualOrderCommand CreateValidCommand() =>
         new(
             WarehouseId: Guid.NewGuid(),
-            Street: "Tverskaya 1",
-            City: "Moscow",
-            Postcode: "125009",
-            Country: "Russia",
-            CustomerName: "Ivan Ivanov",
-            PhoneNumber: "+79001234567",
+            Street: "ul. Marszałkowska 1",
+            City: "Warszawa",
+            Postcode: "00-001",
+            Country: "Poland",
+            CustomerName: "Jan Kowalski",
+            PhoneNumber: "+48601234567",
             Weight: 5m,
             Volume: 0.5m,
             CargoType: "General",
