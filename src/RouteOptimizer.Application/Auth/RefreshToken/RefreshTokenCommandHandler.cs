@@ -10,11 +10,9 @@ public sealed class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCom
     private readonly ITokenService _tokenService;
     private readonly IRefreshTokenRepository _refreshTokenRepository;
     private readonly IUserRepository _userRepository;
-    private readonly IUnitOfWork _unitOfWork;
 
-
-    public RefreshTokenCommandHandler(ITokenService tokenService, IRefreshTokenRepository refreshTokenRepository, IUserRepository userRepository, IUnitOfWork unitOfWork) =>
-        (_tokenService, _refreshTokenRepository, _userRepository, _unitOfWork) = (tokenService, refreshTokenRepository, userRepository, unitOfWork);
+    public RefreshTokenCommandHandler(ITokenService tokenService, IRefreshTokenRepository refreshTokenRepository, IUserRepository userRepository) =>
+        (_tokenService, _refreshTokenRepository, _userRepository) = (tokenService, refreshTokenRepository, userRepository);
 
     public async Task<Result<AuthTokenDto>> Handle(RefreshTokenCommand request, CancellationToken ct)
     {
@@ -36,7 +34,6 @@ public sealed class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCom
         var newToken = RefreshTokenEntity.Create(user.Id, tokenHash, _tokenService.RefreshTokenExpiration);
 
         await _refreshTokenRepository.AddAsync(newToken, ct);
-        await _unitOfWork.SaveChangesAsync(ct);
 
         return Result<AuthTokenDto>.Success(new AuthTokenDto(accessToken, rawToken, newToken.ExpiresAt));
     }

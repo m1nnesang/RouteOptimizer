@@ -12,7 +12,7 @@ public class Address : ValueObject
         Country = null!;
     } // EF Core
 
-    public Address(string street, string city, string postalCode, string country)
+    private Address(string street, string city, string postalCode, string country)
     {
         Street = street;
         City = city;

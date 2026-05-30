@@ -52,7 +52,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.UseMiddleware<IdempotencyMiddleware>();
 app.MapControllers();
-app.MapHub<RouteHub>("/hubs/routes");
+app.MapHub<RouteHub>("/hubs/routes").RequireAuthorization();
 
 
 app.Run();

@@ -29,8 +29,61 @@ services:
     ports:
       - "1025:1025"
       - "8025:8025"
-      
+
+  osrm-init:
+    image: osrm/osrm-backend
+    container_name: route-optimizer-osrm-init
+    volumes:
+      - osrm_data:/data
+    command: >
+      sh -c "
+        wget -q https://download.geofabrik.de/europe/netherlands-latest.osm.pbf -O /data/map.osm.pbf &&
+        osrm-extract -p /opt/car.lua /data/map.osm.pbf -o /data/map.osrm &&
+        osrm-partition /data/map.osrm &&
+        osrm-customize /data/map.osrm
+      "
+    profiles: ["init"]
+
+  osrm:
+    image: osrm/osrm-backend
+    container_name: route-optimizer-osrm
+    ports:
+      - "5000:5000"
+    volumes:
+      - osrm_data:/data
+    command: osrm-routed --algorithm mld /data/map.osrm --max-table-size 10000
+
+  api:
+    build:
+      context: .
+      dockerfile: src/RouteOptimizer.API/Dockerfile
+    container_name: route-optimizer-api
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+      - minio
+      - osrm
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=routeoptimizer;Username=postgres;Password=postgres
+      - Osrm__BaseUrl=http://osrm:5000
+      - Minio__Endpoint=minio:9000
+      - Minio__AccessKey=minioadmin
+      - Minio__SecretKey=minioadmin
+      - Minio__UseSSL=false
+      - Smtp__Host=mailhog
+      - Smtp__Port=1025
+      - Jwt__SecretKey=O7tSuB8PahghuTnecJGewzOzmf97rsDZcdrWneQeE2c=
+      - Jwt__Issuer=RouteOptimizer
+      - Jwt__Audience=RouteOptimizer
+      - Jwt__AccessTokenExpirationMinutes=60
+      - Jwt__RefreshTokenExpirationHours=12
+      - Smtp__From=noreply@routeoptimizer.local
+      - Smtp__UseSsl=false
+
 
 volumes:
   postgres_data:
   minio_data:
+  osrm_data:

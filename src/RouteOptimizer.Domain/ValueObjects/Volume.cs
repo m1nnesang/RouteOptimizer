@@ -8,7 +8,7 @@ public class Volume : ValueObject
     {
     } // EF Core
 
-    public Volume(decimal value)
+    private Volume(decimal value)
     {
         Value = value;
     }

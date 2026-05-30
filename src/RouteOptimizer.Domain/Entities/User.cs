@@ -50,6 +50,9 @@ public class User : AggregateRoot<Guid>
         if (role != UserRole.Manager && warehouseId is null)
             return Result<User>.Failure("Warehouse is required for Driver and Dispatcher ");
 
+        if (role == UserRole.Manager && warehouseId is not null)
+            return Result<User>.Failure("Warehouse is not required for Manager");
+
         if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(firstName) ||
             string.IsNullOrWhiteSpace(lastName))
 

@@ -64,6 +64,50 @@ public class NearestNeighborOptimizerTests
     }
 
 
+    [Fact]
+    public async Task OptimizeAsync_MatrixSizeMismatch_ThrowsInvalidOperationException()
+    {
+        var s0 = Guid.NewGuid();
+        var s1 = Guid.NewGuid();
+
+        // matrix is 2x2 (size=2) but stops.Count+1 = 3 — mismatch
+        var durations = new double[,]
+        {
+            { 0, 5 },
+            { 7, 0 }
+        };
+
+        var input = CreateInput(CreateMatrix(durations), s0, s1);
+        var opt = new NearestNeighborOptimizer();
+
+        var act = async () => await opt.OptimizeAsync(input);
+
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*Matrix size*");
+    }
+
+    [Fact]
+    public async Task OptimizeAsync_SingleStop_ReturnsThatStopWithRoundTripDuration()
+    {
+        var s0 = Guid.NewGuid();
+
+        // depot -> s0 = 3, s0 -> depot = 4, total = 7
+        var durations = new double[,]
+        {
+            //  depot  s0
+            { 0, 3 },
+            { 4, 0 }
+        };
+
+        var input = CreateInput(CreateMatrix(durations), s0);
+        var opt = new NearestNeighborOptimizer();
+
+        var result = await opt.OptimizeAsync(input);
+
+        result.OrderedStopIds.Should().ContainSingle().Which.Should().Be(s0);
+        result.TotalDurationSeconds.Should().Be(7);
+    }
+
     private static RouteOptimizerInput CreateInput(DistanceMatrix matrix, params Guid[] stopIds)
     {
         var stops = stopIds

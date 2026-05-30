@@ -17,6 +17,9 @@ public sealed class NearestNeighborOptimizer : IRouteOptimizer
                 AlgorithmName = Name
             });
 
+        if (input.Matrix.Size != input.Stops.Count + 1)
+            throw new InvalidOperationException("Matrix size does not match number of stops");
+
         List<Guid> orderedStopIds = [];
         double totalDurationSeconds = 0;
 

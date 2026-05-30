@@ -11,15 +11,13 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, Result<A
   private readonly IPasswordHasher _passwordHasher;
   private readonly ITokenService _tokenService;
   private readonly IRefreshTokenRepository _refreshTokenRepository;
-  private readonly IUnitOfWork _unitOfWork;
 
-  public LoginCommandHandler(IUserRepository userRepository, IPasswordHasher passwordHasher, ITokenService tokenService, IRefreshTokenRepository refreshTokenRepository, IUnitOfWork unitOfWork)
+  public LoginCommandHandler(IUserRepository userRepository, IPasswordHasher passwordHasher, ITokenService tokenService, IRefreshTokenRepository refreshTokenRepository)
   {
     _userRepository = userRepository;
     _passwordHasher = passwordHasher;
     _tokenService = tokenService;
     _refreshTokenRepository = refreshTokenRepository;
-    _unitOfWork = unitOfWork;
   }
 
   public async Task<Result<AuthTokenDto>> Handle(LoginCommand request, CancellationToken ct = default)
@@ -35,7 +33,6 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, Result<A
     var refreshToken = RefreshTokenEntity.Create(user.Id, tokenHash, _tokenService.RefreshTokenExpiration);
 
     await _refreshTokenRepository.AddAsync(refreshToken, ct);
-    await _unitOfWork.SaveChangesAsync(ct);
 
     return Result<AuthTokenDto>.Success(new AuthTokenDto(accessToken, rawToken,refreshToken.ExpiresAt));
   }
