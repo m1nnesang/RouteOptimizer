@@ -3,10 +3,36 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:RouteOptimizer.Dispatcher.Wpf"
+        xmlns:vm="clr-namespace:RouteOptimizer.Dispatcher.Wpf.VIewModels"
+        xmlns:views="clr-namespace:RouteOptimizer.Dispatcher.Wpf.Views"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="Route Optimizer — Диспетчер" Height="600" Width="1000">
+    <Window.Resources>
+        <DataTemplate DataType="{x:Type vm:OrdersViewModel}">
+            <views:OrdersView/>
+        </DataTemplate>
+    </Window.Resources>
     <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="48" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
 
+        <!-- Панель навигации -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Background="#2C3E50">
+            <Button Content="Заказы"
+                    Command="{Binding ShowOrdersCommand}"
+                    Margin="8,8,4,8" Padding="16,4" />
+            <Button Content="Маршруты"
+                    Command="{Binding ShowRoutesCommand}"
+                    Margin="4,8,4,8" Padding="16,4" />
+            <Button Content="Водители"
+                    Command="{Binding ShowDriversCommand}"
+                    Margin="4,8,8,8" Padding="16,4" />
+        </StackPanel>
+
+        <!-- Основной контент -->
+        <ContentControl Grid.Row="1"
+                        Content="{Binding CurrentViewModel}" />
     </Grid>
 </Window>
