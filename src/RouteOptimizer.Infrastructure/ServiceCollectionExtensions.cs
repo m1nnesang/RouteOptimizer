@@ -24,6 +24,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IRouteRepository, RouteRepository>();
         services.AddScoped<IUserInvitationRepository, UserInvitationRepository>();
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<AppDbContext>());
+        services.AddScoped<IDeliveryAttemptRepository , DeliveryAttemptRepository>();
         services.AddHttpClient("Nominatim", client =>
         {
             client.BaseAddress = new Uri("https://nominatim.openstreetmap.org/");
@@ -57,6 +58,9 @@ public static class ServiceCollectionExtensions
             client.BaseAddress = new Uri(configuration["Osrm:BaseUrl"]!);
         });
         services.AddScoped<IDistanceMatrixProvider, OsrmDistanceMatrixProvider>();
+
+        services.AddHostedService<IdempotencyCleanupService>();
+        services.AddHostedService<RefreshTokenCleanupService>();
 
         return services;
     }
