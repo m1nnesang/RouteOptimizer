@@ -18,6 +18,18 @@ public class VehicleRepository : IVehicleRepository
         await _db.Vehicles.AddAsync(vehicle, ct);
     }
 
+    public Task UpdateAsync(Vehicle vehicle, CancellationToken ct)
+    {
+        _db.Vehicles.Update(vehicle);
+        return Task.CompletedTask;
+    }
+
+    public Task DeleteAsync(Vehicle vehicle, CancellationToken ct)
+    {
+        _db.Vehicles.Remove(vehicle);
+        return Task.CompletedTask;
+    }
+
     public async Task<Vehicle?> GetByIdAsync(Guid id, CancellationToken ct)
     {
         return await _db.FindAsync<Vehicle>(new object[] { id }, ct);

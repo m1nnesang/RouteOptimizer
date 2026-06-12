@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using RouteOptimizer.Application.Abstractions;
 using RouteOptimizer.Domain.Entities;
+using RouteOptimizer.Domain.Enums;
 
 namespace RouteOptimizer.Infrastructure.Persistence.Repositories;
 
@@ -26,5 +27,17 @@ public class UserRepository : IUserRepository
     public async Task<User?> GetByEmailAsync(string email, CancellationToken ct)
     {
         return await _db.Users.FirstOrDefaultAsync(x => x.Email == email, ct);
+    }
+
+    public async Task<(IReadOnlyList<User> Items, int TotalCount)> GetAllDriversAsync(int skip, int take, CancellationToken ct)
+    {
+        var query = _db.Users
+            .AsNoTracking()
+            .Where(x => x.Role == UserRole.Driver);
+
+        var totalCount = await query.CountAsync(ct);
+        var items = await query.Skip(skip).Take(take).ToListAsync(ct);
+
+        return (items, totalCount);
     }
 }

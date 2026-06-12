@@ -18,6 +18,16 @@ public class WarehouseRepository : IWarehouseRepository
         await _db.Warehouses.AddAsync(warehouse, ct);
     }
 
+    public async Task UpdateAsync(Warehouse warehouse, CancellationToken ct)
+    {
+        _db.Warehouses.Update(warehouse);
+    }
+
+    public async Task DeleteAsync(Warehouse warehouse, CancellationToken ct)
+    {
+        _db.Warehouses.Remove(warehouse);
+    }
+
     public async Task<Warehouse?> GetByIdAsync(Guid id, CancellationToken ct)
     {
         return await _db.Warehouses.FindAsync(new object[] { id }, ct);

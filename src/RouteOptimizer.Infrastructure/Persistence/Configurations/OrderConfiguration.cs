@@ -20,6 +20,7 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
         builder.Property(x => x.Status).IsRequired();
         builder.Property(x => x.AssignedRouteId);
         builder.Property(x => x.Notes).HasMaxLength(500);
+        builder.Property(x => x.CreatedAt).IsRequired();
 
         builder.OwnsOne(x => x.Address);
 

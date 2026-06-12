@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using RouteOptimizer.Application.Abstractions;
+using RouteOptimizer.Domain.Common;
 using RouteOptimizer.Domain.Entities;
 using RouteOptimizer.Domain.Entities.Orders;
 using RouteOptimizer.Domain.Entities.Route;
@@ -10,6 +11,19 @@ public class AppDbContext : DbContext, IUnitOfWork
 {
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
     {
+    }
+
+    public IReadOnlyList<IDomainEvent> GetPendingDomainEvents()
+    {
+        return ChangeTracker.Entries<Entity<Guid>>()
+            .SelectMany(e => e.Entity.DomainEvents)
+            .ToList();
+    }
+
+    public void ClearAllDomainEvents()
+    {
+        foreach (var entry in ChangeTracker.Entries<Entity<Guid>>())
+            entry.Entity.ClearDomainEvents();
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
