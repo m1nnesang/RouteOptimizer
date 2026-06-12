@@ -27,8 +27,12 @@ public class Stop : Entity<Guid>
     public DeliveryWindow? DeliveryWindow { get; }
 
     public StopStatus Status { get; private set; } = StopStatus.Pending;
-    public int Sequence { get; }
-    public IReadOnlyList<Guid> Orders { get; }
+    public int Sequence { get; private set; }
+
+    internal void UpdateSequence(int seq) => Sequence = seq;
+    public IReadOnlyList<Guid> Orders { get; private set; }
+
+    internal void RemoveOrder(Guid orderId) => Orders = Orders.Where(o => o != orderId).ToList();
 
     public static Result<Stop> Create(Guid routeId, Address address, GeoCoordinate location,
         DeliveryWindow? deliveryWindow, int sequenceNumber, IReadOnlyList<Guid> orders)
@@ -62,7 +66,7 @@ public class Stop : Entity<Guid>
         EnsureInProgress();
 
         Status = StopStatus.Completed;
-        AddDomainEvent(new StopCompleted(Id, RouteId, true));
+        AddDomainEvent(new StopCompleted(Id, RouteId, IsPartial: false));
     }
 
     public void PartiallyComplete()
@@ -70,7 +74,7 @@ public class Stop : Entity<Guid>
         EnsureInProgress();
 
         Status = StopStatus.PartiallyCompleted;
-        AddDomainEvent(new StopCompleted(Id, RouteId, false));
+        AddDomainEvent(new StopCompleted(Id, RouteId, IsPartial: true));
     }
 
     public void Skip()

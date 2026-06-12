@@ -1,5 +1,7 @@
-﻿namespace RouteOptimizer.Domain.Common;
+﻿using MediatR;
 
-public interface IDomainEvent
+namespace RouteOptimizer.Domain.Common;
+
+public interface IDomainEvent : INotification
 {
 }

@@ -1,4 +1,5 @@
-﻿using RouteOptimizer.Domain.Common;
+﻿using System.Text.RegularExpressions;
+using RouteOptimizer.Domain.Common;
 
 namespace RouteOptimizer.Domain.ValueObjects;
 
@@ -20,6 +21,12 @@ public class PhoneNumber : ValueObject
     {
         if (string.IsNullOrEmpty(value))
             return Result<PhoneNumber>.Failure("Phone number cannot be empty");
+
+        if (value.StartsWith("00"))
+            value = "+" + value[2];
+
+        if (!Regex.IsMatch(value, @"^\+?[1-9]\d{7,14}$"))
+            return Result<PhoneNumber>.Failure("Invalid phone number format");
 
         return Result<PhoneNumber>.Success(new PhoneNumber(value));
     }

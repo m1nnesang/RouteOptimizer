@@ -112,6 +112,28 @@ public class Route : AggregateRoot<Guid>
         _stops.Add(stop);
     }
 
+    public Result InsertUrgentOrder(Order order)
+    {
+        if (Status != RouteStatus.InProgress)
+            return Result.Failure("Route is not in progress");
+
+        if (order.WarehouseId != WarehouseId)
+            return Result.Failure("Order belongs to a different warehouse");
+
+        if (order.Status != OrderStatus.Created)
+            return Result.Failure("Only created orders can be inserted");
+
+        var sequenceNumber = _stops.Count > 0 ? _stops.Max(s => s.Sequence) + 1 : 0;
+
+        var stop = Stop.Create(Id, order.Address, order.Location, order.DeliveryWindow, sequenceNumber, [order.Id]);
+        if (stop.IsFailure) return Result.Failure(stop.Error ?? "Failed to create stop");
+
+        _stops.Add(stop.Value!);
+        order.AssignToRoute(Id);
+
+        return Result.Success();
+    }
+
     public void RemoveStop(Stop stop)
     {
         if (Status is RouteStatus.Completed or RouteStatus.Cancelled or RouteStatus.Interrupted)
@@ -121,6 +143,39 @@ public class Route : AggregateRoot<Guid>
             throw new InvalidOperationException("Cannot remove non-pending stop");
 
         _stops.Remove(stop);
+    }
+
+    public Result ReorderRemainingStops(IReadOnlyList<Guid> orderedStopIds)
+    {
+        if (Status != RouteStatus.InProgress)
+            return Result.Failure("Route is not in progress");
+
+        var remainingIds = _stops
+            .Where(s => s.Status != StopStatus.Completed && s.Status != StopStatus.PartiallyCompleted)
+            .Select(s => s.Id)
+            .ToHashSet();
+
+        if (orderedStopIds.Count != remainingIds.Count || !orderedStopIds.All(id => remainingIds.Contains(id)))
+            return Result.Failure("Ordered stop ids do not match remaining stops");
+
+        var order = orderedStopIds
+            .Select((id, index) => new { id, index })
+            .ToDictionary(x => x.id, x => x.index);
+
+        _stops.Sort((a, b) =>
+        {
+            var aIsCompleted = !remainingIds.Contains(a.Id);
+            var bIsCompleted = !remainingIds.Contains(b.Id);
+            if (aIsCompleted && bIsCompleted) return a.Sequence.CompareTo(b.Sequence);
+            if (aIsCompleted) return -1;
+            if (bIsCompleted) return 1;
+            return order[a.Id].CompareTo(order[b.Id]);
+        });
+
+        for (var i = 0; i < _stops.Count; i++)
+            _stops[i].UpdateSequence(i);
+
+        return Result.Success();
     }
 
     public void ApplyOptimizedOrders(IReadOnlyList<Guid> orderedStopIds)
@@ -139,5 +194,51 @@ public class Route : AggregateRoot<Guid>
             .ToDictionary(x => x.id, x => x.index);
 
         _stops.Sort((a, b) => order[a.Id].CompareTo(order[b.Id]));
+
+        for (var i = 0; i < _stops.Count; i++)
+            _stops[i].UpdateSequence(i);
+    }
+
+    public Result RemoveCancelledOrder(Guid orderId)
+    {
+        if (Status is RouteStatus.Completed or RouteStatus.Cancelled or RouteStatus.Interrupted)
+            return Result.Failure("Cannot modify a finished route");
+
+        var stop = _stops.FirstOrDefault(s => s.Orders.Contains(orderId));
+        if (stop is null)
+            return Result.Success();
+
+        if (stop.Status is not StopStatus.Pending)
+            return Result.Failure("Cannot remove order from a stop that is already in progress or finished");
+
+        stop.RemoveOrder(orderId);
+
+        if (stop.Orders.Count == 0)
+        {
+            _stops.Remove(stop);
+
+            for (var i = 0; i < _stops.Count; i++)
+                _stops[i].UpdateSequence(i);
+        }
+
+        return Result.Success();
+    }
+
+    public Stop? StartFirstPendingStop()
+    {
+        var first = _stops.Where(s => s.Status == StopStatus.Pending)
+                          .OrderBy(s => s.Sequence)
+                          .FirstOrDefault();
+        first?.Start();
+        return first;
+    }
+
+    public Stop? AdvanceToNextStop()
+    {
+        var next = _stops.Where(s => s.Status == StopStatus.Pending)
+                         .OrderBy(s => s.Sequence)
+                         .FirstOrDefault();
+        next?.Start();
+        return next;
     }
 }

@@ -21,6 +21,7 @@ public abstract class Order : AggregateRoot<Guid>
     {
         (WarehouseId, Address, Location, Weight, Volume, DeliveryWindow, Number, CargoType, Notes) = (warehouseId,
             address, location, weight, volume, deliveryWindow, number, cargoType, notes);
+        CreatedAt = DateTime.UtcNow;
     }
 
     public Guid WarehouseId { get; }
@@ -28,14 +29,13 @@ public abstract class Order : AggregateRoot<Guid>
     public GeoCoordinate Location { get; }
     public Weight Weight { get; }
     public Volume Volume { get; }
-
     public DeliveryWindow? DeliveryWindow { get; }
-
     public PhoneNumber Number { get; }
     public CargoType CargoType { get; }
     public OrderStatus Status { get; private set; } = OrderStatus.Created;
     public Guid? AssignedRouteId { get; private set; }
     public string? Notes { get; }
+    public DateTime CreatedAt { get; private set; }
 
     public void AssignToRoute(Guid routeId)
     {
@@ -85,6 +85,24 @@ public abstract class Order : AggregateRoot<Guid>
             throw new InvalidOperationException("Only created orders can be cancelled");
 
         Status = OrderStatus.Cancelled;
+        AssignedRouteId = null;
         AddDomainEvent(new OrderCancelled(Id));
+    }
+
+    public void Reassign(Guid newRouteId)
+    {
+        if (Status != OrderStatus.AssignedToRoute)
+            throw new InvalidOperationException("Only assigned orders can be reassigned");
+
+        AssignedRouteId = newRouteId;
+    }
+
+    public void ReturnToPool()
+    {
+        if (Status != OrderStatus.AssignedToRoute)
+            throw new InvalidOperationException("Only assigned orders can be returned to pool");
+
+        AssignedRouteId = null;
+        Status = OrderStatus.Created;
     }
 }
