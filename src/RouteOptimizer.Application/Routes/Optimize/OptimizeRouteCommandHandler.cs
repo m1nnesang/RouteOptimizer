@@ -2,8 +2,9 @@
 using RouteOptimizer.Application.Abstractions;
 using RouteOptimizer.Application.Exceptions;
 using RouteOptimizer.Application.Models;
+using RouteOptimizer.Domain.Enums;
 
-namespace RouteOptimizer.Application.Routes;
+namespace RouteOptimizer.Application.Routes.Optimize;
 
 public class OptimizeRouteCommandHandler : IRequestHandler<OptimizeRouteCommand, OptimizeRouteResult>
 {
@@ -30,11 +31,15 @@ public class OptimizeRouteCommandHandler : IRequestHandler<OptimizeRouteCommand,
         if (warehouse is null)
             throw new NotFoundException("Warehouse not found");
 
-        var stops = route.Stops.Select(s => new StopInput(s.Id, s.Location.Latitude, s.Location.Longitude,
+        if (route.Status != RouteStatus.Draft)
+            throw new InvalidOperationException("Only Draft routes can be optimized");
+
+        var stops = route.Stops.Where(s => s.Status != StopStatus.Completed)
+            .Select(s => new StopInput(s.Id, s.Location.Latitude, s.Location.Longitude,
             s.DeliveryWindow is {Start:not null, End:not null,} dw? new TimeWindow(dw.Start.Value, dw.End.Value) : null))
             .ToList();
 
-        var stopsCoordinates = route.Stops.Select(s => (s.Location.Latitude, s.Location.Longitude) )
+        var stopsCoordinates = stops.Select(s => (s.Latitude, s.Longitude))
             .ToList();
 
         var warehouseCoordinates = (warehouse.Location.Latitude, warehouse.Location.Longitude);
@@ -49,10 +54,12 @@ public class OptimizeRouteCommandHandler : IRequestHandler<OptimizeRouteCommand,
             RouteDate = request.RouteDate
         };
 
-        var tasks = _optimizers.Select(o => o.OptimizeAsync(input, ct));
-
         if (!_optimizers.Any())
             throw new InvalidOperationException("No optimizers configured");
+
+        var tasks = _optimizers.Select(o => o.OptimizeAsync(input, ct))
+            .ToList();
+
         var results = await Task.WhenAll(tasks);
         var best = results.MinBy(r => r.TotalDurationSeconds)!;
 
@@ -62,8 +69,6 @@ public class OptimizeRouteCommandHandler : IRequestHandler<OptimizeRouteCommand,
 
         route.ApplyOptimizedOrders(best.OrderedStopIds);
         route.Optimize();
-
-        await _unitOfWork.SaveChangesAsync(ct);
 
         return new OptimizeRouteResult(route.Id, best.OrderedStopIds, comparisons);
     }

@@ -1,6 +1,6 @@
 ﻿using FluentValidation;
 
-namespace RouteOptimizer.Application.Routes;
+namespace RouteOptimizer.Application.Routes.Optimize;
 
 public class OptimizeRouteValidator : AbstractValidator<OptimizeRouteCommand>
 {

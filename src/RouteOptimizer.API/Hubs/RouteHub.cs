@@ -6,13 +6,16 @@ namespace RouteOptimizer.API.Hubs;
 [Authorize]
 public class RouteHub : Hub
 {
-    public override Task OnConnectedAsync()
-    {
-        return base.OnConnectedAsync();
-    }
+    public static string WarehouseGroup(Guid warehouseId) => $"warehouse-{warehouseId}";
 
-    public Task SendRouteUpdate(Guid routeId, string message)
+    [Authorize(Roles = "Dispatcher")]
+    public async Task JoinWarehouse()
     {
-        return Clients.All.SendAsync("RouteUpdated", routeId, message);
+        var warehouseClaim = Context.User?.FindFirst("warehouse_id")?.Value;
+
+        if (!Guid.TryParse(warehouseClaim, out var warehouseId))
+            throw new HubException("No warehouse associated with this account");
+
+        await Groups.AddToGroupAsync(Context.ConnectionId, WarehouseGroup(warehouseId));
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace RouteOptimizer.Application.Routes;
+﻿namespace RouteOptimizer.Application.Routes.Optimize;
 
 public record OptimizeRouteResult(
     Guid RouteId,

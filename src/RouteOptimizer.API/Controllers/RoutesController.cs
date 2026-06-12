@@ -1,7 +1,23 @@
-﻿using MediatR;
+﻿using System.Security.Claims;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using RouteOptimizer.Application.Routes;
+using RouteOptimizer.Application.Routes.AssignRoute;
+using RouteOptimizer.Application.Routes.CancelRoute;
+using RouteOptimizer.Application.Routes.CompleteRoute;
+using RouteOptimizer.Application.Routes.CreateRoute;
+using RouteOptimizer.Application.Routes.GetRouteById;
+using RouteOptimizer.Application.Routes.GetRoutes;
+using RouteOptimizer.Application.Routes.InterruptRoute;
+using RouteOptimizer.Application.Routes.StartRoute;
+using RouteOptimizer.Application.Routes.Stops.CompleteStop;
+using RouteOptimizer.Application.Routes.Stops.FailDelivery;
+using RouteOptimizer.Application.Routes.HandoverRoute;
+using RouteOptimizer.Application.Routes.InsertUrgentOrder;
+using RouteOptimizer.Application.Routes.Optimize;
+using RouteOptimizer.Application.Routes.Stops.SkipStop;
+using RouteOptimizer.Domain.Common;
+using RouteOptimizer.Domain.Enums;
 
 namespace RouteOptimizer.API.Controllers;
 
@@ -13,6 +29,7 @@ public class RoutesController : ControllerBase
 
     public RoutesController(IMediator mediator) => _mediator = mediator;
 
+    #region Stops
     [Authorize]
     [HttpPost("{routeId}/optimize")]
     public async Task<ActionResult<OptimizeRouteResult>> Optimize([FromRoute] Guid routeId, [FromBody] OptimizeRouteRequest request, CancellationToken ct)
@@ -22,5 +39,143 @@ public class RoutesController : ControllerBase
         return Ok(result);
     }
 
+
+    [Authorize(Roles = "Driver")]
+    [HttpPost("{routeId}/stops/{stopId}/complete")]
+    public async Task<IActionResult> CompleteStop([FromRoute] Guid routeId, [FromRoute] Guid stopId,[FromBody] CompleteStopRequest request ,CancellationToken ct)
+    {
+        var command = new CompleteStopCommand(routeId, stopId, request.IsPartial);
+        var result = await _mediator.Send(command, ct);
+
+        return ToResponse(result);
+    }
+
+    [Authorize(Roles = "Driver")]
+    [HttpPost("{routeId}/stops/{stopId}/skip")]
+    public async Task<IActionResult> SkipStop([FromRoute] Guid routeId, [FromRoute] Guid stopId, CancellationToken ct)
+    {
+        var command = new SkipStopCommand(routeId, stopId);
+        var result = await _mediator.Send(command, ct);
+
+        return ToResponse(result);
+    }
+
+    [Authorize(Roles = "Driver")]
+    [HttpPost("{routeId}/stops/{stopId}/fail")]
+    public async Task<IActionResult> FailStop([FromRoute] Guid routeId, [FromRoute] Guid stopId, [FromBody] FailDeliveryRequest request ,CancellationToken ct)
+    {
+        var driverId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+        var command = new FailDeliveryCommand(driverId ,routeId, stopId, request.Latitude, request.Longitude, request.FailureReason, request.Notes, request.PhotoKey);
+        var result = await _mediator.Send(command, ct);
+
+        return ToResponse(result);
+    }
+    #endregion
+
+
+    #region Routes
+
+    [Authorize(Roles = "Dispatcher,Manager")]
+    [HttpGet]
+    public async Task<IActionResult> GetRoutes([FromQuery] Guid? warehouseId, [FromQuery] RouteStatus? status,
+        [FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken ct = default)
+    {
+        var result = await _mediator.Send(new GetRoutesQuery(warehouseId, status, page, pageSize), ct);
+
+        return Ok(result);
+    }
+
+    [Authorize(Roles = "Dispatcher,Manager,Driver")]
+    [HttpGet("{id:guid}")]
+    public async Task<IActionResult> GetRouteById([FromRoute] Guid id, CancellationToken ct)
+    {
+        var result = await _mediator.Send(new GetRouteByIdQuery(id), ct);
+
+        return result.IsSuccess ? Ok(result.Value) : NotFound(result.Error);
+    }
+
+    [Authorize(Roles = "Dispatcher")]
+    [HttpPost]
+    public async Task<IActionResult> CreateRoute([FromBody] CreateRouteRequest request, CancellationToken ct)
+    {
+        var result = await _mediator.Send(new CreateRouteCommand(request.WarehouseId, request.OrderIds), ct);
+        return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Error);
+    }
+
+    [Authorize(Roles = "Dispatcher")]
+    [HttpPost("{id:guid}/assign")]
+    public async Task<IActionResult> AssignRoute([FromRoute] Guid id, [FromBody] AssignRouteRequest request, CancellationToken ct)
+    {
+        var result = await _mediator.Send(new AssignRouteCommand(id, request.ShiftId), ct);
+        return ToResponse(result);
+    }
+
+    [Authorize(Roles = "Driver")]
+    [HttpPost("{id:guid}/start")]
+    public async Task<IActionResult> StartRoute([FromRoute] Guid id, CancellationToken ct)
+    {
+        var result = await _mediator.Send(new StartRouteCommand(id), ct);
+        return ToResponse(result);
+    }
+
+    [Authorize(Roles = "Dispatcher,Driver")]
+    [HttpPost("{id:guid}/complete")]
+    public async Task<IActionResult> CompleteRoute([FromRoute] Guid id, CancellationToken ct)
+    {
+        var result = await _mediator.Send(new CompleteRouteCommand(id), ct);
+        return ToResponse(result);
+    }
+
+    [Authorize(Roles = "Dispatcher")]
+    [HttpPost("{id:guid}/interrupt")]
+    public async Task<IActionResult> InterruptRoute([FromRoute] Guid id, CancellationToken ct)
+    {
+        var result = await _mediator.Send(new InterruptRouteCommand(id), ct);
+        return ToResponse(result);
+    }
+
+    [Authorize(Roles = "Dispatcher")]
+    [HttpPost("{id:guid}/cancel")]
+    public async Task<IActionResult> CancelRoute([FromRoute] Guid id, CancellationToken ct)
+    {
+        var result = await _mediator.Send(new CancelRouteCommand(id), ct);
+        return ToResponse(result);
+    }
+
+    #endregion
+
+
+    [Authorize(Roles = "Dispatcher")]
+    [HttpPost("{id:guid}/urgent-order")]
+    public async Task<IActionResult> InsertUrgentOrder([FromRoute] Guid id, [FromBody] InsertUrgentOrderRequest request, CancellationToken ct)
+    {
+        var result = await _mediator.Send(new InsertUrgentOrderCommand(id, request.OrderId), ct);
+        return ToResponse(result);
+    }
+
+    [Authorize(Roles = "Dispatcher")]
+    [HttpPost("{id:guid}/handover")]
+    public async Task<IActionResult> HandoverRoute([FromRoute] Guid id, [FromBody] HandoverRouteRequest request, CancellationToken ct)
+    {
+        var command = new HandoverRouteCommand(id, request.Type, request.TargetShiftId, request.Assignments);
+        var result = await _mediator.Send(command, ct);
+        return ToResponse(result);
+    }
+
+    public record HandoverRouteRequest(HandoverType Type, Guid? TargetShiftId, IReadOnlyList<ShiftStopsAssignment>? Assignments);
+    public record CreateRouteRequest(Guid WarehouseId, IReadOnlyList<Guid> OrderIds);
+    public record AssignRouteRequest(Guid ShiftId);
+    public record InsertUrgentOrderRequest(Guid OrderId);
     public record OptimizeRouteRequest(DateOnly RouteDate);
+    public record CompleteStopRequest(bool IsPartial);
+    public record FailDeliveryRequest(
+        double Latitude,
+        double Longitude,
+        FailureReason FailureReason,
+        string? Notes,
+        string? PhotoKey);
+
+    private IActionResult ToResponse(Result result) =>
+        result.IsSuccess ? NoContent() : BadRequest(result.Error);
  }
