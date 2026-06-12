@@ -5,6 +5,8 @@ namespace RouteOptimizer.Application.Abstractions;
 public interface IVehicleRepository
 {
     Task AddAsync(Vehicle vehicle, CancellationToken ct);
+    Task UpdateAsync(Vehicle vehicle, CancellationToken ct);
+    Task DeleteAsync(Vehicle vehicle, CancellationToken ct);
     Task<Vehicle?> GetByIdAsync(Guid id, CancellationToken ct);
     Task<IReadOnlyList<Vehicle>> GetByWarehouseIdAsync(Guid warehouseId, CancellationToken ct);
 }

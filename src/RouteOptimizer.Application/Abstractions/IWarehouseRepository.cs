@@ -5,6 +5,8 @@ namespace RouteOptimizer.Application.Abstractions;
 public interface IWarehouseRepository
 {
     Task AddAsync(Warehouse warehouse, CancellationToken ct);
+    Task UpdateAsync(Warehouse warehouse, CancellationToken ct);
+    Task DeleteAsync(Warehouse warehouse, CancellationToken ct);
     Task<Warehouse?> GetByIdAsync(Guid id, CancellationToken ct);
     Task<IReadOnlyList<Warehouse>> GetAllAsync(CancellationToken ct);
 }
