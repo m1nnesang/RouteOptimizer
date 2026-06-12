@@ -51,6 +51,27 @@ public sealed class MinioFileStorageService : IFileStorageService
           }
       }
 
+      public async Task<Result<string>> GetPresignedUploadUrlAsync(string bucketName, string objectName, int expirySeconds, CancellationToken ct)
+      {
+          try
+          {
+              var bucketExists = await _client.BucketExistsAsync(new BucketExistsArgs().WithBucket(bucketName), ct);
+              if (!bucketExists)
+                  await _client.MakeBucketAsync(new MakeBucketArgs().WithBucket(bucketName), ct);
+
+              var url = await _client.PresignedPutObjectAsync(new PresignedPutObjectArgs()
+                  .WithBucket(bucketName)
+                  .WithObject(objectName)
+                  .WithExpiry(expirySeconds));
+
+              return Result<string>.Success(url);
+          }
+          catch (Exception ex)
+          {
+              return Result<string>.Failure($"Presigned upload URL failed: {ex.Message}");
+          }
+      }
+
       public async Task<Result> DeleteAsync(string bucketName, string objectName, CancellationToken ct)
       {
           try
