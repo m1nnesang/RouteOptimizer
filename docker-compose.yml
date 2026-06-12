@@ -4,18 +4,23 @@ services:
     container_name: route-optimizer-db
     environment:
       POSTGRES_DB: routeoptimizer
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
     ports:
       - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d routeoptimizer"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
   minio:
     image: minio/minio
     container_name: route-optimizer-minio
     environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?Set MINIO_ROOT_PASSWORD in .env}
     ports:
       - "9000:9000"
       - "9001:9001"
@@ -61,20 +66,29 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      - postgres
-      - minio
-      - osrm
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_started
+      osrm:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=routeoptimizer;Username=postgres;Password=postgres
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=routeoptimizer;Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
       - Osrm__BaseUrl=http://osrm:5000
       - Minio__Endpoint=minio:9000
-      - Minio__AccessKey=minioadmin
-      - Minio__SecretKey=minioadmin
+      - Minio__AccessKey=${MINIO_ROOT_USER:-minioadmin}
+      - Minio__SecretKey=${MINIO_ROOT_PASSWORD:?Set MINIO_ROOT_PASSWORD in .env}
       - Minio__UseSSL=false
       - Smtp__Host=mailhog
       - Smtp__Port=1025
-      - Jwt__SecretKey=O7tSuB8PahghuTnecJGewzOzmf97rsDZcdrWneQeE2c=
+      - Jwt__SecretKey=${JWT_SECRET_KEY:?Set JWT_SECRET_KEY in .env}
       - Jwt__Issuer=RouteOptimizer
       - Jwt__Audience=RouteOptimizer
       - Jwt__AccessTokenExpirationMinutes=60

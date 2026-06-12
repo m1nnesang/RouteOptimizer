@@ -11,6 +11,7 @@
         <Project Path="src/RouteOptimizer.Infrastructure/RouteOptimizer.Infrastructure.csproj" />
     </Folder>
     <Folder Name="/tests/">
+        <Project Path="tests/RouteOptimizer.API.Tests/RouteOptimizer.API.Tests.csproj" />
         <Project Path="tests/RouteOptimizer.Application.Tests/RouteOptimizer.Application.Tests.csproj" />
         <Project Path="tests/RouteOptimizer.Domain.Tests/RouteOptimizer.Domain.Tests.csproj" />
     </Folder>
