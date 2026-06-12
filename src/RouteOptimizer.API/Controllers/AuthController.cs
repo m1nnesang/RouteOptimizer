@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using RouteOptimizer.Application.Auth.Login;
 using RouteOptimizer.Application.Auth.RefreshToken;
 using RouteOptimizer.Application.Auth.RevokeToken;
@@ -24,6 +25,7 @@ public class AuthController : ControllerBase
 
 
     [HttpPost("login")]
+    [EnableRateLimiting("auth")]
     public async Task<IActionResult> Login([FromBody] LoginCommand command, CancellationToken ct)
     {
         var result = await _mediator.Send(command, ct);
@@ -31,6 +33,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("refresh")]
+    [EnableRateLimiting("auth")]
     public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenCommand command, CancellationToken ct)
     {
         var result = await _mediator.Send(command, ct);
