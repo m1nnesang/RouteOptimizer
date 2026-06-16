@@ -9,11 +9,10 @@ public class AcceptInvitationCommandHandler : IRequestHandler<AcceptInvitationCo
     private readonly IUserRepository _userRepository;
     private readonly IUserInvitationRepository _userInvitationRepository;
     private readonly IPasswordHasher _passwordHasher;
-    private readonly IUnitOfWork _unitOfWork;
 
 
-    public AcceptInvitationCommandHandler(IUserRepository userRepository, IUserInvitationRepository userInvitationRepository, IPasswordHasher passwordHasher, IUnitOfWork unitOfWork) =>
-        (_userRepository, _userInvitationRepository, _passwordHasher, _unitOfWork) = (userRepository, userInvitationRepository, passwordHasher, unitOfWork);
+    public AcceptInvitationCommandHandler(IUserRepository userRepository, IUserInvitationRepository userInvitationRepository, IPasswordHasher passwordHasher) =>
+        (_userRepository, _userInvitationRepository, _passwordHasher) = (userRepository, userInvitationRepository, passwordHasher);
 
     public async Task<Result> Handle(AcceptInvitationCommand request, CancellationToken ct)
     {
@@ -29,8 +28,6 @@ public class AcceptInvitationCommandHandler : IRequestHandler<AcceptInvitationCo
 
         user.SetPassword(_passwordHasher.Hash(request.Password));
         invitation.Use();
-
-        await _unitOfWork.SaveChangesAsync(ct);
 
         return Result.Success();
     }

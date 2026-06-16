@@ -15,6 +15,7 @@ public class CreateRouteCommandHandlerTests
     private readonly Mock<IWarehouseRepository> _warehouseRepository = new();
     private readonly Mock<IOrderRepository> _orderRepository = new();
     private readonly Mock<IRouteRepository> _routeRepository = new();
+    private readonly Mock<ICurrentUser> _currentUser = new();
     private readonly CreateRouteCommandHandler _handler;
 
     public CreateRouteCommandHandlerTests()
@@ -22,17 +23,20 @@ public class CreateRouteCommandHandlerTests
         _handler = new CreateRouteCommandHandler(
             _warehouseRepository.Object,
             _orderRepository.Object,
-            _routeRepository.Object);
+            _routeRepository.Object,
+            _currentUser.Object);
     }
 
     [Fact]
     public async Task Handle_WarehouseNotFound_ThrowsNotFoundException()
     {
+        var warehouseId = Guid.NewGuid();
+        _currentUser.Setup(x => x.WarehouseId).Returns(warehouseId);
         _warehouseRepository
             .Setup(x => x.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((Warehouse?)null);
 
-        var act = () => _handler.Handle(new CreateRouteCommand(Guid.NewGuid(), [Guid.NewGuid()]), default);
+        var act = () => _handler.Handle(new CreateRouteCommand([Guid.NewGuid()]), default);
 
         await act.Should().ThrowAsync<NotFoundException>();
     }
@@ -41,12 +45,13 @@ public class CreateRouteCommandHandlerTests
     public async Task Handle_OrdersNotFound_ReturnsFailure()
     {
         var warehouseId = Guid.NewGuid();
+        _currentUser.Setup(x => x.WarehouseId).Returns(warehouseId);
         SetupWarehouse(warehouseId);
         _orderRepository
             .Setup(x => x.GetByIdsAsync(It.IsAny<IReadOnlyList<Guid>>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync([]);
 
-        var result = await _handler.Handle(new CreateRouteCommand(warehouseId, [Guid.NewGuid()]), default);
+        var result = await _handler.Handle(new CreateRouteCommand([Guid.NewGuid()]), default);
 
         result.IsFailure.Should().BeTrue();
     }
@@ -55,6 +60,7 @@ public class CreateRouteCommandHandlerTests
     public async Task Handle_OrderNotInCreatedStatus_ReturnsFailure()
     {
         var warehouseId = Guid.NewGuid();
+        _currentUser.Setup(x => x.WarehouseId).Returns(warehouseId);
         SetupWarehouse(warehouseId);
 
         var order = CreateOrder(warehouseId);
@@ -64,7 +70,7 @@ public class CreateRouteCommandHandlerTests
             .Setup(x => x.GetByIdsAsync(It.IsAny<IReadOnlyList<Guid>>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync([order]);
 
-        var result = await _handler.Handle(new CreateRouteCommand(warehouseId, [order.Id]), default);
+        var result = await _handler.Handle(new CreateRouteCommand([order.Id]), default);
 
         result.IsFailure.Should().BeTrue();
     }
@@ -73,6 +79,7 @@ public class CreateRouteCommandHandlerTests
     public async Task Handle_OrderFromDifferentWarehouse_ReturnsFailure()
     {
         var warehouseId = Guid.NewGuid();
+        _currentUser.Setup(x => x.WarehouseId).Returns(warehouseId);
         SetupWarehouse(warehouseId);
 
         var order = CreateOrder(Guid.NewGuid());
@@ -81,7 +88,7 @@ public class CreateRouteCommandHandlerTests
             .Setup(x => x.GetByIdsAsync(It.IsAny<IReadOnlyList<Guid>>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync([order]);
 
-        var result = await _handler.Handle(new CreateRouteCommand(warehouseId, [order.Id]), default);
+        var result = await _handler.Handle(new CreateRouteCommand([order.Id]), default);
 
         result.IsFailure.Should().BeTrue();
     }
@@ -90,6 +97,7 @@ public class CreateRouteCommandHandlerTests
     public async Task Handle_ValidCommand_CreatesRouteAndReturnsId()
     {
         var warehouseId = Guid.NewGuid();
+        _currentUser.Setup(x => x.WarehouseId).Returns(warehouseId);
         SetupWarehouse(warehouseId);
 
         var order = CreateOrder(warehouseId);
@@ -101,7 +109,7 @@ public class CreateRouteCommandHandlerTests
             .Setup(x => x.AddAsync(It.IsAny<Domain.Entities.Route.Route>(), It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
 
-        var result = await _handler.Handle(new CreateRouteCommand(warehouseId, [order.Id]), default);
+        var result = await _handler.Handle(new CreateRouteCommand([order.Id]), default);
 
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBe(Guid.Empty);

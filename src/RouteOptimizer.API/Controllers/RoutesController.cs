@@ -15,6 +15,7 @@ using RouteOptimizer.Application.Routes.Stops.FailDelivery;
 using RouteOptimizer.Application.Routes.HandoverRoute;
 using RouteOptimizer.Application.Routes.InsertUrgentOrder;
 using RouteOptimizer.Application.Routes.Optimize;
+using RouteOptimizer.Application.Routes.Stops.ResumeStop;
 using RouteOptimizer.Application.Routes.Stops.SkipStop;
 using RouteOptimizer.Domain.Common;
 using RouteOptimizer.Domain.Enums;
@@ -61,6 +62,16 @@ public class RoutesController : ControllerBase
     }
 
     [Authorize(Roles = "Driver")]
+    [HttpPatch("{routeId}/stops/{stopId}/resume")]
+    public async Task<IActionResult> ResumeStop([FromRoute] Guid routeId, [FromRoute] Guid stopId, CancellationToken ct)
+    {
+        var command = new ResumeStopCommand(routeId, stopId);
+        var result = await _mediator.Send(command, ct);
+
+        return ToResponse(result);
+    }
+
+    [Authorize(Roles = "Driver")]
     [HttpPost("{routeId}/stops/{stopId}/fail")]
     public async Task<IActionResult> FailStop([FromRoute] Guid routeId, [FromRoute] Guid stopId, [FromBody] FailDeliveryRequest request ,CancellationToken ct)
     {
@@ -78,10 +89,10 @@ public class RoutesController : ControllerBase
 
     [Authorize(Roles = "Dispatcher,Manager")]
     [HttpGet]
-    public async Task<IActionResult> GetRoutes([FromQuery] Guid? warehouseId, [FromQuery] RouteStatus? status,
+    public async Task<IActionResult> GetRoutes([FromQuery] RouteStatus? status,
         [FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken ct = default)
     {
-        var result = await _mediator.Send(new GetRoutesQuery(warehouseId, status, page, pageSize), ct);
+        var result = await _mediator.Send(new GetRoutesQuery(status, page, pageSize), ct);
 
         return Ok(result);
     }
@@ -99,7 +110,7 @@ public class RoutesController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> CreateRoute([FromBody] CreateRouteRequest request, CancellationToken ct)
     {
-        var result = await _mediator.Send(new CreateRouteCommand(request.WarehouseId, request.OrderIds), ct);
+        var result = await _mediator.Send(new CreateRouteCommand(request.OrderIds), ct);
         return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Error);
     }
 
@@ -164,7 +175,7 @@ public class RoutesController : ControllerBase
     }
 
     public record HandoverRouteRequest(HandoverType Type, Guid? TargetShiftId, IReadOnlyList<ShiftStopsAssignment>? Assignments);
-    public record CreateRouteRequest(Guid WarehouseId, IReadOnlyList<Guid> OrderIds);
+    public record CreateRouteRequest(IReadOnlyList<Guid> OrderIds);
     public record AssignRouteRequest(Guid ShiftId);
     public record InsertUrgentOrderRequest(Guid OrderId);
     public record OptimizeRouteRequest(DateOnly RouteDate);

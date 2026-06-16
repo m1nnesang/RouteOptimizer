@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using RouteOptimizer.Application.Drivers.DriverShifts.EndShift;
 using RouteOptimizer.Application.Drivers.DriverShifts.StartShift;
 using RouteOptimizer.Application.Drivers.GetDrivers;
+using RouteOptimizer.Application.Drivers.GetShifts;
 using RouteOptimizer.Application.Drivers.InviteDriver;
 using RouteOptimizer.Domain.Common;
 
@@ -65,6 +66,18 @@ public class DriversController : ControllerBase
     public async Task<IActionResult> GetDrivers([FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken ct = default)
     {
         var result = await _mediator.Send(new GetDriversQuery(page, pageSize), ct);
+        return Ok(result);
+    }
+
+    [Authorize(Roles = "Dispatcher,Manager")]
+    [HttpGet("shifts")]
+    public async Task<IActionResult> GetShifts(
+        [FromQuery] DateOnly? date,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        CancellationToken ct = default)
+    {
+        var result = await _mediator.Send(new GetShiftsQuery(date, page, pageSize), ct);
         return Ok(result);
     }
 

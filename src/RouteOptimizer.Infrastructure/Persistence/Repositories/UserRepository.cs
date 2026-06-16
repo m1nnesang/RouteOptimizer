@@ -29,6 +29,14 @@ public class UserRepository : IUserRepository
         return await _db.Users.FirstOrDefaultAsync(x => x.Email == email, ct);
     }
 
+    public async Task<IReadOnlyList<User>> GetByIdsAsync(IEnumerable<Guid> ids, CancellationToken ct)
+    {
+        return await _db.Users
+            .AsNoTracking()
+            .Where(u => ids.Contains(u.Id))
+            .ToListAsync(ct);
+    }
+
     public async Task<(IReadOnlyList<User> Items, int TotalCount)> GetAllDriversAsync(int skip, int take, CancellationToken ct)
     {
         var query = _db.Users

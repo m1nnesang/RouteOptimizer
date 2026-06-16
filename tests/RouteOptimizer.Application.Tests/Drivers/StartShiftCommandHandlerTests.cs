@@ -22,8 +22,7 @@ public class StartShiftCommandHandlerTests
         _handler = new StartShiftCommandHandler(
             _shiftRepository.Object,
             _userRepository.Object,
-            _vehicleRepository.Object,
-            _unitOfWork.Object);
+            _vehicleRepository.Object);
     }
 
     [Fact]

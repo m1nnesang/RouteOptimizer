@@ -12,18 +12,19 @@ namespace RouteOptimizer.Application.Tests.Orders;
 public class GetOrdersQueryHandlerTests
 {
     private readonly Mock<IOrderRepository> _orderRepository = new();
+    private readonly Mock<ICurrentUser> _currentUser = new();
     private readonly GetOrdersQueryHandler _handler;
 
     public GetOrdersQueryHandlerTests()
     {
-        _handler = new GetOrdersQueryHandler(_orderRepository.Object);
+        _handler = new GetOrdersQueryHandler(_orderRepository.Object, _currentUser.Object);
     }
 
     [Fact]
     public async Task Handle_EmptyRepository_ReturnsEmptyList()
     {
         _orderRepository
-            .Setup(x => x.GetAllAsync(It.IsAny<OrderStatus?>(), It.IsAny<DateOnly?>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .Setup(x => x.GetAllAsync(It.IsAny<Guid?>(), It.IsAny<OrderStatus?>(), It.IsAny<DateOnly?>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((new List<Order>(), 0));
 
         var query = new GetOrdersQuery(null, null);
@@ -37,7 +38,7 @@ public class GetOrdersQueryHandlerTests
     {
         var order = CreateBusinessOrder();
         _orderRepository
-            .Setup(x => x.GetAllAsync(It.IsAny<OrderStatus?>(), It.IsAny<DateOnly?>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .Setup(x => x.GetAllAsync(It.IsAny<Guid?>(), It.IsAny<OrderStatus?>(), It.IsAny<DateOnly?>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((new List<Order> { order }, 1));
 
         var query = new GetOrdersQuery(null, null);
@@ -56,7 +57,7 @@ public class GetOrdersQueryHandlerTests
     {
         var order = CreateIndividualOrder();
         _orderRepository
-            .Setup(x => x.GetAllAsync(It.IsAny<OrderStatus?>(), It.IsAny<DateOnly?>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .Setup(x => x.GetAllAsync(It.IsAny<Guid?>(), It.IsAny<OrderStatus?>(), It.IsAny<DateOnly?>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((new List<Order> { order }, 1));
 
         var query = new GetOrdersQuery(null, null);
@@ -76,7 +77,7 @@ public class GetOrdersQueryHandlerTests
         var business = CreateBusinessOrder();
         var individual = CreateIndividualOrder();
         _orderRepository
-            .Setup(x => x.GetAllAsync(It.IsAny<OrderStatus?>(), It.IsAny<DateOnly?>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .Setup(x => x.GetAllAsync(It.IsAny<Guid?>(), It.IsAny<OrderStatus?>(), It.IsAny<DateOnly?>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((new List<Order> { business, individual }, 2));
 
         var query = new GetOrdersQuery(null, null);

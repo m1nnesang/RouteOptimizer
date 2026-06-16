@@ -19,6 +19,11 @@ public class RouteRepository : IRouteRepository
         await _db.Routes.AddAsync(route, ct);
     }
 
+    public async Task AddStopAsync(Stop stop, CancellationToken ct)
+    {
+        await _db.Stops.AddAsync(stop, ct);
+    }
+
     public async Task<Route?> GetByIdAsync(Guid id, CancellationToken ct)
     {
         return await _db.Routes

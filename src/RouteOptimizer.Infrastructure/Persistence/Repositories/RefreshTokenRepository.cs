@@ -22,4 +22,12 @@ public sealed class RefreshTokenRepository : IRefreshTokenRepository
     {
         return await _db.RefreshTokens.FirstOrDefaultAsync(x => x.TokenHash == hash, ct);
     }
+
+    public async Task<IReadOnlyList<RefreshToken>> GetActiveByUserIdAsync(Guid userId, CancellationToken ct)
+    {
+        var now = DateTime.UtcNow;
+        return await _db.RefreshTokens
+            .Where(t => t.UserId == userId && t.RevokedAt == null && t.ExpiresAt > now)
+            .ToListAsync(ct);
+    }
 }

@@ -12,9 +12,8 @@ public class StartShiftCommandHandler : IRequestHandler<StartShiftCommand, Resul
     private readonly IUserRepository _userRepository;
     private readonly IVehicleRepository _vehicleRepository;
     private readonly IDriverShiftRepository _driverShiftRepository;
-    private readonly IUnitOfWork _unitOfWork;
 
-    public StartShiftCommandHandler(IDriverShiftRepository driverShiftRepository,IUserRepository userRepository , IVehicleRepository vehicleRepository, IUnitOfWork unitOfWork) => (_driverShiftRepository, _userRepository, _vehicleRepository, _unitOfWork) = (driverShiftRepository, userRepository , vehicleRepository, unitOfWork);
+    public StartShiftCommandHandler(IDriverShiftRepository driverShiftRepository,IUserRepository userRepository , IVehicleRepository vehicleRepository) => (_driverShiftRepository, _userRepository, _vehicleRepository) = (driverShiftRepository, userRepository , vehicleRepository);
 
     public async Task<Result<Guid>> Handle(StartShiftCommand request, CancellationToken ct)
     {
@@ -44,6 +43,7 @@ public class StartShiftCommandHandler : IRequestHandler<StartShiftCommand, Resul
         if (shift.IsFailure)
             return Result<Guid>.Failure(shift.Error!);
 
+        shift.Value!.Start();
         await _driverShiftRepository.AddAsync(shift.Value!, ct);
 
         return Result<Guid>.Success(shift.Value!.Id);

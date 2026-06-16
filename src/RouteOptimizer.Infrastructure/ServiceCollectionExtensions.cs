@@ -61,6 +61,7 @@ public static class ServiceCollectionExtensions
 
         services.AddHostedService<IdempotencyCleanupService>();
         services.AddHostedService<RefreshTokenCleanupService>();
+        services.AddHostedService<UserInvitationCleanupService>();
 
         return services;
     }

@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.RateLimiting;
@@ -17,7 +18,9 @@ using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
 builder.Host.UseSerilog((context, config) => config
     .ReadFrom.Configuration(context.Configuration)
@@ -64,10 +67,12 @@ builder.Services.AddAuthorization();
 builder.Services.AddExceptionHandler<NotFoundExceptionHandler>();
 builder.Services.AddExceptionHandler<ValidationExceptionHandler>();
 builder.Services.AddProblemDetails();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentUser, CurrentUser>();
 builder.Services.AddSignalR();
 builder.Services.AddSingleton<IRouteEventsNotifier, SignalRRouteEventsNotifier>();
 
-const int authPermitLimit = 5;
+var authPermitLimit = builder.Environment.IsEnvironment("Testing") ? int.MaxValue : 5;
 var authWindow = TimeSpan.FromMinutes(1);
 
 builder.Services.AddRateLimiter(options =>
@@ -115,3 +120,5 @@ app.MapHub<RouteHub>("/hubs/routes").RequireAuthorization();
 app.MapHealthChecks("/health");
 
 app.Run();
+
+public partial class Program { }

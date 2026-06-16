@@ -35,6 +35,14 @@ public class VehicleRepository : IVehicleRepository
         return await _db.FindAsync<Vehicle>(new object[] { id }, ct);
     }
 
+    public async Task<IReadOnlyList<Vehicle>> GetByIdsAsync(IEnumerable<Guid> ids, CancellationToken ct)
+    {
+        return await _db.Vehicles
+            .AsNoTracking()
+            .Where(v => ids.Contains(v.Id))
+            .ToListAsync(ct);
+    }
+
     public async Task<IReadOnlyList<Vehicle>> GetByWarehouseIdAsync(Guid warehouseId, CancellationToken ct)
     {
         return await _db.Vehicles.Where(x => x.WarehouseId == warehouseId).ToListAsync(ct);

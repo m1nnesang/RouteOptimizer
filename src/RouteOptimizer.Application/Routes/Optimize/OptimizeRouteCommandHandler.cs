@@ -12,11 +12,10 @@ public class OptimizeRouteCommandHandler : IRequestHandler<OptimizeRouteCommand,
     private readonly IWarehouseRepository _warehouseRepository;
     private readonly IDistanceMatrixProvider _distanceMatrixProvider;
     private readonly IEnumerable<IRouteOptimizer> _optimizers;
-    private readonly IUnitOfWork _unitOfWork;
 
-    public OptimizeRouteCommandHandler(IRouteRepository routeRepository, IWarehouseRepository warehouseRepository, IDistanceMatrixProvider distanceMatrixProvider, IEnumerable<IRouteOptimizer> optimizers,IUnitOfWork unitOfWork)
+    public OptimizeRouteCommandHandler(IRouteRepository routeRepository, IWarehouseRepository warehouseRepository, IDistanceMatrixProvider distanceMatrixProvider, IEnumerable<IRouteOptimizer> optimizers)
     {
-        (_routeRepository, _warehouseRepository, _distanceMatrixProvider, _optimizers, _unitOfWork) = (routeRepository, warehouseRepository, distanceMatrixProvider, optimizers, unitOfWork);
+        (_routeRepository, _warehouseRepository, _distanceMatrixProvider, _optimizers) = (routeRepository, warehouseRepository, distanceMatrixProvider, optimizers);
     }
 
     public async Task<OptimizeRouteResult> Handle(OptimizeRouteCommand request, CancellationToken ct)

@@ -8,10 +8,9 @@ public sealed class RevokeTokenCommandHandler : IRequestHandler<RevokeTokenComma
 {
     private readonly IRefreshTokenRepository _refreshTokenRepository;
     private readonly ITokenService _tokenService;
-    private readonly IUnitOfWork _unitOfWork;
 
-    public RevokeTokenCommandHandler(IRefreshTokenRepository refreshTokenRepository, ITokenService tokenService, IUnitOfWork unitOfWork) =>
-    (_refreshTokenRepository, _tokenService, _unitOfWork) = (refreshTokenRepository, tokenService, unitOfWork);
+    public RevokeTokenCommandHandler(IRefreshTokenRepository refreshTokenRepository, ITokenService tokenService) =>
+    (_refreshTokenRepository, _tokenService) = (refreshTokenRepository, tokenService);
 
     public async Task<Result> Handle(RevokeTokenCommand request, CancellationToken ct)
     {
@@ -22,7 +21,6 @@ public sealed class RevokeTokenCommandHandler : IRequestHandler<RevokeTokenComma
             return Result.Failure("Invalid or expired token");
 
         refreshToken.Revoke();
-        await _unitOfWork.SaveChangesAsync(ct);
 
         return Result.Success();
     }

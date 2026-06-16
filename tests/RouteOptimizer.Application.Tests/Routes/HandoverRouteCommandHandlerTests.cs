@@ -28,7 +28,6 @@ public class HandoverRouteCommandHandlerTests
             .ReturnsAsync(new RouteOptimizerOutput { OrderedStopIds = [], TotalDurationSeconds = 100, AlgorithmName = "Test" });
         _matrixProvider.Setup(x => x.GetMatrixAsync(It.IsAny<(double, double)>(), It.IsAny<IReadOnlyList<(double, double)>>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new DistanceMatrix(new double[0, 0]));
-        _unitOfWork.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         _handler = new HandoverRouteCommandHandler(
             _routeRepo.Object,
@@ -36,8 +35,7 @@ public class HandoverRouteCommandHandlerTests
             _warehouseRepo.Object,
             _shiftRepo.Object,
             [_optimizer.Object],
-            _matrixProvider.Object,
-            _unitOfWork.Object);
+            _matrixProvider.Object);
     }
 
     [Fact]

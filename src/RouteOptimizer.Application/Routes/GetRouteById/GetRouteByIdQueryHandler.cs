@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using RouteOptimizer.Application.Abstractions;
 using RouteOptimizer.Application.Exceptions;
 using RouteOptimizer.Application.Routes.Stops;
@@ -9,14 +9,22 @@ namespace RouteOptimizer.Application.Routes.GetRouteById;
 public class GetRouteByIdQueryHandler : IRequestHandler<GetRouteByIdQuery, Result<RouteDto>>
 {
     private readonly IRouteRepository _routeRepository;
+    private readonly ICurrentUser _currentUser;
 
-    public GetRouteByIdQueryHandler(IRouteRepository routeRepository) => _routeRepository = routeRepository;
+    public GetRouteByIdQueryHandler(IRouteRepository routeRepository, ICurrentUser currentUser)
+    {
+        _routeRepository = routeRepository;
+        _currentUser = currentUser;
+    }
 
     public async Task<Result<RouteDto>> Handle(GetRouteByIdQuery request, CancellationToken ct)
     {
         var route = await _routeRepository.GetByIdAsync(request.RouteId, ct);
 
         if (route is null)
+            throw new NotFoundException("Route is not found");
+
+        if (_currentUser.WarehouseId.HasValue && route.WarehouseId != _currentUser.WarehouseId.Value)
             throw new NotFoundException("Route is not found");
 
         var stops = route.Stops.Select(s => new StopDto(s.Id, s.Sequence, s.Address.City, s.Address.Street,

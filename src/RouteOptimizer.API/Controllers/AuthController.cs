@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using RouteOptimizer.Application.Auth.AcceptInvitation;
 using RouteOptimizer.Application.Auth.Login;
 using RouteOptimizer.Application.Auth.RefreshToken;
 using RouteOptimizer.Application.Auth.RevokeToken;
@@ -46,6 +47,13 @@ public class AuthController : ControllerBase
     {
         var result = await _mediator.Send(command, ct);
         return ToResponse(result);
+    }
+
+    [HttpPost("accept-invitation")]
+    public async Task<IActionResult> AcceptInvitation([FromBody] AcceptInvitationCommand command, CancellationToken ct)
+    {
+        var result = await _mediator.Send(command, ct);
+        return result.IsSuccess ? NoContent() : BadRequest(result.Error);
     }
 
 }

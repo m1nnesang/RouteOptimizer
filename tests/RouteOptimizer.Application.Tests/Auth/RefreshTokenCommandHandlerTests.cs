@@ -41,7 +41,7 @@ public class RefreshTokenCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_TokenIsRevoked_ReturnsFailure()
+    public async Task Handle_TokenIsRevoked_ReturnsFailureAndRevokesChain()
     {
         var token = RefreshToken.Create(Guid.NewGuid(), "hash", TimeSpan.FromDays(7));
         token.Revoke();
@@ -49,6 +49,8 @@ public class RefreshTokenCommandHandlerTests
         _tokenService.Setup(x => x.HashToken(It.IsAny<string>())).Returns("some-hash");
         _refreshTokenRepo.Setup(x => x.GetByHashAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((RefreshToken?)token);
+        _refreshTokenRepo.Setup(x => x.GetActiveByUserIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<RefreshToken>());
 
         var command = new RefreshTokenCommand("revoked-token");
 
@@ -56,6 +58,7 @@ public class RefreshTokenCommandHandlerTests
 
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Contain("Invalid or expired token");
+        _refreshTokenRepo.Verify(x => x.GetActiveByUserIdAsync(token.UserId, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]

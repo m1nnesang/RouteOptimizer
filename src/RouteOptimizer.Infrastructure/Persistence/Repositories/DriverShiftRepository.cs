@@ -29,4 +29,29 @@ public class DriverShiftRepository : IDriverShiftRepository
             .Where(x => x.DriverId == driverId && x.StartedAt != null && x.EndedAt == null)
             .FirstOrDefaultAsync(ct);
     }
+
+    public async Task<IReadOnlyList<DriverShift>> GetByIdsAsync(IEnumerable<Guid> ids, CancellationToken ct)
+    {
+        return await _db.DriverShifts
+            .AsNoTracking()
+            .Where(s => ids.Contains(s.Id))
+            .ToListAsync(ct);
+    }
+
+    public async Task<(IReadOnlyList<DriverShift> Items, int TotalCount)> GetAllAsync(
+        Guid? warehouseId, DateOnly? date, int skip, int take, CancellationToken ct)
+    {
+        var query = _db.DriverShifts.AsQueryable();
+
+        if (warehouseId.HasValue)
+            query = query.Where(x => x.WarehouseId == warehouseId.Value);
+
+        if (date.HasValue)
+            query = query.Where(x => x.ShiftDate == date.Value);
+
+        var totalCount = await query.CountAsync(ct);
+        var items = await query.OrderByDescending(x => x.ShiftDate).Skip(skip).Take(take).ToListAsync(ct);
+
+        return (items, totalCount);
+    }
 }

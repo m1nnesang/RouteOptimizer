@@ -2,6 +2,7 @@
 
 public record OrderDto(
     Guid Id,
+    string Status,
     string City,
     string Street,
     string PostalCode,

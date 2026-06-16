@@ -21,8 +21,7 @@ public class AcceptInvitationCommandHandlerTests
         _handler = new AcceptInvitationCommandHandler(
             _userRepo.Object,
             _invitationRepo.Object,
-            _passwordHasher.Object,
-            _unitOfWork.Object);
+            _passwordHasher.Object);
     }
 
     #region Failure Cases
@@ -107,7 +106,6 @@ public class AcceptInvitationCommandHandlerTests
         _userRepo.Setup(x => x.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((User?)user);
         _passwordHasher.Setup(x => x.Hash(It.IsAny<string>())).Returns("new-hashed-password");
-        _unitOfWork.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         var command = new AcceptInvitationCommand(invitation.Token, "NewPassword1!");
 
@@ -116,7 +114,6 @@ public class AcceptInvitationCommandHandlerTests
         result.IsSuccess.Should().BeTrue();
         invitation.IsUsed.Should().BeTrue();
         user.PasswordHash.Should().Be("new-hashed-password");
-        _unitOfWork.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     #endregion

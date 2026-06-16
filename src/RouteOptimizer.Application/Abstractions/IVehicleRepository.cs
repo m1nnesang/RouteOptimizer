@@ -8,5 +8,6 @@ public interface IVehicleRepository
     Task UpdateAsync(Vehicle vehicle, CancellationToken ct);
     Task DeleteAsync(Vehicle vehicle, CancellationToken ct);
     Task<Vehicle?> GetByIdAsync(Guid id, CancellationToken ct);
+    Task<IReadOnlyList<Vehicle>> GetByIdsAsync(IEnumerable<Guid> ids, CancellationToken ct);
     Task<IReadOnlyList<Vehicle>> GetByWarehouseIdAsync(Guid warehouseId, CancellationToken ct);
 }

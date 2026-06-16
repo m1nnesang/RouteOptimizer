@@ -2,6 +2,7 @@
 using RouteOptimizer.Domain.Entities.Orders;
 using RouteOptimizer.Domain.Enums;
 using RouteOptimizer.Domain.Events.Route;
+using RouteOptimizer.Domain.ValueObjects;
 
 namespace RouteOptimizer.Domain.Entities.Route;
 
@@ -125,7 +126,11 @@ public class Route : AggregateRoot<Guid>
 
         var sequenceNumber = _stops.Count > 0 ? _stops.Max(s => s.Sequence) + 1 : 0;
 
-        var stop = Stop.Create(Id, order.Address, order.Location, order.DeliveryWindow, sequenceNumber, [order.Id]);
+        var address = Address.Create(order.Address.Street, order.Address.City, order.Address.PostalCode, order.Address.Country).Value!;
+        var location = GeoCoordinate.Create(order.Location.Latitude, order.Location.Longitude).Value!;
+        var deliveryWindow = CopyDeliveryWindow(order.DeliveryWindow);
+
+        var stop = Stop.Create(Id, address, location, deliveryWindow, sequenceNumber, [order.Id]);
         if (stop.IsFailure) return Result.Failure(stop.Error ?? "Failed to create stop");
 
         _stops.Add(stop.Value!);
@@ -241,4 +246,14 @@ public class Route : AggregateRoot<Guid>
         next?.Start();
         return next;
     }
+
+    private static DeliveryWindow? CopyDeliveryWindow(DeliveryWindow? window) =>
+        window switch
+        {
+            null => null,
+            { Start: not null, End: not null } w => DeliveryWindow.Between(w.Start.Value, w.End.Value, w.Strictness, w.Tolerance),
+            { Start: not null } w => DeliveryWindow.From(w.Start.Value, w.Strictness, w.Tolerance),
+            { End: not null } w => DeliveryWindow.Until(w.End.Value, w.Strictness, w.Tolerance),
+            _ => DeliveryWindow.AnyTime()
+        };
 }

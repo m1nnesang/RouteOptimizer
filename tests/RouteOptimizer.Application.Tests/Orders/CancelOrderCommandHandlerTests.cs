@@ -13,11 +13,12 @@ public class CancelOrderCommandHandlerTests
 {
     private readonly Mock<IOrderRepository> _orderRepository = new();
     private readonly Mock<IRouteRepository> _routeRepository = new();
+    private readonly Mock<ICurrentUser> _currentUser = new();
     private readonly CancelOrderCommandHandler _handler;
 
     public CancelOrderCommandHandlerTests()
     {
-        _handler = new CancelOrderCommandHandler(_orderRepository.Object, _routeRepository.Object);
+        _handler = new CancelOrderCommandHandler(_orderRepository.Object, _routeRepository.Object, _currentUser.Object);
     }
 
     #region Tests

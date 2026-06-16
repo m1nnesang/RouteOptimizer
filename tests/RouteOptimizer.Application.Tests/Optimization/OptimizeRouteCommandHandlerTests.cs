@@ -26,8 +26,7 @@ public class OptimizeRouteCommandHandlerTests
             _routeRepository.Object,
             _warehouseRepository.Object,
             _distanceMatrixProvider.Object,
-            new[] { _optimizer.Object },
-            _unitOfWork.Object);
+            new[] { _optimizer.Object });
     }
 
     #region Failure Cases
@@ -103,9 +102,6 @@ public class OptimizeRouteCommandHandlerTests
         _optimizer
             .Setup(x => x.OptimizeAsync(It.IsAny<RouteOptimizerInput>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(optimizerOutput);
-        _unitOfWork
-            .Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(1);
 
         var command = new OptimizeRouteCommand(route.Id, DateOnly.FromDateTime(DateTime.Today));
 

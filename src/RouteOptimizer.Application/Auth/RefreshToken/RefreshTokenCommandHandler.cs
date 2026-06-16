@@ -16,10 +16,21 @@ public sealed class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCom
 
     public async Task<Result<AuthTokenDto>> Handle(RefreshTokenCommand request, CancellationToken ct)
     {
-        var hash =  _tokenService.HashToken(request.Token);
+        var hash = _tokenService.HashToken(request.Token);
         var refreshToken = await _refreshTokenRepository.GetByHashAsync(hash, ct);
 
-        if (refreshToken is null || !refreshToken.IsActive)
+        if (refreshToken is null)
+            return Result<AuthTokenDto>.Failure("Invalid or expired token");
+
+        if (refreshToken.IsRevoked)
+        {
+            var activeTokens = await _refreshTokenRepository.GetActiveByUserIdAsync(refreshToken.UserId, ct);
+            foreach (var t in activeTokens ?? [])
+                t.Revoke();
+            return Result<AuthTokenDto>.Failure("Invalid or expired token");
+        }
+
+        if (!refreshToken.IsActive)
             return Result<AuthTokenDto>.Failure("Invalid or expired token");
 
         var user = await _userRepository.GetByIdAsync(refreshToken.UserId, ct);
@@ -28,8 +39,8 @@ public sealed class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCom
 
         refreshToken.Revoke();
 
-        var accessToken =  _tokenService.GenerateAccessToken(user);
-        var (rawToken, tokenHash) =  _tokenService.GenerateRefreshToken();
+        var accessToken = _tokenService.GenerateAccessToken(user);
+        var (rawToken, tokenHash) = _tokenService.GenerateRefreshToken();
 
         var newToken = RefreshTokenEntity.Create(user.Id, tokenHash, _tokenService.RefreshTokenExpiration);
 

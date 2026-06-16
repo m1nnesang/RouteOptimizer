@@ -34,7 +34,7 @@ public class EndShiftCommandHandlerTests
     public async Task Handle_ShiftBelongsToDifferentDriver_ReturnsFailure()
     {
         var driverId = Guid.NewGuid();
-        var shift = CreateShift(Guid.NewGuid()); // owned by different driver
+        var shift = CreateShift(Guid.NewGuid());
 
         _shiftRepository
             .Setup(x => x.GetByIdAsync(shift.Id, It.IsAny<CancellationToken>()))
@@ -49,7 +49,7 @@ public class EndShiftCommandHandlerTests
     public async Task Handle_ShiftNotStarted_ReturnsFailure()
     {
         var driverId = Guid.NewGuid();
-        var shift = CreateShift(driverId); // not started
+        var shift = CreateShift(driverId);
 
         _shiftRepository
             .Setup(x => x.GetByIdAsync(shift.Id, It.IsAny<CancellationToken>()))

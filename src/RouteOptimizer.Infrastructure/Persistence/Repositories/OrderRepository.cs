@@ -33,9 +33,12 @@ public class OrderRepository : IOrderRepository
             .ToListAsync(ct);
     }
 
-    public async Task<(IReadOnlyList<Order> Items, int TotalCount)> GetAllAsync(OrderStatus? status, DateOnly? date, int skip, int take, CancellationToken ct)
+    public async Task<(IReadOnlyList<Order> Items, int TotalCount)> GetAllAsync(Guid? warehouseId, OrderStatus? status, DateOnly? date, int skip, int take, CancellationToken ct)
     {
         var query = _db.Orders.AsNoTracking().AsQueryable();
+
+        if (warehouseId is not null)
+            query = query.Where(x => x.WarehouseId == warehouseId.Value);
 
         if (status is not null)
             query = query.Where(x => x.Status == status.Value);

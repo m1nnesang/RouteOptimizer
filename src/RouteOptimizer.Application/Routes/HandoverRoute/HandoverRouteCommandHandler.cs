@@ -5,6 +5,7 @@ using RouteOptimizer.Domain.Common;
 using RouteOptimizer.Domain.Entities;
 using RouteOptimizer.Domain.Entities.Route;
 using RouteOptimizer.Domain.Enums;
+using RouteOptimizer.Domain.ValueObjects;
 
 namespace RouteOptimizer.Application.Routes.HandoverRoute;
 
@@ -16,7 +17,6 @@ public class HandoverRouteCommandHandler : IRequestHandler<HandoverRouteCommand,
     private readonly IDriverShiftRepository _shiftRepository;
     private readonly IEnumerable<IRouteOptimizer> _optimizers;
     private readonly IDistanceMatrixProvider _distanceMatrixProvider;
-    private readonly IUnitOfWork _unitOfWork;
 
     public HandoverRouteCommandHandler(
         IRouteRepository routeRepository,
@@ -24,8 +24,7 @@ public class HandoverRouteCommandHandler : IRequestHandler<HandoverRouteCommand,
         IWarehouseRepository warehouseRepository,
         IDriverShiftRepository shiftRepository,
         IEnumerable<IRouteOptimizer> optimizers,
-        IDistanceMatrixProvider distanceMatrixProvider,
-        IUnitOfWork unitOfWork)
+        IDistanceMatrixProvider distanceMatrixProvider)
     {
         _routeRepository = routeRepository;
         _orderRepository = orderRepository;
@@ -33,7 +32,6 @@ public class HandoverRouteCommandHandler : IRequestHandler<HandoverRouteCommand,
         _shiftRepository = shiftRepository;
         _optimizers = optimizers;
         _distanceMatrixProvider = distanceMatrixProvider;
-        _unitOfWork = unitOfWork;
     }
 
     public async Task<Result> Handle(HandoverRouteCommand request, CancellationToken ct)
@@ -85,7 +83,6 @@ public class HandoverRouteCommandHandler : IRequestHandler<HandoverRouteCommand,
 
         newRoute.AssignShift(targetShiftId);
         await _routeRepository.AddAsync(newRoute, ct);
-        await _unitOfWork.SaveChangesAsync(ct);
 
         return Result.Success();
     }
@@ -142,7 +139,6 @@ public class HandoverRouteCommandHandler : IRequestHandler<HandoverRouteCommand,
                 if (allOrders.TryGetValue(orderId, out var order))
                     order.ReturnToPool();
 
-        await _unitOfWork.SaveChangesAsync(ct);
         return Result.Success();
     }
 
@@ -153,7 +149,6 @@ public class HandoverRouteCommandHandler : IRequestHandler<HandoverRouteCommand,
         foreach (var order in orders)
             order.ReturnToPool();
 
-        await _unitOfWork.SaveChangesAsync(ct);
         return Result.Success();
     }
 
@@ -173,7 +168,10 @@ public class HandoverRouteCommandHandler : IRequestHandler<HandoverRouteCommand,
         for (var i = 0; i < sourceStops.Count; i++)
         {
             var src = sourceStops[i];
-            var stopResult = Stop.Create(newRoute.Id, src.Address, src.Location, src.DeliveryWindow, i, src.Orders);
+            var address = Address.Create(src.Address.Street, src.Address.City, src.Address.PostalCode, src.Address.Country).Value!;
+            var location = GeoCoordinate.Create(src.Location.Latitude, src.Location.Longitude).Value!;
+            var deliveryWindow = CloneDeliveryWindow(src.DeliveryWindow);
+            var stopResult = Stop.Create(newRoute.Id, address, location, deliveryWindow, i, src.Orders);
             if (stopResult.IsFailure) return Result<Route>.Failure(stopResult.Error!);
             newRoute.AddStop(stopResult.Value!);
         }
@@ -203,4 +201,14 @@ public class HandoverRouteCommandHandler : IRequestHandler<HandoverRouteCommand,
 
         return Result<Route>.Success(newRoute);
     }
+
+    private static DeliveryWindow? CloneDeliveryWindow(DeliveryWindow? source) =>
+        source switch
+        {
+            null                                   => null,
+            { Start: not null, End: not null } dw  => DeliveryWindow.Between(dw.Start.Value, dw.End.Value, dw.Strictness, dw.Tolerance),
+            { Start: not null, End: null }     dw  => DeliveryWindow.From(dw.Start.Value, dw.Strictness, dw.Tolerance),
+            { Start: null,     End: not null } dw  => DeliveryWindow.Until(dw.End.Value, dw.Strictness, dw.Tolerance),
+            _                                      => DeliveryWindow.AnyTime()
+        };
 }

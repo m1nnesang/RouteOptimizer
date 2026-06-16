@@ -91,16 +91,18 @@ public abstract class Order : AggregateRoot<Guid>
 
     public void Reassign(Guid newRouteId)
     {
-        if (Status != OrderStatus.AssignedToRoute)
-            throw new InvalidOperationException("Only assigned orders can be reassigned");
+        if (Status is not (OrderStatus.AssignedToRoute or OrderStatus.InTransit))
+            throw new InvalidOperationException("Only assigned or in-transit orders can be reassigned");
 
         AssignedRouteId = newRouteId;
+        if (Status == OrderStatus.InTransit)
+            Status = OrderStatus.AssignedToRoute;
     }
 
     public void ReturnToPool()
     {
-        if (Status != OrderStatus.AssignedToRoute)
-            throw new InvalidOperationException("Only assigned orders can be returned to pool");
+        if (Status is not (OrderStatus.AssignedToRoute or OrderStatus.InTransit))
+            throw new InvalidOperationException("Only assigned or in-transit orders can be returned to pool");
 
         AssignedRouteId = null;
         Status = OrderStatus.Created;

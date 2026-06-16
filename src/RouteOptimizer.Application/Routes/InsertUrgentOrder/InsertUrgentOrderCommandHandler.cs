@@ -13,22 +13,19 @@ public class InsertUrgentOrderCommandHandler : IRequestHandler<InsertUrgentOrder
     private readonly IWarehouseRepository _warehouseRepository;
     private readonly IEnumerable<IRouteOptimizer> _optimizers;
     private readonly IDistanceMatrixProvider _distanceMatrixProvider;
-    private readonly IUnitOfWork _unitOfWork;
 
     public InsertUrgentOrderCommandHandler(
         IRouteRepository routeRepository,
         IOrderRepository orderRepository,
         IWarehouseRepository warehouseRepository,
         IEnumerable<IRouteOptimizer> optimizers,
-        IDistanceMatrixProvider distanceMatrixProvider,
-        IUnitOfWork unitOfWork)
+        IDistanceMatrixProvider distanceMatrixProvider)
     {
         _routeRepository = routeRepository;
         _orderRepository = orderRepository;
         _warehouseRepository = warehouseRepository;
         _optimizers = optimizers;
         _distanceMatrixProvider = distanceMatrixProvider;
-        _unitOfWork = unitOfWork;
     }
 
     public async Task<Result> Handle(InsertUrgentOrderCommand request, CancellationToken ct)
@@ -41,6 +38,9 @@ public class InsertUrgentOrderCommandHandler : IRequestHandler<InsertUrgentOrder
 
         var insertResult = route.InsertUrgentOrder(order);
         if (insertResult.IsFailure) return insertResult;
+
+        var newStop = route.Stops.Single(s => s.Orders.Contains(order.Id));
+        await _routeRepository.AddStopAsync(newStop, ct);
 
         var warehouse = await _warehouseRepository.GetByIdAsync(route.WarehouseId, ct);
         if (warehouse is null) return Result.Failure("Warehouse not found");
@@ -70,8 +70,6 @@ public class InsertUrgentOrderCommandHandler : IRequestHandler<InsertUrgentOrder
 
         var reorderResult = route.ReorderRemainingStops(best.OrderedStopIds);
         if (reorderResult.IsFailure) return reorderResult;
-
-        await _unitOfWork.SaveChangesAsync(ct);
 
         return Result.Success();
     }

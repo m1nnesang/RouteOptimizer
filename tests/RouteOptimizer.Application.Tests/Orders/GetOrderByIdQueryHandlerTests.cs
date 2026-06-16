@@ -11,11 +11,12 @@ namespace RouteOptimizer.Application.Tests.Orders;
 public class GetOrderByIdQueryHandlerTests
 {
     private readonly Mock<IOrderRepository> _orderRepository = new();
+    private readonly Mock<ICurrentUser> _currentUser = new();
     private readonly GetOrderByIdQueryHandler _handler;
 
     public GetOrderByIdQueryHandlerTests()
     {
-        _handler = new GetOrderByIdQueryHandler(_orderRepository.Object);
+        _handler = new GetOrderByIdQueryHandler(_orderRepository.Object, _currentUser.Object);
     }
 
     #region Failure Cases

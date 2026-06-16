@@ -17,8 +17,7 @@ public class RevokeTokenCommandHandlerTests
     {
         _handler = new RevokeTokenCommandHandler(
             _refreshTokenRepo.Object,
-            _tokenService.Object,
-            _unitOfWork.Object);
+            _tokenService.Object);
     }
 
     #region Failure Cases
@@ -85,8 +84,6 @@ public class RevokeTokenCommandHandlerTests
         _tokenService.Setup(x => x.HashToken(It.IsAny<string>())).Returns("some-hash");
         _refreshTokenRepo.Setup(x => x.GetByHashAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((RefreshToken?)token);
-        _unitOfWork.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(1);
 
         var command = new RevokeTokenCommand("valid-token");
 
@@ -94,7 +91,6 @@ public class RevokeTokenCommandHandlerTests
 
         result.IsSuccess.Should().BeTrue();
         token.IsRevoked.Should().BeTrue();
-        _unitOfWork.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     #endregion

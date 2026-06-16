@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using RouteOptimizer.Application.Abstractions;
 using RouteOptimizer.Application.Common;
 using RouteOptimizer.Domain.Entities.Orders;
@@ -8,13 +8,18 @@ namespace RouteOptimizer.Application.Orders.GetOrders;
 public class GetOrdersQueryHandler : IRequestHandler<GetOrdersQuery, PagedResult<OrderListItemDto>>
 {
     private readonly IOrderRepository _orderRepository;
+    private readonly ICurrentUser _currentUser;
 
-    public GetOrdersQueryHandler(IOrderRepository orderRepository) => _orderRepository = orderRepository;
+    public GetOrdersQueryHandler(IOrderRepository orderRepository, ICurrentUser currentUser)
+    {
+        _orderRepository = orderRepository;
+        _currentUser = currentUser;
+    }
 
     public async Task<PagedResult<OrderListItemDto>> Handle(GetOrdersQuery request, CancellationToken ct)
     {
         var skip = (request.Page - 1) * request.PageSize;
-        var (orders, totalCount) = await _orderRepository.GetAllAsync(request.Status, request.Date, skip, request.PageSize, ct);
+        var (orders, totalCount) = await _orderRepository.GetAllAsync(_currentUser.WarehouseId, request.Status, request.Date, skip, request.PageSize, ct);
 
         var items = orders.Select(result => result switch
         {
