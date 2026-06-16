@@ -1,3 +1,6 @@
-﻿namespace RouteOptimizer.Application.Routes.Stops.ResumeStop;
+﻿using RouteOptimizer.Application.Abstractions;
+using RouteOptimizer.Domain.Common;
 
-public record ResumeStopCommand();
+namespace RouteOptimizer.Application.Routes.Stops.ResumeStop;
+
+public record ResumeStopCommand(Guid RouteId, Guid StopId) : ICommand<Result>;
