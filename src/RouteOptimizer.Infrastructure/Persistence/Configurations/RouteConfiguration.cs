@@ -21,6 +21,10 @@ public class RouteConfiguration : IEntityTypeConfiguration<Route>
 
         builder.Navigation(x => x.Stops).HasField("_stops");
 
+        builder.Ignore(x => x.RemainingStops);
+        builder.Ignore(x => x.CompletedStops);
+        builder.Ignore(x => x.FailedStops);
+        builder.Ignore(x => x.CurrentStop);
 
         builder.Property<uint>("xmin")
             .HasColumnType("xid")

@@ -15,6 +15,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(u => u.LastName).HasMaxLength(100).IsRequired();
         builder.Property(x => x.PasswordHash).IsRequired();
         builder.Property(x => x.Role).IsRequired();
+        builder.Property(x => x.WarehouseId);
 
         builder.OwnsOne(x => x.PhoneNumber);
         builder.OwnsOne(x => x.DriverProfile);
