@@ -13,25 +13,31 @@ public class InsertUrgentOrderCommandHandler : IRequestHandler<InsertUrgentOrder
     private readonly IWarehouseRepository _warehouseRepository;
     private readonly IEnumerable<IRouteOptimizer> _optimizers;
     private readonly IDistanceMatrixProvider _distanceMatrixProvider;
+    private readonly ICurrentUser _currentUser;
 
     public InsertUrgentOrderCommandHandler(
         IRouteRepository routeRepository,
         IOrderRepository orderRepository,
         IWarehouseRepository warehouseRepository,
         IEnumerable<IRouteOptimizer> optimizers,
-        IDistanceMatrixProvider distanceMatrixProvider)
+        IDistanceMatrixProvider distanceMatrixProvider,
+        ICurrentUser currentUser)
     {
         _routeRepository = routeRepository;
         _orderRepository = orderRepository;
         _warehouseRepository = warehouseRepository;
         _optimizers = optimizers;
         _distanceMatrixProvider = distanceMatrixProvider;
+        _currentUser = currentUser;
     }
 
     public async Task<Result> Handle(InsertUrgentOrderCommand request, CancellationToken ct)
     {
         var route = await _routeRepository.GetByIdAsync(request.RouteId, ct);
         if (route is null) return Result.Failure("Route not found");
+
+        if (_currentUser.WarehouseId.HasValue && route.WarehouseId != _currentUser.WarehouseId.Value)
+            return Result.Failure("Route not found");
 
         var order = await _orderRepository.GetByIdAsync(request.OrderId, ct);
         if (order is null) return Result.Failure("Order not found");

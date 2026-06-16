@@ -12,10 +12,11 @@ public class OptimizeRouteCommandHandler : IRequestHandler<OptimizeRouteCommand,
     private readonly IWarehouseRepository _warehouseRepository;
     private readonly IDistanceMatrixProvider _distanceMatrixProvider;
     private readonly IEnumerable<IRouteOptimizer> _optimizers;
+    private readonly ICurrentUser _currentUser;
 
-    public OptimizeRouteCommandHandler(IRouteRepository routeRepository, IWarehouseRepository warehouseRepository, IDistanceMatrixProvider distanceMatrixProvider, IEnumerable<IRouteOptimizer> optimizers)
+    public OptimizeRouteCommandHandler(IRouteRepository routeRepository, IWarehouseRepository warehouseRepository, IDistanceMatrixProvider distanceMatrixProvider, IEnumerable<IRouteOptimizer> optimizers, ICurrentUser currentUser)
     {
-        (_routeRepository, _warehouseRepository, _distanceMatrixProvider, _optimizers) = (routeRepository, warehouseRepository, distanceMatrixProvider, optimizers);
+        (_routeRepository, _warehouseRepository, _distanceMatrixProvider, _optimizers, _currentUser) = (routeRepository, warehouseRepository, distanceMatrixProvider, optimizers, currentUser);
     }
 
     public async Task<OptimizeRouteResult> Handle(OptimizeRouteCommand request, CancellationToken ct)
@@ -23,6 +24,9 @@ public class OptimizeRouteCommandHandler : IRequestHandler<OptimizeRouteCommand,
         var route = await _routeRepository.GetByIdAsync(request.RouteId, ct);
 
         if (route is null)
+            throw new NotFoundException("Route not found");
+
+        if (_currentUser.WarehouseId.HasValue && route.WarehouseId != _currentUser.WarehouseId.Value)
             throw new NotFoundException("Route not found");
 
         var warehouse = await _warehouseRepository.GetByIdAsync(route.WarehouseId, ct);

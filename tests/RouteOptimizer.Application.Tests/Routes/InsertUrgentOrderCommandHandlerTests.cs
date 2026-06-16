@@ -18,6 +18,7 @@ public class InsertUrgentOrderCommandHandlerTests
     private readonly Mock<IWarehouseRepository> _warehouseRepo = new();
     private readonly Mock<IRouteOptimizer> _optimizer = new();
     private readonly Mock<IDistanceMatrixProvider> _matrixProvider = new();
+    private readonly Mock<ICurrentUser> _currentUser = new();
     private readonly InsertUrgentOrderCommandHandler _handler;
 
     public InsertUrgentOrderCommandHandlerTests()
@@ -30,7 +31,8 @@ public class InsertUrgentOrderCommandHandlerTests
             _orderRepo.Object,
             _warehouseRepo.Object,
             [_optimizer.Object],
-            _matrixProvider.Object);
+            _matrixProvider.Object,
+            _currentUser.Object);
     }
 
     [Fact]
@@ -90,7 +92,7 @@ public class InsertUrgentOrderCommandHandlerTests
 
         var handlerNoOptimizers = new InsertUrgentOrderCommandHandler(
             _routeRepo.Object, _orderRepo.Object, _warehouseRepo.Object,
-            [], _matrixProvider.Object);
+            [], _matrixProvider.Object, _currentUser.Object);
 
         var result = await handlerNoOptimizers.Handle(new InsertUrgentOrderCommand(route.Id, order.Id), default);
 

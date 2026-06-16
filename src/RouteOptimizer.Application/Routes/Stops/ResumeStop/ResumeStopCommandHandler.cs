@@ -9,8 +9,13 @@ namespace RouteOptimizer.Application.Routes.Stops.ResumeStop;
 public class ResumeStopCommandHandler : IRequestHandler<ResumeStopCommand, Result>
 {
     private readonly IRouteRepository _routeRepository;
+    private readonly ICurrentUser _currentUser;
 
-    public ResumeStopCommandHandler(IRouteRepository routeRepository) => _routeRepository = routeRepository;
+    public ResumeStopCommandHandler(IRouteRepository routeRepository, ICurrentUser currentUser)
+    {
+        _routeRepository = routeRepository;
+        _currentUser = currentUser;
+    }
 
     public async Task<Result> Handle(ResumeStopCommand request, CancellationToken ct)
     {
@@ -19,9 +24,11 @@ public class ResumeStopCommandHandler : IRequestHandler<ResumeStopCommand, Resul
         if (route is null)
             throw new NotFoundException("Route is not found");
 
-        if (route.Status != RouteStatus.InProgress)
+        if (_currentUser.WarehouseId.HasValue && route.WarehouseId != _currentUser.WarehouseId.Value)
+            throw new NotFoundException("Route is not found");
 
-            return Result.Failure("Route is done");
+        if (route.Status != RouteStatus.InProgress)
+            return Result.Failure("Route is not in progress");
 
         var stop = route.Stops.FirstOrDefault(s => s.Id == request.StopId);
 

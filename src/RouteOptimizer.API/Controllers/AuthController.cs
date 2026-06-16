@@ -50,10 +50,11 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("accept-invitation")]
+    [EnableRateLimiting("auth")]
     public async Task<IActionResult> AcceptInvitation([FromBody] AcceptInvitationCommand command, CancellationToken ct)
     {
         var result = await _mediator.Send(command, ct);
-        return result.IsSuccess ? NoContent() : BadRequest(result.Error);
+        return ToResponse(result);
     }
 
 }

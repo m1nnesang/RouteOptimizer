@@ -13,6 +13,7 @@ public class RefreshTokenCommandHandlerTests
     private readonly Mock<ITokenService> _tokenService = new();
     private readonly Mock<IRefreshTokenRepository> _refreshTokenRepo = new();
     private readonly Mock<IUserRepository> _userRepo = new();
+    private readonly Mock<IUnitOfWork> _unitOfWork = new();
     private readonly RefreshTokenCommandHandler _handler;
 
     public RefreshTokenCommandHandlerTests()
@@ -20,7 +21,8 @@ public class RefreshTokenCommandHandlerTests
         _handler = new RefreshTokenCommandHandler(
             _tokenService.Object,
             _refreshTokenRepo.Object,
-            _userRepo.Object);
+            _userRepo.Object,
+            _unitOfWork.Object);
     }
 
     #region Failure Cases

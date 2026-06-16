@@ -17,6 +17,7 @@ public class HandoverRouteCommandHandler : IRequestHandler<HandoverRouteCommand,
     private readonly IDriverShiftRepository _shiftRepository;
     private readonly IEnumerable<IRouteOptimizer> _optimizers;
     private readonly IDistanceMatrixProvider _distanceMatrixProvider;
+    private readonly ICurrentUser _currentUser;
 
     public HandoverRouteCommandHandler(
         IRouteRepository routeRepository,
@@ -24,7 +25,8 @@ public class HandoverRouteCommandHandler : IRequestHandler<HandoverRouteCommand,
         IWarehouseRepository warehouseRepository,
         IDriverShiftRepository shiftRepository,
         IEnumerable<IRouteOptimizer> optimizers,
-        IDistanceMatrixProvider distanceMatrixProvider)
+        IDistanceMatrixProvider distanceMatrixProvider,
+        ICurrentUser currentUser)
     {
         _routeRepository = routeRepository;
         _orderRepository = orderRepository;
@@ -32,12 +34,16 @@ public class HandoverRouteCommandHandler : IRequestHandler<HandoverRouteCommand,
         _shiftRepository = shiftRepository;
         _optimizers = optimizers;
         _distanceMatrixProvider = distanceMatrixProvider;
+        _currentUser = currentUser;
     }
 
     public async Task<Result> Handle(HandoverRouteCommand request, CancellationToken ct)
     {
         var route = await _routeRepository.GetByIdAsync(request.RouteId, ct);
         if (route is null) return Result.Failure("Route not found");
+
+        if (_currentUser.WarehouseId.HasValue && route.WarehouseId != _currentUser.WarehouseId.Value)
+            return Result.Failure("Route not found");
 
         if (route.Status is not (RouteStatus.InProgress or RouteStatus.Assigned or RouteStatus.Interrupted))
             return Result.Failure("Route must be in progress, assigned or interrupted to be handed over");

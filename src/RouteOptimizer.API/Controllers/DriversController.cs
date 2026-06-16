@@ -41,8 +41,9 @@ public class DriversController : ControllerBase
         CancellationToken ct)
     {
         var driverId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var warehouseId = Guid.Parse(User.FindFirstValue("warehouse_id")!);
 
-        var command = new StartShiftCommand(driverId, request.VehicleId, request.WarehouseId,
+        var command = new StartShiftCommand(driverId, request.VehicleId, warehouseId,
             request.ShiftDate);
 
         var result = await _mediator.Send(command, ct);
@@ -81,6 +82,6 @@ public class DriversController : ControllerBase
         return Ok(result);
     }
 
-    public record StartShiftRequest(Guid VehicleId, Guid WarehouseId, DateOnly ShiftDate);
+    public record StartShiftRequest(Guid VehicleId, DateOnly ShiftDate);
 
 }

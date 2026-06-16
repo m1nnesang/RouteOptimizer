@@ -20,6 +20,7 @@ public class HandoverRouteCommandHandlerTests
     private readonly Mock<IRouteOptimizer> _optimizer = new();
     private readonly Mock<IDistanceMatrixProvider> _matrixProvider = new();
     private readonly Mock<IUnitOfWork> _unitOfWork = new();
+    private readonly Mock<ICurrentUser> _currentUser = new();
     private readonly HandoverRouteCommandHandler _handler;
 
     public HandoverRouteCommandHandlerTests()
@@ -35,7 +36,8 @@ public class HandoverRouteCommandHandlerTests
             _warehouseRepo.Object,
             _shiftRepo.Object,
             [_optimizer.Object],
-            _matrixProvider.Object);
+            _matrixProvider.Object,
+            _currentUser.Object);
     }
 
     [Fact]

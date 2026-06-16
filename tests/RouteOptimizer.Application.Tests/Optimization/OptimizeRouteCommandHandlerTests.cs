@@ -18,6 +18,7 @@ public class OptimizeRouteCommandHandlerTests
     private readonly Mock<IDistanceMatrixProvider> _distanceMatrixProvider = new();
     private readonly Mock<IRouteOptimizerService> _optimizer = new();
     private readonly Mock<IUnitOfWork> _unitOfWork = new();
+    private readonly Mock<ICurrentUser> _currentUser = new();
     private readonly OptimizeRouteCommandHandler _handler;
 
     public OptimizeRouteCommandHandlerTests()
@@ -26,7 +27,8 @@ public class OptimizeRouteCommandHandlerTests
             _routeRepository.Object,
             _warehouseRepository.Object,
             _distanceMatrixProvider.Object,
-            new[] { _optimizer.Object });
+            new[] { _optimizer.Object },
+            _currentUser.Object);
     }
 
     #region Failure Cases

@@ -12,11 +12,12 @@ namespace RouteOptimizer.Application.Tests.Routes;
 public class ResumeStopHandlerTests
 {
     private readonly Mock<IRouteRepository> _routeRepository = new();
+    private readonly Mock<ICurrentUser> _currentUser = new();
     private readonly ResumeStopCommandHandler _handler;
 
     public ResumeStopHandlerTests()
     {
-        _handler = new ResumeStopCommandHandler(_routeRepository.Object);
+        _handler = new ResumeStopCommandHandler(_routeRepository.Object, _currentUser.Object);
     }
 
     [Fact]

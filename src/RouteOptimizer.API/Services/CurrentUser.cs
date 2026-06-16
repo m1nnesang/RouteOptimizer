@@ -10,16 +10,15 @@ public sealed class CurrentUser : ICurrentUser
     public CurrentUser(IHttpContextAccessor httpContextAccessor) =>
         _httpContextAccessor = httpContextAccessor;
 
-    private ClaimsPrincipal User => _httpContextAccessor.HttpContext!.User;
+    private ClaimsPrincipal User =>
+        _httpContextAccessor.HttpContext?.User
+        ?? throw new InvalidOperationException("No active HTTP context for the current user.");
 
-    public Guid UserId => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+    public Guid UserId =>
+        Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id)
+            ? id
+            : throw new InvalidOperationException("Current user identifier claim is missing or invalid.");
 
-    public Guid? WarehouseId
-    {
-        get
-        {
-            var value = User.FindFirstValue("warehouse_id");
-            return value is not null ? Guid.Parse(value) : null;
-        }
-    }
+    public Guid? WarehouseId =>
+        Guid.TryParse(User.FindFirstValue("warehouse_id"), out var id) ? id : null;
 }
