@@ -66,6 +66,15 @@ public class DeliveryWindow : ValueObject
         return new DeliveryWindow(null, null, WindowStrictness.Soft, null);
     }
 
+    public DeliveryWindow Clone() =>
+        this switch
+        {
+            { Start: not null, End: not null } => Between(Start.Value, End.Value, Strictness, Tolerance),
+            { Start: not null } => From(Start.Value, Strictness, Tolerance),
+            { End: not null } => Until(End.Value, Strictness, Tolerance),
+            _ => AnyTime()
+        };
+
     protected override IEnumerable<object?> GetEqualityComponents()
     {
         yield return Start;

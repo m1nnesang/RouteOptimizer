@@ -233,4 +233,52 @@ public class DeliveryWindowTests
 
         w1.Should().Be(w2);
     }
+
+    [Fact]
+    public void Clone_Between_ReturnsEqualButDistinctInstance()
+    {
+        var window = DeliveryWindow.Between(new TimeOnly(9, 0), new TimeOnly(17, 0), WindowStrictness.Soft, TimeSpan.FromMinutes(30));
+
+        var clone = window.Clone();
+
+        clone.Should().Be(window);
+        clone.Should().NotBeSameAs(window);
+    }
+
+    [Fact]
+    public void Clone_From_PreservesStartAndStrictnessAndTolerance()
+    {
+        var window = DeliveryWindow.From(new TimeOnly(8, 0), WindowStrictness.Strict);
+
+        var clone = window.Clone();
+
+        clone.Start.Should().Be(new TimeOnly(8, 0));
+        clone.End.Should().BeNull();
+        clone.Strictness.Should().Be(WindowStrictness.Strict);
+        clone.Tolerance.Should().BeNull();
+    }
+
+    [Fact]
+    public void Clone_Until_PreservesEnd()
+    {
+        var window = DeliveryWindow.Until(new TimeOnly(18, 0), WindowStrictness.Soft);
+
+        var clone = window.Clone();
+
+        clone.Start.Should().BeNull();
+        clone.End.Should().Be(new TimeOnly(18, 0));
+        clone.Should().Be(window);
+    }
+
+    [Fact]
+    public void Clone_AnyTime_ReturnsAnyTimeWindow()
+    {
+        var window = DeliveryWindow.AnyTime();
+
+        var clone = window.Clone();
+
+        clone.Should().Be(window);
+        clone.Start.Should().BeNull();
+        clone.End.Should().BeNull();
+    }
 }

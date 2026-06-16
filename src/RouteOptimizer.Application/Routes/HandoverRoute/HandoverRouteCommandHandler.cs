@@ -176,7 +176,7 @@ public class HandoverRouteCommandHandler : IRequestHandler<HandoverRouteCommand,
             var src = sourceStops[i];
             var address = Address.Create(src.Address.Street, src.Address.City, src.Address.PostalCode, src.Address.Country).Value!;
             var location = GeoCoordinate.Create(src.Location.Latitude, src.Location.Longitude).Value!;
-            var deliveryWindow = CloneDeliveryWindow(src.DeliveryWindow);
+            var deliveryWindow = src.DeliveryWindow?.Clone();
             var stopResult = Stop.Create(newRoute.Id, address, location, deliveryWindow, i, src.Orders);
             if (stopResult.IsFailure) return Result<Route>.Failure(stopResult.Error!);
             newRoute.AddStop(stopResult.Value!);
@@ -207,14 +207,4 @@ public class HandoverRouteCommandHandler : IRequestHandler<HandoverRouteCommand,
 
         return Result<Route>.Success(newRoute);
     }
-
-    private static DeliveryWindow? CloneDeliveryWindow(DeliveryWindow? source) =>
-        source switch
-        {
-            null                                   => null,
-            { Start: not null, End: not null } dw  => DeliveryWindow.Between(dw.Start.Value, dw.End.Value, dw.Strictness, dw.Tolerance),
-            { Start: not null, End: null }     dw  => DeliveryWindow.From(dw.Start.Value, dw.Strictness, dw.Tolerance),
-            { Start: null,     End: not null } dw  => DeliveryWindow.Until(dw.End.Value, dw.Strictness, dw.Tolerance),
-            _                                      => DeliveryWindow.AnyTime()
-        };
 }
