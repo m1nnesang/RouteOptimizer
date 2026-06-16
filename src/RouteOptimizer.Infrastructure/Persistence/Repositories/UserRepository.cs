@@ -37,11 +37,14 @@ public class UserRepository : IUserRepository
             .ToListAsync(ct);
     }
 
-    public async Task<(IReadOnlyList<User> Items, int TotalCount)> GetAllDriversAsync(int skip, int take, CancellationToken ct)
+    public async Task<(IReadOnlyList<User> Items, int TotalCount)> GetAllDriversAsync(Guid? warehouseId, int skip, int take, CancellationToken ct)
     {
         var query = _db.Users
             .AsNoTracking()
             .Where(x => x.Role == UserRole.Driver);
+
+        if (warehouseId.HasValue)
+            query = query.Where(x => x.WarehouseId == warehouseId.Value);
 
         var totalCount = await query.CountAsync(ct);
         var items = await query.Skip(skip).Take(take).ToListAsync(ct);

@@ -8,5 +8,5 @@ public interface IUserRepository
     Task<User?> GetByIdAsync(Guid id, CancellationToken ct);
     Task<User?> GetByEmailAsync(string email, CancellationToken ct);
     Task<IReadOnlyList<User>> GetByIdsAsync(IEnumerable<Guid> ids, CancellationToken ct);
-    Task<(IReadOnlyList<User> Items, int TotalCount)> GetAllDriversAsync(int skip, int take, CancellationToken ct);
+    Task<(IReadOnlyList<User> Items, int TotalCount)> GetAllDriversAsync(Guid? warehouseId, int skip, int take, CancellationToken ct);
 }

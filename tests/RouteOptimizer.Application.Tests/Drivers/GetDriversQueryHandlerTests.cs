@@ -12,18 +12,19 @@ namespace RouteOptimizer.Application.Tests.Drivers;
 public class GetDriversQueryHandlerTests
 {
     private readonly Mock<IUserRepository> _userRepository = new();
+    private readonly Mock<ICurrentUser> _currentUser = new();
     private readonly GetDriversQueryHandler _handler;
 
     public GetDriversQueryHandlerTests()
     {
-        _handler = new GetDriversQueryHandler(_userRepository.Object);
+        _handler = new GetDriversQueryHandler(_userRepository.Object, _currentUser.Object);
     }
 
     [Fact]
     public async Task Handle_NoDrivers_ReturnsEmptyList()
     {
         _userRepository
-            .Setup(x => x.GetAllDriversAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .Setup(x => x.GetAllDriversAsync(It.IsAny<Guid?>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((new List<User>(), 0));
 
         var result = await _handler.Handle(new GetDriversQuery(), default);
@@ -36,7 +37,7 @@ public class GetDriversQueryHandlerTests
     {
         var driver = CreateDriver();
         _userRepository
-            .Setup(x => x.GetAllDriversAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .Setup(x => x.GetAllDriversAsync(It.IsAny<Guid?>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((new List<User> { driver }, 1));
 
         var result = await _handler.Handle(new GetDriversQuery(), default);
@@ -44,6 +45,22 @@ public class GetDriversQueryHandlerTests
         result.Items.Should().HaveCount(1);
         result.Items[0].Id.Should().Be(driver.Id);
         result.Items[0].Email.Should().Be(driver.Email);
+    }
+
+    [Fact]
+    public async Task Handle_ScopesQueryToCurrentUserWarehouse()
+    {
+        var warehouseId = Guid.NewGuid();
+        _currentUser.Setup(x => x.WarehouseId).Returns(warehouseId);
+        _userRepository
+            .Setup(x => x.GetAllDriversAsync(It.IsAny<Guid?>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((new List<User>(), 0));
+
+        await _handler.Handle(new GetDriversQuery(), default);
+
+        _userRepository.Verify(
+            x => x.GetAllDriversAsync(warehouseId, It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     private static User CreateDriver()
