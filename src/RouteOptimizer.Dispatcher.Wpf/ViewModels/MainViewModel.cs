@@ -22,8 +22,8 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     private void ShowOrders() => CurrentViewModel = new OrdersViewModel(_apiHttpClient);
     [RelayCommand]
-    private void ShowRoutes() => CurrentViewModel = null;
+    private void ShowRoutes() => CurrentViewModel = new RoutesViewModel(_apiHttpClient);
     [RelayCommand]
-    private void ShowDrivers() => CurrentViewModel = null;
+    private void ShowDrivers() => CurrentViewModel = new DriversViewModel(_apiHttpClient);
 
 }

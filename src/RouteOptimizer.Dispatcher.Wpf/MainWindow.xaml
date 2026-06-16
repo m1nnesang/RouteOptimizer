@@ -1,4 +1,4 @@
-﻿<Window x:Class="RouteOptimizer.Dispatcher.Wpf.MainWindow"
+<Window x:Class="RouteOptimizer.Dispatcher.Wpf.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -6,10 +6,16 @@
         xmlns:vm="clr-namespace:RouteOptimizer.Dispatcher.Wpf.VIewModels"
         xmlns:views="clr-namespace:RouteOptimizer.Dispatcher.Wpf.Views"
         mc:Ignorable="d"
-        Title="Route Optimizer — Диспетчер" Height="600" Width="1000">
+        Title="Route Optimizer — Dispatcher" Height="600" Width="1000">
     <Window.Resources>
         <DataTemplate DataType="{x:Type vm:OrdersViewModel}">
             <views:OrdersView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:RoutesViewModel}">
+            <views:RoutesView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:DriversViewModel}">
+            <views:DriversView/>
         </DataTemplate>
     </Window.Resources>
     <Grid>
@@ -18,20 +24,18 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <!-- Панель навигации -->
         <StackPanel Grid.Row="0" Orientation="Horizontal" Background="#2C3E50">
-            <Button Content="Заказы"
+            <Button Content="Orders"
                     Command="{Binding ShowOrdersCommand}"
                     Margin="8,8,4,8" Padding="16,4" />
-            <Button Content="Маршруты"
+            <Button Content="Routes"
                     Command="{Binding ShowRoutesCommand}"
                     Margin="4,8,4,8" Padding="16,4" />
-            <Button Content="Водители"
+            <Button Content="Drivers"
                     Command="{Binding ShowDriversCommand}"
                     Margin="4,8,8,8" Padding="16,4" />
         </StackPanel>
 
-        <!-- Основной контент -->
         <ContentControl Grid.Row="1"
                         Content="{Binding CurrentViewModel}" />
     </Grid>

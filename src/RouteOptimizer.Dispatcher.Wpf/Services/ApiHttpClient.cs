@@ -2,6 +2,7 @@
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using RouteOptimizer.Dispatcher.Wpf.Services.Interfaces;
 
 namespace RouteOptimizer.Dispatcher.Wpf.Services;
@@ -39,7 +40,8 @@ public class ApiHttpClient : IApiHttpClient
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
-        PropertyNameCaseInsensitive = true
+        PropertyNameCaseInsensitive = true,
+        Converters = { new JsonStringEnumConverter() }
     };
 
 
@@ -66,5 +68,23 @@ public class ApiHttpClient : IApiHttpClient
         var result = await JsonSerializer.DeserializeAsync<TResponse>(stream, JsonOptions, ct);
 
         return result;
+    }
+
+    public async Task PostAsync<TRequest>(string url, TRequest body, CancellationToken ct = default)
+    {
+        var token = _tokenStorage.AccessToken;
+        if (token is null)
+            throw new InvalidOperationException("Access token is not set");
+
+        _httpClient.DefaultRequestHeaders.Authorization = new
+            AuthenticationHeaderValue("Bearer", token);
+
+        var jsonBody = JsonSerializer.Serialize(body, JsonOptions);
+
+        var content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
+
+        var response = await _httpClient.PostAsync(url, content, ct);
+
+        response.EnsureSuccessStatusCode();
     }
 }

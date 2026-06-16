@@ -8,11 +8,11 @@
         </Grid.RowDefinitions>
 
         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
-            <TextBlock Text="Заказы" FontSize="20" FontWeight="Bold" VerticalAlignment="Center"/>
-            <Button Content="Обновить"
+            <TextBlock Text="Orders" FontSize="20" FontWeight="Bold" VerticalAlignment="Center"/>
+            <Button Content="Refresh"
                     Command="{Binding LoadOrdersCommand}"
                     Margin="16,0,0,0" Padding="12,4"/>
-            <TextBlock Text="Загрузка..." Margin="16,0,0,0" VerticalAlignment="Center"
+            <TextBlock Text="Loading..." Margin="16,0,0,0" VerticalAlignment="Center"
                        Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}"/>
         </StackPanel>
 
@@ -23,14 +23,14 @@
                   GridLinesVisibility="Horizontal"
                   HeadersVisibility="Column">
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Статус" Binding="{Binding Status}" Width="100"/>
-                <DataGridTextColumn Header="Тип" Binding="{Binding OrderType}" Width="100"/>
-                <DataGridTextColumn Header="Город" Binding="{Binding City}" Width="120"/>
-                <DataGridTextColumn Header="Улица" Binding="{Binding Street}" Width="180"/>
-                <DataGridTextColumn Header="Груз" Binding="{Binding CargoType}" Width="100"/>
-                <DataGridTextColumn Header="Вес (кг)" Binding="{Binding Weight}" Width="80"/>
-                <DataGridTextColumn Header="Телефон" Binding="{Binding PhoneNumber}" Width="120"/>
-                <DataGridTextColumn Header="Дата" Binding="{Binding CreatedAt, StringFormat=dd.MM.yyyy}" Width="100"/>
+                <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="100"/>
+                <DataGridTextColumn Header="Type" Binding="{Binding OrderType}" Width="100"/>
+                <DataGridTextColumn Header="City" Binding="{Binding City}" Width="120"/>
+                <DataGridTextColumn Header="Street" Binding="{Binding Street}" Width="180"/>
+                <DataGridTextColumn Header="Cargo" Binding="{Binding CargoType}" Width="100"/>
+                <DataGridTextColumn Header="Weight (kg)" Binding="{Binding Weight}" Width="80"/>
+                <DataGridTextColumn Header="Phone" Binding="{Binding PhoneNumber}" Width="120"/>
+                <DataGridTextColumn Header="Date" Binding="{Binding CreatedAt, StringFormat=dd.MM.yyyy}" Width="100"/>
             </DataGrid.Columns>
         </DataGrid>
     </Grid>

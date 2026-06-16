@@ -1,0 +1,161 @@
+<UserControl x:Class="RouteOptimizer.Dispatcher.Wpf.Views.RoutesView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
+            <TextBlock Text="Routes" FontSize="20" FontWeight="Bold" VerticalAlignment="Center"/>
+            <Button Content="Create route"
+                    Command="{Binding CreateRouteCommand}"
+                    Margin="16,0,0,0" Padding="12,4"/>
+            <Button Content="Refresh"
+                    Command="{Binding LoadRoutesCommand}"
+                    Margin="8,0,0,0" Padding="12,4"/>
+            <ComboBox ItemsSource="{Binding StatusFilters}"
+                      SelectedItem="{Binding SelectedStatusFilter}"
+                      Margin="16,0,0,0" Width="130" VerticalAlignment="Center"/>
+            <TextBlock Text="Loading..." Margin="12,0,0,0" VerticalAlignment="Center"
+                       Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}"/>
+        </StackPanel>
+
+        <!-- Master / Detail -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="340"/>
+                <ColumnDefinition Width="8"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Route list -->
+            <DataGrid Grid.Column="0"
+                      ItemsSource="{Binding Routes}"
+                      SelectedItem="{Binding SelectedRoute}"
+                      AutoGenerateColumns="False"
+                      IsReadOnly="True"
+                      SelectionMode="Single"
+                      GridLinesVisibility="Horizontal"
+                      HeadersVisibility="Column">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Date" Binding="{Binding Date, StringFormat=dd.MM.yyyy}" Width="90"/>
+                    <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="100"/>
+                    <DataGridTextColumn Header="Stops" Binding="{Binding StopsCount}" Width="50"/>
+                    <DataGridTextColumn Header="Driver" Binding="{Binding DriverName}" Width="*"/>
+                </DataGrid.Columns>
+            </DataGrid>
+
+            <GridSplitter Grid.Column="1" Width="8" HorizontalAlignment="Stretch" Background="#E0E0E0"/>
+
+            <!-- Route detail -->
+            <Grid Grid.Column="2">
+                <TextBlock Text="Select a route from the list"
+                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                           Foreground="Gray" FontSize="14"
+                           Visibility="{Binding NoRouteSelected, Converter={StaticResource BoolToVisibilityConverter}}"/>
+
+                <Grid Visibility="{Binding HasSelectedRoute, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Route metadata -->
+                    <Border Grid.Row="0" Background="#F5F5F5" CornerRadius="4" Padding="12,8" Margin="0,0,0,10">
+                        <WrapPanel>
+                            <TextBlock Margin="0,0,24,0">
+                                <Run Text="Status: " FontWeight="Bold"/>
+                                <Run Text="{Binding SelectedRoute.Status}"/>
+                            </TextBlock>
+                            <TextBlock Margin="0,0,24,0">
+                                <Run Text="Date: " FontWeight="Bold"/>
+                                <Run Text="{Binding SelectedRoute.Date, StringFormat=dd.MM.yyyy}"/>
+                            </TextBlock>
+                            <TextBlock Margin="0,0,24,0">
+                                <Run Text="Driver: " FontWeight="Bold"/>
+                                <Run Text="{Binding SelectedRoute.DriverName}"/>
+                            </TextBlock>
+                            <TextBlock>
+                                <Run Text="Warehouse: " FontWeight="Bold"/>
+                                <Run Text="{Binding SelectedRoute.WarehouseName}"/>
+                            </TextBlock>
+                        </WrapPanel>
+                    </Border>
+
+                    <!-- Action buttons -->
+                    <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,10">
+                        <Button Content="Optimize"
+                                Command="{Binding OptimizeCommand}"
+                                Padding="12,4" Margin="0,0,8,0"/>
+                        <Button Content="Assign shift"
+                                Command="{Binding AssignShiftCommand}"
+                                Padding="12,4" Margin="0,0,8,0"/>
+                        <Button Content="Urgent order"
+                                Command="{Binding InsertUrgentOrderCommand}"
+                                Padding="12,4" Margin="0,0,8,0"/>
+                        <Button Content="Handover"
+                                Command="{Binding HandoverCommand}"
+                                Padding="12,4"/>
+                    </StackPanel>
+
+                    <!-- Stops list -->
+                    <DataGrid Grid.Row="2"
+                              ItemsSource="{Binding SelectedRouteStops}"
+                              AutoGenerateColumns="False"
+                              IsReadOnly="True"
+                              GridLinesVisibility="Horizontal"
+                              HeadersVisibility="Column">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="#" Binding="{Binding Position}" Width="40"/>
+                            <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="90"/>
+                            <DataGridTextColumn Header="City" Binding="{Binding City}" Width="100"/>
+                            <DataGridTextColumn Header="Street" Binding="{Binding Street}" Width="160"/>
+                            <DataGridTextColumn Header="Orders" Binding="{Binding OrdersCount}" Width="60"/>
+                            <DataGridTextColumn Header="Window" Binding="{Binding DeliveryWindow}" Width="*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                    <!-- Optimization result -->
+                    <Border Grid.Row="3"
+                            Margin="0,10,0,0" Padding="12,8"
+                            Background="#EBF5FB" CornerRadius="4"
+                            Visibility="{Binding HasOptimizationResult, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Grid.Row="0" Text="Optimization result"
+                                       FontWeight="Bold" Margin="0,0,0,6"/>
+                            <DataGrid Grid.Row="1"
+                                      ItemsSource="{Binding OptimizationComparisons}"
+                                      AutoGenerateColumns="False"
+                                      IsReadOnly="True"
+                                      GridLinesVisibility="Horizontal"
+                                      HeadersVisibility="Column"
+                                      MaxHeight="100">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Algorithm" Binding="{Binding AlgorithmName}" Width="160"/>
+                                    <DataGridTextColumn Header="Duration (s)" Binding="{Binding TotalDurationSeconds, StringFormat=F0}" Width="100"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </Grid>
+                    </Border>
+
+                    <!-- Error -->
+                    <TextBlock Grid.Row="4"
+                               Text="{Binding ErrorMessage}"
+                               Foreground="Red"
+                               Margin="0,8,0,0"
+                               Visibility="{Binding HasError, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                </Grid>
+            </Grid>
+        </Grid>
+    </Grid>
+</UserControl>

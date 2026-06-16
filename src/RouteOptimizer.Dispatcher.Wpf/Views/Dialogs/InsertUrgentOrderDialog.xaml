@@ -1,0 +1,78 @@
+<Window x:Class="RouteOptimizer.Dispatcher.Wpf.Views.Dialogs.InsertUrgentOrderDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Insert Urgent Order"
+        Width="720" Height="520"
+        MinWidth="560" MinHeight="380"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="CanResizeWithGrip"
+        Loaded="Window_Loaded">
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+    </Window.Resources>
+
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <TextBlock Grid.Row="0"
+                   Text="Insert an urgent order into the active route"
+                   FontSize="14" FontWeight="Bold" Margin="0,0,0,6"/>
+
+        <!-- Info banner -->
+        <Border Grid.Row="1" Background="#FFF3CD" CornerRadius="4" Padding="10,6" Margin="0,0,0,10">
+            <TextBlock TextWrapping="Wrap" FontSize="11">
+                The order will be inserted at the optimal position in the route.
+                The driver will receive a real-time notification via SignalR.
+            </TextBlock>
+        </Border>
+
+        <!-- Toolbar -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,0,0,8">
+            <Button Content="Refresh" Command="{Binding LoadOrdersCommand}" Padding="12,4"/>
+            <TextBlock Text="Loading..." Margin="12,0,0,0" VerticalAlignment="Center"
+                       Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}"/>
+        </StackPanel>
+
+        <!-- Orders list (single select) -->
+        <DataGrid Grid.Row="3"
+                  ItemsSource="{Binding AvailableOrders}"
+                  SelectedItem="{Binding SelectedOrder}"
+                  AutoGenerateColumns="False"
+                  IsReadOnly="True"
+                  SelectionMode="Single"
+                  GridLinesVisibility="Horizontal"
+                  HeadersVisibility="Column">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Type"        Binding="{Binding OrderType}"                 Width="80"/>
+                <DataGridTextColumn Header="Status"      Binding="{Binding Status}"                    Width="100"/>
+                <DataGridTextColumn Header="City"        Binding="{Binding City}"                      Width="110"/>
+                <DataGridTextColumn Header="Street"      Binding="{Binding Street}"                    Width="*"/>
+                <DataGridTextColumn Header="Cargo"       Binding="{Binding CargoType}"                 Width="100"/>
+                <DataGridTextColumn Header="Weight (kg)" Binding="{Binding Weight, StringFormat=F1}"   Width="90"/>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <!-- Error -->
+        <TextBlock Grid.Row="4"
+                   Text="{Binding ErrorMessage}"
+                   Foreground="Red"
+                   Margin="0,6,0,0"
+                   Visibility="{Binding HasError, Converter={StaticResource BoolToVisibilityConverter}}"/>
+
+        <!-- Footer -->
+        <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+            <Button Content="Cancel" Width="90" Padding="0,6" Margin="0,0,8,0" Click="CancelButton_Click"/>
+            <Button Content="Insert"  Width="90" Padding="0,6"
+                    IsEnabled="{Binding HasSelectedOrder}"
+                    Click="ConfirmButton_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>
