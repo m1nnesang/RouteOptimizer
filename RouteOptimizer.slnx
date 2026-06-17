@@ -13,6 +13,7 @@
     <Folder Name="/tests/">
         <Project Path="tests/RouteOptimizer.API.Tests/RouteOptimizer.API.Tests.csproj" />
         <Project Path="tests/RouteOptimizer.Application.Tests/RouteOptimizer.Application.Tests.csproj" />
+        <Project Path="tests/RouteOptimizer.Dispatcher.Wpf.Tests/RouteOptimizer.Dispatcher.Wpf.Tests.csproj" />
         <Project Path="tests/RouteOptimizer.Domain.Tests/RouteOptimizer.Domain.Tests.csproj" />
         <Project Path="tests/RouteOptimizer.Integration.Tests/RouteOptimizer.Integration.Tests.csproj" />
         <Project Path="tests/RouteOptimizer.Infrastructure.Tests/RouteOptimizer.Infrastructure.Tests.csproj" />
