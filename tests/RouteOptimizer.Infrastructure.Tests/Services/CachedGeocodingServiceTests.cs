@@ -105,6 +105,46 @@ public class CachedGeocodingServiceTests
         keys[0].Should().StartWith("geocode:");
     }
 
+    [Fact]
+    public async Task GeocodeAsync_CacheReadThrows_FallsBackToInner()
+    {
+        var address = CreateAddress();
+        _cache
+            .Setup(c => c.GetAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new Exception("Redis connection refused"));
+        var coordinate = GeoCoordinate.Create(52.0, 21.0).Value!;
+        _inner
+            .Setup(x => x.GeocodeAsync(address, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<GeoCoordinate>.Success(coordinate));
+
+        var result = await _sut.GeocodeAsync(address, default);
+
+        result.IsSuccess.Should().BeTrue();
+        result.Value!.Latitude.Should().Be(52.0);
+    }
+
+    [Fact]
+    public async Task GeocodeAsync_CacheWriteThrows_StillReturnsResult()
+    {
+        var address = CreateAddress();
+        _cache
+            .Setup(c => c.GetAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((byte[]?)null);
+        _cache
+            .Setup(c => c.SetAsync(It.IsAny<string>(), It.IsAny<byte[]>(),
+                It.IsAny<DistributedCacheEntryOptions>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new Exception("Redis write failed"));
+        var coordinate = GeoCoordinate.Create(52.0, 21.0).Value!;
+        _inner
+            .Setup(x => x.GeocodeAsync(address, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<GeoCoordinate>.Success(coordinate));
+
+        var result = await _sut.GeocodeAsync(address, default);
+
+        result.IsSuccess.Should().BeTrue();
+        result.Value!.Latitude.Should().Be(52.0);
+    }
+
     private static Address CreateAddress() =>
         Address.Create("ul. Marszałkowska 1", "Warszawa", "00-001", "Poland").Value!;
 }

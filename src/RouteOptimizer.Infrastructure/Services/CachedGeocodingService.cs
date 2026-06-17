@@ -34,21 +34,35 @@ public class CachedGeocodingService : IGeocodingService
     {
         var key = BuildKey(address);
 
-        var cached = await _cache.GetStringAsync(key, ct);
-        if (cached is not null)
+        try
         {
-            _logger.LogDebug("Geocode cache hit {Key}", key);
-            var dto = JsonSerializer.Deserialize<CoordinateDto>(cached);
-            return GeoCoordinate.Create(dto!.Lat, dto.Lon);
+            var cached = await _cache.GetStringAsync(key, ct);
+            if (cached is not null)
+            {
+                _logger.LogDebug("Geocode cache hit {Key}", key);
+                var dto = JsonSerializer.Deserialize<CoordinateDto>(cached);
+                return GeoCoordinate.Create(dto!.Lat, dto.Lon);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Redis unavailable on cache read — falling back to geocoding service");
         }
 
         var result = await _inner.GeocodeAsync(address, ct);
         if (result.IsFailure)
             return result;
 
-        var payload = JsonSerializer.Serialize(
-            new CoordinateDto(result.Value!.Latitude, result.Value!.Longitude));
-        await _cache.SetStringAsync(key, payload, CacheOptions, ct);
+        try
+        {
+            var payload = JsonSerializer.Serialize(
+                new CoordinateDto(result.Value!.Latitude, result.Value!.Longitude));
+            await _cache.SetStringAsync(key, payload, CacheOptions, ct);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Redis unavailable on cache write — result not cached");
+        }
 
         return result;
     }

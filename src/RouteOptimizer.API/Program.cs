@@ -91,7 +91,8 @@ builder.Services.AddRateLimiter(options =>
 });
 
 builder.Services.AddHealthChecks()
-    .AddCheck<PostgresHealthCheck>("postgres");
+    .AddCheck<PostgresHealthCheck>("postgres")
+    .AddCheck<RedisHealthCheck>("redis");
 
 var app = builder.Build();
 
