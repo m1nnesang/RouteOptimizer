@@ -1,6 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Minio;
 using RouteOptimizer.Application.Abstractions;
 using RouteOptimizer.Infrastructure.Persistence;
@@ -31,7 +33,20 @@ public static class ServiceCollectionExtensions
             client.DefaultRequestHeaders.UserAgent.ParseAdd("RouteOptimizer/1.0");
         });
 
-        services.AddScoped<IGeocodingService, NominatimGeocodingService>();
+        services.AddStackExchangeRedisCache(options =>
+        {
+            options.Configuration = configuration.GetConnectionString("Redis");
+            options.InstanceName = "routeopt:";
+        });
+
+        services.AddScoped<IGeocodingService>(sp =>
+        {
+            var inner = ActivatorUtilities.CreateInstance<NominatimGeocodingService>(sp);
+            return new CachedGeocodingService(
+                inner,
+                sp.GetRequiredService<IDistributedCache>(),
+                sp.GetRequiredService<ILogger<CachedGeocodingService>>());
+        });
         services.AddScoped<IPasswordHasher, Argon2PasswordHasher>();
         services.Configure<JwtSettings>(configuration.GetSection("Jwt"));
         services.AddSingleton<ITokenService, JwtTokenService>();

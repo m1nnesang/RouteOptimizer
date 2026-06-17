@@ -15,6 +15,7 @@
         <Project Path="tests/RouteOptimizer.Application.Tests/RouteOptimizer.Application.Tests.csproj" />
         <Project Path="tests/RouteOptimizer.Domain.Tests/RouteOptimizer.Domain.Tests.csproj" />
         <Project Path="tests/RouteOptimizer.Integration.Tests/RouteOptimizer.Integration.Tests.csproj" />
+        <Project Path="tests/RouteOptimizer.Infrastructure.Tests/RouteOptimizer.Infrastructure.Tests.csproj" />
     </Folder>
     <Folder Name="/WPF/">
         <Project Path="src/RouteOptimizer.Dispatcher.Wpf/RouteOptimizer.Dispatcher.Wpf.csproj" />
