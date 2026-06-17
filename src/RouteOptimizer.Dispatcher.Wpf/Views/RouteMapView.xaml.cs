@@ -1,0 +1,128 @@
+using System.Collections;
+using System.Windows;
+using System.Windows.Controls;
+using RouteOptimizer.Dispatcher.Wpf.Models;
+using RouteOptimizer.Dispatcher.Wpf.Services;
+
+namespace RouteOptimizer.Dispatcher.Wpf.Views;
+
+public partial class RouteMapView : UserControl
+{
+    private bool _isReady;
+
+    public RouteMapView()
+    {
+        InitializeComponent();
+        Loaded += OnLoaded;
+    }
+
+    public static readonly DependencyProperty StopsProperty = DependencyProperty.Register(
+        nameof(Stops),
+        typeof(IEnumerable),
+        typeof(RouteMapView),
+        new PropertyMetadata(null, OnStopsChanged));
+
+    public IEnumerable? Stops
+    {
+        get => (IEnumerable?)GetValue(StopsProperty);
+        set => SetValue(StopsProperty, value);
+    }
+
+    private static void OnStopsChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) =>
+        ((RouteMapView)d).RenderStops();
+
+    private async void OnLoaded(object sender, RoutedEventArgs e)
+    {
+        if (_isReady)
+            return;
+
+        await MapWebView.EnsureCoreWebView2Async();
+        MapWebView.NavigationCompleted += (_, _) =>
+        {
+            _isReady = true;
+            RenderStops();
+        };
+        MapWebView.NavigateToString(MapHtml);
+    }
+
+    private async void RenderStops()
+    {
+        if (!_isReady || MapWebView.CoreWebView2 is null)
+            return;
+
+        var stops = (Stops ?? Array.Empty<RouteStop>()).OfType<RouteStop>();
+        var json = RouteMapSerializer.Serialize(stops);
+        await MapWebView.CoreWebView2.ExecuteScriptAsync($"renderRoute({json});");
+    }
+
+    private const string MapHtml = """
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        html, body, #map { height: 100%; margin: 0; padding: 0; }
+        .stop-marker {
+            background: #2980b9; color: #fff; border-radius: 50%;
+            width: 26px; height: 26px; line-height: 26px; text-align: center;
+            font: bold 13px sans-serif; box-shadow: 0 0 3px rgba(0,0,0,0.5);
+        }
+        .stop-marker.done { background: #27ae60; }
+        .stop-marker.failed { background: #c0392b; }
+        .stop-marker.skipped { background: #7f8c8d; }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <script>
+        const map = L.map('map').setView([52.1, 5.1], 7);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; OpenStreetMap'
+        }).addTo(map);
+
+        let layer = L.layerGroup().addTo(map);
+
+        function statusClass(status) {
+            switch ((status || '').toLowerCase()) {
+                case 'completed': return 'done';
+                case 'failed': return 'failed';
+                case 'skipped': return 'skipped';
+                default: return '';
+            }
+        }
+
+        function renderRoute(stops) {
+            layer.clearLayers();
+            if (!stops || stops.length === 0) {
+                map.setView([52.1, 5.1], 7);
+                return;
+            }
+
+            const points = [];
+            stops.forEach(s => {
+                const latlng = [s.lat, s.lng];
+                points.push(latlng);
+                const icon = L.divIcon({
+                    className: '',
+                    html: '<div class="stop-marker ' + statusClass(s.status) + '">' + s.seq + '</div>',
+                    iconSize: [26, 26],
+                    iconAnchor: [13, 13]
+                });
+                L.marker(latlng, { icon }).bindPopup('<b>#' + s.seq + '</b><br>' + s.label).addTo(layer);
+            });
+
+            if (points.length > 1) {
+                L.polyline(points, { color: '#2980b9', weight: 3, opacity: 0.7 }).addTo(layer);
+            }
+
+            map.fitBounds(L.latLngBounds(points).pad(0.2));
+        }
+    </script>
+</body>
+</html>
+""";
+}
