@@ -75,6 +75,9 @@ public sealed class IntegrationTestFixture : IAsyncLifetime
 
                     services.RemoveAll<IGeocodingService>();
                     services.AddScoped<IGeocodingService, FakeGeocodingService>();
+
+                    services.RemoveAll<IFileStorageService>();
+                    services.AddScoped<IFileStorageService, FakeFileStorageService>();
                 });
             });
 
@@ -125,6 +128,21 @@ public sealed class IntegrationTestFixture : IAsyncLifetime
     {
         public Task<Result<GeoCoordinate>> GeocodeAsync(Address address, CancellationToken ct) =>
             Task.FromResult(GeoCoordinate.Create(52.5200, 13.4050));
+    }
+
+    private sealed class FakeFileStorageService : IFileStorageService
+    {
+        public Task<Result<string>> UploadAsync(string bucketName, string objectName, Stream data, string contentType, CancellationToken ct) =>
+            Task.FromResult(Result<string>.Success(objectName));
+
+        public Task<Result<string>> GetPresignedUrlAsync(string bucketName, string objectName, int expirySeconds, CancellationToken ct) =>
+            Task.FromResult(Result<string>.Success($"https://fake-storage/{bucketName}/{objectName}"));
+
+        public Task<Result<string>> GetPresignedUploadUrlAsync(string bucketName, string objectName, int expirySeconds, CancellationToken ct) =>
+            Task.FromResult(Result<string>.Success($"https://fake-storage/upload/{objectName}"));
+
+        public Task<Result> DeleteAsync(string bucketName, string objectName, CancellationToken ct) =>
+            Task.FromResult(Result.Success());
     }
 }
 
