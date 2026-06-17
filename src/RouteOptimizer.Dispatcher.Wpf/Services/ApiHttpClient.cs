@@ -87,4 +87,35 @@ public class ApiHttpClient : IApiHttpClient
 
         response.EnsureSuccessStatusCode();
     }
+
+    public async Task PutAsync<TRequest>(string url, TRequest body, CancellationToken ct = default)
+    {
+        SetAuthorization();
+
+        var jsonBody = JsonSerializer.Serialize(body, JsonOptions);
+        var content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
+
+        var response = await _httpClient.PutAsync(url, content, ct);
+
+        response.EnsureSuccessStatusCode();
+    }
+
+    public async Task DeleteAsync(string url, CancellationToken ct = default)
+    {
+        SetAuthorization();
+
+        var response = await _httpClient.DeleteAsync(url, ct);
+
+        response.EnsureSuccessStatusCode();
+    }
+
+    private void SetAuthorization()
+    {
+        var token = _tokenStorage.AccessToken;
+        if (token is null)
+            throw new InvalidOperationException("Access token is not set");
+
+        _httpClient.DefaultRequestHeaders.Authorization = new
+            AuthenticationHeaderValue("Bearer", token);
+    }
 }

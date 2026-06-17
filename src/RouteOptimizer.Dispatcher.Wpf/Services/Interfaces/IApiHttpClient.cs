@@ -7,4 +7,8 @@ public interface IApiHttpClient
     Task<TResponse?> PostAsync<TRequest, TResponse>(string url, TRequest body, CancellationToken ct = default);
 
     Task PostAsync<TRequest>(string url, TRequest body, CancellationToken ct = default);
+
+    Task PutAsync<TRequest>(string url, TRequest body, CancellationToken ct = default);
+
+    Task DeleteAsync(string url, CancellationToken ct = default);
 }

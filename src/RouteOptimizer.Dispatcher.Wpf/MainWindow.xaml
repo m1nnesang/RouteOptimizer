@@ -17,6 +17,12 @@
         <DataTemplate DataType="{x:Type vm:DriversViewModel}">
             <views:DriversView/>
         </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:VehiclesViewModel}">
+            <views:VehiclesView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:WarehousesViewModel}">
+            <views:WarehousesView/>
+        </DataTemplate>
     </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
@@ -33,6 +39,12 @@
                     Margin="4,8,4,8" Padding="16,4" />
             <Button Content="Drivers"
                     Command="{Binding ShowDriversCommand}"
+                    Margin="4,8,4,8" Padding="16,4" />
+            <Button Content="Vehicles"
+                    Command="{Binding ShowVehiclesCommand}"
+                    Margin="4,8,4,8" Padding="16,4" />
+            <Button Content="Warehouses"
+                    Command="{Binding ShowWarehousesCommand}"
                     Margin="4,8,8,8" Padding="16,4" />
         </StackPanel>
 

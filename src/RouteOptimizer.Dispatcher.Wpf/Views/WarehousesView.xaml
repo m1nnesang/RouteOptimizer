@@ -1,0 +1,46 @@
+<UserControl x:Class="RouteOptimizer.Dispatcher.Wpf.Views.WarehousesView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
+            <TextBlock Text="Warehouses" FontSize="20" FontWeight="Bold" VerticalAlignment="Center"/>
+            <Button Content="Refresh" Command="{Binding LoadWarehousesCommand}" Margin="16,0,0,0" Padding="12,4"/>
+            <Button Content="Create" Command="{Binding CreateWarehouseCommand}" Margin="8,0,0,0" Padding="12,4"/>
+            <Button Content="Edit" Command="{Binding EditWarehouseCommand}"
+                    IsEnabled="{Binding HasSelectedWarehouse}" Margin="8,0,0,0" Padding="12,4"/>
+            <Button Content="Delete" Command="{Binding DeleteWarehouseCommand}"
+                    IsEnabled="{Binding HasSelectedWarehouse}" Margin="8,0,0,0" Padding="12,4"/>
+            <TextBlock Text="Loading..." Margin="16,0,0,0" VerticalAlignment="Center"
+                       Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}"/>
+        </StackPanel>
+
+        <DataGrid Grid.Row="1"
+                  ItemsSource="{Binding Warehouses}"
+                  SelectedItem="{Binding SelectedWarehouse}"
+                  AutoGenerateColumns="False"
+                  IsReadOnly="True"
+                  SelectionMode="Single"
+                  GridLinesVisibility="Horizontal"
+                  HeadersVisibility="Column">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="200"/>
+                <DataGridTextColumn Header="City" Binding="{Binding City}" Width="140"/>
+                <DataGridTextColumn Header="Street" Binding="{Binding Street}" Width="*"/>
+                <DataGridTextColumn Header="Lat" Binding="{Binding Latitude, StringFormat=F5}" Width="90"/>
+                <DataGridTextColumn Header="Lon" Binding="{Binding Longitude, StringFormat=F5}" Width="90"/>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <TextBlock Grid.Row="2"
+                   Text="{Binding ErrorMessage}"
+                   Foreground="Red"
+                   Margin="0,8,0,0"
+                   Visibility="{Binding HasError, Converter={StaticResource BoolToVisibilityConverter}}"/>
+    </Grid>
+</UserControl>
