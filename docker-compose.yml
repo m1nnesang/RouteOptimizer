@@ -56,7 +56,7 @@ services:
       - osrm_data:/data
     command: >
       sh -c "
-        wget -q https://download.geofabrik.de/europe/netherlands-latest.osm.pbf -O /data/map.osm.pbf &&
+        wget -q https://download.geofabrik.de/europe/poland-latest.osm.pbf -O /data/map.osm.pbf &&
         osrm-extract -p /opt/car.lua /data/map.osm.pbf -o /data/map.osrm &&
         osrm-partition /data/map.osrm &&
         osrm-customize /data/map.osrm
