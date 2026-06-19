@@ -3,7 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using RouteOptimizer.Dispatcher.Wpf.Services.Interfaces;
 
-namespace RouteOptimizer.Dispatcher.Wpf.VIewModels;
+namespace RouteOptimizer.Dispatcher.Wpf.ViewModels;
 
 public partial class LoginViewModel : ObservableObject
 {

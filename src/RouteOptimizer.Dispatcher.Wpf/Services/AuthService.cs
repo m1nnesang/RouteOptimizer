@@ -34,6 +34,42 @@ public class AuthService : IAuthService
         return true;
     }
 
+    public async Task<bool> RefreshAsync(CancellationToken ct = default)
+    {
+        var refreshToken = _tokenStorage.RefreshToken;
+        if (string.IsNullOrEmpty(refreshToken))
+            return false;
+
+        var json = JsonSerializer.Serialize(new { Token = refreshToken });
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+        HttpResponseMessage response;
+        try
+        {
+            response = await _httpClient.PostAsync("api/auth/refresh", content, ct);
+        }
+        catch (HttpRequestException)
+        {
+            return false;
+        }
+
+        if (!response.IsSuccessStatusCode)
+        {
+            _tokenStorage.Clear();
+            return false;
+        }
+
+        var jsonResponse = await response.Content.ReadAsStringAsync(ct);
+        var tokenDto = JsonSerializer.Deserialize<AuthTokenResponse>(jsonResponse,
+            new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+        if (tokenDto is null)
+            return false;
+
+        _tokenStorage.Save(tokenDto.AccessToken, tokenDto.RefreshToken);
+        return true;
+    }
+
     public void Logout()
     {
         _tokenStorage.Clear();

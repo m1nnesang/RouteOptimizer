@@ -6,7 +6,7 @@ using RouteOptimizer.Dispatcher.Wpf.Models;
 using RouteOptimizer.Dispatcher.Wpf.Services.Interfaces;
 using RouteOptimizer.Dispatcher.Wpf.ViewModels.Dialogs;
 
-namespace RouteOptimizer.Dispatcher.Wpf.VIewModels;
+namespace RouteOptimizer.Dispatcher.Wpf.ViewModels;
 
 public partial class OrdersViewModel : ObservableObject
 {

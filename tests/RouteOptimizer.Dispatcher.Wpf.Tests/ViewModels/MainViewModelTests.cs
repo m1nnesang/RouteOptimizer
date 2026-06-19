@@ -1,7 +1,7 @@
 using FluentAssertions;
 using Moq;
 using RouteOptimizer.Dispatcher.Wpf.Services.Interfaces;
-using RouteOptimizer.Dispatcher.Wpf.VIewModels;
+using RouteOptimizer.Dispatcher.Wpf.ViewModels;
 
 namespace RouteOptimizer.Dispatcher.Wpf.Tests.ViewModels;
 
@@ -10,11 +10,12 @@ public class MainViewModelTests
     private readonly Mock<IAuthService> _auth = new();
     private readonly Mock<IApiHttpClient> _api = new();
     private readonly Mock<IDialogService> _dialog = new();
+    private readonly Mock<IRouteHubService> _routeHub = new();
 
     private MainViewModel CreateViewModel()
     {
         _api.Setup(a => a.GetAsync<object>(It.IsAny<string>(), default)).ReturnsAsync((object?)null);
-        return new MainViewModel(_auth.Object, _api.Object, _dialog.Object);
+        return new MainViewModel(_auth.Object, _api.Object, _dialog.Object, _routeHub.Object);
     }
 
     [Fact]

@@ -57,13 +57,19 @@ public partial class RouteMapView : UserControl
         if (_isReady)
             return;
 
-        await MapWebView.EnsureCoreWebView2Async();
-        MapWebView.NavigationCompleted += (_, _) =>
+        try
         {
-            _isReady = true;
-            RenderStops();
-        };
-        MapWebView.NavigateToString(MapHtml);
+            await MapWebView.EnsureCoreWebView2Async();
+            MapWebView.NavigationCompleted += (_, _) =>
+            {
+                _isReady = true;
+                RenderStops();
+            };
+            MapWebView.NavigateToString(MapHtml);
+        }
+        catch (Exception)
+        {
+        }
     }
 
     private async void RenderStops()
@@ -71,12 +77,18 @@ public partial class RouteMapView : UserControl
         if (!_isReady || MapWebView.CoreWebView2 is null)
             return;
 
-        var stops = (Stops ?? Array.Empty<RouteStop>()).OfType<RouteStop>();
-        var json = RouteMapSerializer.Serialize(stops);
-        var depotJson = !double.IsNaN(DepotLat) && !double.IsNaN(DepotLng)
-            ? string.Format(CultureInfo.InvariantCulture, "{{\"lat\":{0},\"lng\":{1}}}", DepotLat, DepotLng)
-            : "null";
-        await MapWebView.CoreWebView2.ExecuteScriptAsync($"renderRoute({json}, {depotJson});");
+        try
+        {
+            var stops = (Stops ?? Array.Empty<RouteStop>()).OfType<RouteStop>();
+            var json = RouteMapSerializer.Serialize(stops);
+            var depotJson = !double.IsNaN(DepotLat) && !double.IsNaN(DepotLng)
+                ? string.Format(CultureInfo.InvariantCulture, "{{\"lat\":{0},\"lng\":{1}}}", DepotLat, DepotLng)
+                : "null";
+            await MapWebView.CoreWebView2.ExecuteScriptAsync($"renderRoute({json}, {depotJson});");
+        }
+        catch (Exception)
+        {
+        }
     }
 
     private const string MapHtml = """

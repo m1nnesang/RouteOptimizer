@@ -1,5 +1,5 @@
 ﻿using System.Windows;
-using RouteOptimizer.Dispatcher.Wpf.VIewModels;
+using RouteOptimizer.Dispatcher.Wpf.ViewModels;
 
 namespace RouteOptimizer.Dispatcher.Wpf.Views;
 

@@ -1,14 +1,15 @@
 using System.Collections.ObjectModel;
 using System.Net.Http;
+using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using RouteOptimizer.Dispatcher.Wpf.Models;
 using RouteOptimizer.Dispatcher.Wpf.Services.Interfaces;
 using RouteOptimizer.Dispatcher.Wpf.ViewModels.Dialogs;
 
-namespace RouteOptimizer.Dispatcher.Wpf.VIewModels;
+namespace RouteOptimizer.Dispatcher.Wpf.ViewModels;
 
-public partial class RoutesViewModel : ObservableObject
+public partial class RoutesViewModel : ObservableObject, IDisposable
 {
     private const string AllFilter = "All";
 
@@ -20,14 +21,26 @@ public partial class RoutesViewModel : ObservableObject
 
     private readonly IApiHttpClient _apiHttpClient;
     private readonly IDialogService _dialogService;
+    private readonly IRouteHubService? _routeHub;
     private Guid? _previousSelectedRouteId;
 
-    public RoutesViewModel(IApiHttpClient apiHttpClient, IDialogService dialogService)
+    public RoutesViewModel(IApiHttpClient apiHttpClient, IDialogService dialogService,
+        IRouteHubService? routeHub = null)
     {
         _apiHttpClient = apiHttpClient;
         _dialogService = dialogService;
+        _routeHub = routeHub;
         StatusFilters = new ObservableCollection<string>(
             new[] { AllFilter }.Concat(RouteStatuses));
+
+        if (_routeHub is not null)
+        {
+            _routeHub.RouteStarted += OnRouteStarted;
+            _routeHub.StopCompleted += OnStopChanged;
+            _routeHub.StopFailed += OnStopChanged;
+            _routeHub.StopSkipped += OnStopChanged;
+        }
+
         _ = LoadRoutesAsync();
     }
 
@@ -284,5 +297,36 @@ public partial class RoutesViewModel : ObservableObject
         {
             ErrorMessage = "Failed to hand over route.";
         }
+    }
+
+    private void OnRouteStarted(RouteStartedEvent e) => RunOnUi(() => _ = LoadRoutesAsync());
+
+    private void OnStopChanged(StopEvent e) => RunOnUi(() =>
+    {
+        if (SelectedRoute?.Id == e.RouteId)
+            _ = LoadRouteDetailAsync(e.RouteId);
+        _ = LoadRoutesAsync();
+    });
+
+    private static void RunOnUi(Action action)
+    {
+        var dispatcher = Application.Current?.Dispatcher;
+        if (dispatcher is null || dispatcher.CheckAccess())
+            action();
+        else
+            dispatcher.BeginInvoke(action);
+    }
+
+    public void Dispose()
+    {
+        if (_routeHub is not null)
+        {
+            _routeHub.RouteStarted -= OnRouteStarted;
+            _routeHub.StopCompleted -= OnStopChanged;
+            _routeHub.StopFailed -= OnStopChanged;
+            _routeHub.StopSkipped -= OnStopChanged;
+        }
+
+        GC.SuppressFinalize(this);
     }
 }

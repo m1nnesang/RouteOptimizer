@@ -8,7 +8,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using RouteOptimizer.Dispatcher.Wpf.VIewModels;
+using RouteOptimizer.Dispatcher.Wpf.ViewModels;
 
 namespace RouteOptimizer.Dispatcher.Wpf;
 

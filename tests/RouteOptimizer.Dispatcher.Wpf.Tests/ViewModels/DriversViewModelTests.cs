@@ -3,7 +3,7 @@ using FluentAssertions;
 using Moq;
 using RouteOptimizer.Dispatcher.Wpf.Models;
 using RouteOptimizer.Dispatcher.Wpf.Services.Interfaces;
-using RouteOptimizer.Dispatcher.Wpf.VIewModels;
+using RouteOptimizer.Dispatcher.Wpf.ViewModels;
 
 namespace RouteOptimizer.Dispatcher.Wpf.Tests.ViewModels;
 

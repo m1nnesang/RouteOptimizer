@@ -4,7 +4,7 @@ using System.Windows.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using RouteOptimizer.Dispatcher.Wpf.Services;
 using RouteOptimizer.Dispatcher.Wpf.Services.Interfaces;
-using RouteOptimizer.Dispatcher.Wpf.VIewModels;
+using RouteOptimizer.Dispatcher.Wpf.ViewModels;
 using RouteOptimizer.Dispatcher.Wpf.Views;
 using RouteOptimizer.Dispatcher.Wpf.Views.Dialogs;
 
