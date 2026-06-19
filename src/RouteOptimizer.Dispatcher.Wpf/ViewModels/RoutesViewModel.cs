@@ -99,6 +99,12 @@ public partial class RoutesViewModel : ObservableObject, IDisposable
 
     public bool CanOptimize => SelectedRoute?.Status == "Draft";
 
+    public bool CanAssignShift => SelectedRoute?.Status == "Optimized";
+
+    public bool CanInsertUrgentOrder => SelectedRoute?.Status == "InProgress";
+
+    public bool CanHandover => SelectedRoute?.Status == "InProgress";
+
     partial void OnSelectedRouteChanged(RouteListItem? value)
     {
         if (value?.Id != _previousSelectedRouteId)
@@ -109,6 +115,9 @@ public partial class RoutesViewModel : ObservableObject, IDisposable
         _previousSelectedRouteId = value?.Id;
         SelectedRouteStops = [];
         OptimizeCommand.NotifyCanExecuteChanged();
+        AssignShiftCommand.NotifyCanExecuteChanged();
+        InsertUrgentOrderCommand.NotifyCanExecuteChanged();
+        HandoverCommand.NotifyCanExecuteChanged();
         if (value is not null)
             _ = LoadRouteDetailAsync(value.Id);
     }
@@ -229,7 +238,7 @@ public partial class RoutesViewModel : ObservableObject, IDisposable
         }
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanAssignShift))]
     private async Task AssignShiftAsync()
     {
         if (SelectedRoute is null)
@@ -252,7 +261,7 @@ public partial class RoutesViewModel : ObservableObject, IDisposable
         }
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanInsertUrgentOrder))]
     private async Task InsertUrgentOrderAsync()
     {
         if (SelectedRoute is null)
@@ -275,7 +284,7 @@ public partial class RoutesViewModel : ObservableObject, IDisposable
         }
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanHandover))]
     private async Task HandoverAsync()
     {
         if (SelectedRoute is null)
