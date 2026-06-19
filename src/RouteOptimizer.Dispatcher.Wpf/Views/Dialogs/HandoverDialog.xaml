@@ -1,4 +1,4 @@
-﻿<Window x:Class="RouteOptimizer.Dispatcher.Wpf.Views.Dialogs.HandoverDialog"
+<Window x:Class="RouteOptimizer.Dispatcher.Wpf.Views.Dialogs.HandoverDialog"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Route Handover"
@@ -11,7 +11,7 @@
         <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
     </Window.Resources>
 
-    <Grid Margin="16">
+    <Grid Margin="24">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -20,15 +20,15 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Header -->
         <TextBlock Grid.Row="0" Text="Route Handover"
-                   FontSize="14" FontWeight="Bold" Margin="0,0,0,10"/>
+                   Style="{StaticResource HeaderTextStyle}" FontSize="18" Margin="0,0,0,12"/>
 
-        <!-- Handover type selection -->
-        <Border Grid.Row="1" Background="#F5F5F5" CornerRadius="4" Padding="12,10" Margin="0,0,0,12">
+        <Border Grid.Row="1" Background="{StaticResource SurfaceBrush}"
+                BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
+                CornerRadius="12" Padding="16,12" Margin="0,0,0,12">
             <StackPanel>
                 <TextBlock Text="How do you want to handle the remaining stops?"
-                           Margin="0,0,0,8" FontWeight="Bold"/>
+                           Margin="0,0,0,10" FontWeight="SemiBold"/>
                 <StackPanel Orientation="Horizontal">
                     <RadioButton Content="Transfer to another driver"
                                  IsChecked="{Binding IsTransferAll, Mode=TwoWay}"
@@ -46,83 +46,80 @@
             </StackPanel>
         </Border>
 
-        <!-- Content area: switches on handover type -->
         <Grid Grid.Row="2">
 
-            <!-- Transfer All: pick one shift -->
             <Grid Visibility="{Binding IsTransferAll, Converter={StaticResource BoolToVisibilityConverter}}">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
-                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
+                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
                     <TextBlock Text="Select the driver who will take over all remaining stops:"
                                VerticalAlignment="Center" Margin="0,0,16,0"/>
                     <TextBlock Text="Loading..." VerticalAlignment="Center"
+                               Foreground="{StaticResource TextSecondaryBrush}"
                                Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}"/>
                 </StackPanel>
-                <DataGrid Grid.Row="1"
-                          ItemsSource="{Binding AvailableShifts}"
-                          SelectedItem="{Binding TargetShift}"
-                          AutoGenerateColumns="False"
-                          IsReadOnly="True"
-                          SelectionMode="Single"
-                          GridLinesVisibility="Horizontal"
-                          HeadersVisibility="Column">
-                    <DataGrid.Columns>
-                        <DataGridTextColumn Header="Driver"    Binding="{Binding DriverName}"    Width="160"/>
-                        <DataGridTextColumn Header="Vehicle"   Binding="{Binding VehicleType}"   Width="120"/>
-                        <DataGridTextColumn Header="Warehouse" Binding="{Binding WarehouseName}" Width="140"/>
-                        <DataGridTextColumn Header="Status"    Binding="{Binding ShiftStatus}"   Width="*"/>
-                    </DataGrid.Columns>
-                </DataGrid>
+                <Border Grid.Row="1" Style="{StaticResource CardBorderStyle}" Padding="1">
+                    <DataGrid ItemsSource="{Binding AvailableShifts}"
+                              SelectedItem="{Binding TargetShift}"
+                              IsReadOnly="True"
+                              BorderThickness="0"
+                              Background="Transparent">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Driver"    Binding="{Binding DriverName}"    Width="170"/>
+                            <DataGridTextColumn Header="Vehicle"   Binding="{Binding VehicleType}"   Width="130"/>
+                            <DataGridTextColumn Header="Warehouse" Binding="{Binding WarehouseName}" Width="150"/>
+                            <DataGridTextColumn Header="Status"    Binding="{Binding ShiftStatus}"   Width="*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Border>
             </Grid>
 
-            <!-- Distribute: assign each pending stop to a shift -->
             <Grid Visibility="{Binding IsDistribute, Converter={StaticResource BoolToVisibilityConverter}}">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
-                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
+                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
                     <TextBlock Text="Assign each pending stop to a driver:"
                                VerticalAlignment="Center" Margin="0,0,16,0"/>
                     <TextBlock Text="Loading..." VerticalAlignment="Center"
+                               Foreground="{StaticResource TextSecondaryBrush}"
                                Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}"/>
                 </StackPanel>
-                <DataGrid Grid.Row="1"
-                          ItemsSource="{Binding PendingStops}"
-                          AutoGenerateColumns="False"
-                          CanUserAddRows="False"
-                          CanUserDeleteRows="False"
-                          GridLinesVisibility="Horizontal"
-                          HeadersVisibility="Column">
-                    <DataGrid.Columns>
-                        <DataGridTextColumn Header="City"   Binding="{Binding City}"        Width="110" IsReadOnly="True"/>
-                        <DataGridTextColumn Header="Street" Binding="{Binding Street}"      Width="*"   IsReadOnly="True"/>
-                        <DataGridTextColumn Header="Orders" Binding="{Binding OrdersCount}" Width="60"  IsReadOnly="True"/>
-                        <DataGridTemplateColumn Header="Assign to Driver" Width="200">
-                            <DataGridTemplateColumn.CellTemplate>
-                                <DataTemplate>
-                                    <ComboBox ItemsSource="{Binding DataContext.AvailableShifts, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}"
-                                              SelectedItem="{Binding SelectedShift, UpdateSourceTrigger=PropertyChanged}"
-                                              DisplayMemberPath="DriverName"
-                                              Margin="2,1"/>
-                                </DataTemplate>
-                            </DataGridTemplateColumn.CellTemplate>
-                        </DataGridTemplateColumn>
-                    </DataGrid.Columns>
-                </DataGrid>
+                <Border Grid.Row="1" Style="{StaticResource CardBorderStyle}" Padding="1">
+                    <DataGrid ItemsSource="{Binding PendingStops}"
+                              CanUserDeleteRows="False"
+                              BorderThickness="0"
+                              Background="Transparent">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="City"   Binding="{Binding City}"        Width="120" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Street" Binding="{Binding Street}"      Width="*"   IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Orders" Binding="{Binding OrdersCount}" Width="70"  IsReadOnly="True"/>
+                            <DataGridTemplateColumn Header="Assign to Driver" Width="220">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <ComboBox ItemsSource="{Binding DataContext.AvailableShifts, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}"
+                                                  SelectedItem="{Binding SelectedShift, UpdateSourceTrigger=PropertyChanged}"
+                                                  DisplayMemberPath="DriverName"
+                                                  Margin="2,4"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Border>
             </Grid>
 
-            <!-- Return to Pool: confirmation message -->
             <Border Visibility="{Binding IsReturnToPool, Converter={StaticResource BoolToVisibilityConverter}}"
-                    Background="#F8D7DA" CornerRadius="4" Padding="16,12"
+                    Background="#FEE2E2" BorderBrush="#FCA5A5" BorderThickness="1"
+                    CornerRadius="12" Padding="20,16"
                     VerticalAlignment="Top">
                 <StackPanel>
                     <TextBlock Text="Return all remaining stops to the order pool"
-                               FontWeight="Bold" FontSize="13" Margin="0,0,0,8"/>
-                    <TextBlock TextWrapping="Wrap" LineHeight="20">
+                               FontWeight="SemiBold" FontSize="14" Foreground="#991B1B" Margin="0,0,0,8"/>
+                    <TextBlock TextWrapping="Wrap" LineHeight="20" Foreground="#7F1D1D">
                         All pending stops will be returned to the order pool and can be
                         reassigned to a future route. The driver completed stops remain
                         recorded in the delivery history.
@@ -131,17 +128,17 @@
             </Border>
         </Grid>
 
-        <!-- Error -->
         <TextBlock Grid.Row="3"
                    Text="{Binding ErrorMessage}"
-                   Foreground="Red"
-                   Margin="0,6,0,0"
+                   Foreground="{StaticResource DangerBrush}"
+                   TextWrapping="Wrap"
+                   Margin="0,8,0,0"
                    Visibility="{Binding HasError, Converter={StaticResource BoolToVisibilityConverter}}"/>
 
-        <!-- Footer -->
-        <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
-            <Button Content="Cancel"           Width="90"  Padding="0,6" Margin="0,0,8,0" Click="CancelButton_Click"/>
-            <Button Content="Confirm Handover" Width="140" Padding="0,6"
+        <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
+            <Button Content="Cancel" Width="92" Margin="0,0,8,0"
+                    Style="{StaticResource SecondaryButtonStyle}" Click="CancelButton_Click"/>
+            <Button Content="Confirm Handover" Width="160"
                     IsEnabled="{Binding CanConfirm}"
                     Click="ConfirmButton_Click"/>
         </StackPanel>

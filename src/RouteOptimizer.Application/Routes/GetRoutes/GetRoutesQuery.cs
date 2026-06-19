@@ -4,4 +4,4 @@ using RouteOptimizer.Domain.Enums;
 
 namespace RouteOptimizer.Application.Routes.GetRoutes;
 
-public record GetRoutesQuery(RouteStatus? Status, int Page = 1, int PageSize = 20) : IQuery<PagedResult<RouteListItemDto>>;
+public record GetRoutesQuery(RouteStatus? Status, DateOnly? Date, int Page = 1, int PageSize = 20) : IQuery<PagedResult<RouteListItemDto>>;

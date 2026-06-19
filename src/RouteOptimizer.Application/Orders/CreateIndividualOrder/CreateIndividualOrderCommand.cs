@@ -18,6 +18,9 @@ public record CreateIndividualOrderCommand(
     string? Notes,
     TimeOnly? Start,
     TimeOnly? End,
-    string? WindowStrictness
+    string? WindowStrictness,
+    string? Apartment = null,
+    double? Latitude = null,
+    double? Longitude = null
 )
     : ICommand<Result<Guid>>;

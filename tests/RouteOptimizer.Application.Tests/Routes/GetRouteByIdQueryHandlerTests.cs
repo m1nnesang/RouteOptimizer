@@ -11,12 +11,16 @@ namespace RouteOptimizer.Application.Tests.Routes;
 public class GetRouteByIdQueryHandlerTests
 {
     private readonly Mock<IRouteRepository> _routeRepository = new();
+    private readonly Mock<IOrderRepository> _orderRepository = new();
     private readonly Mock<ICurrentUser> _currentUser = new();
     private readonly GetRouteByIdQueryHandler _handler;
 
     public GetRouteByIdQueryHandlerTests()
     {
-        _handler = new GetRouteByIdQueryHandler(_routeRepository.Object, _currentUser.Object);
+        _orderRepository
+            .Setup(x => x.GetByIdsAsync(It.IsAny<IEnumerable<Guid>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync([]);
+        _handler = new GetRouteByIdQueryHandler(_routeRepository.Object, _orderRepository.Object, _currentUser.Object);
     }
 
     [Fact]

@@ -174,7 +174,7 @@ public class HandoverRouteCommandHandler : IRequestHandler<HandoverRouteCommand,
         for (var i = 0; i < sourceStops.Count; i++)
         {
             var src = sourceStops[i];
-            var address = Address.Create(src.Address.Street, src.Address.City, src.Address.PostalCode, src.Address.Country).Value!;
+            var address = Address.Create(src.Address.Street, src.Address.City, src.Address.PostalCode, src.Address.Country, src.Address.Apartment).Value!;
             var location = GeoCoordinate.Create(src.Location.Latitude, src.Location.Longitude).Value!;
             var deliveryWindow = src.DeliveryWindow?.Clone();
             var stopResult = Stop.Create(newRoute.Id, address, location, deliveryWindow, i, src.Orders);

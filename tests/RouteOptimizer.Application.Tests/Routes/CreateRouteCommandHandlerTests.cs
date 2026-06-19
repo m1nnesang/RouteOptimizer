@@ -36,7 +36,7 @@ public class CreateRouteCommandHandlerTests
             .Setup(x => x.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((Warehouse?)null);
 
-        var act = () => _handler.Handle(new CreateRouteCommand([Guid.NewGuid()]), default);
+        var act = () => _handler.Handle(new CreateRouteCommand([Guid.NewGuid()], default), default);
 
         await act.Should().ThrowAsync<NotFoundException>();
     }
@@ -51,7 +51,7 @@ public class CreateRouteCommandHandlerTests
             .Setup(x => x.GetByIdsAsync(It.IsAny<IReadOnlyList<Guid>>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync([]);
 
-        var result = await _handler.Handle(new CreateRouteCommand([Guid.NewGuid()]), default);
+        var result = await _handler.Handle(new CreateRouteCommand([Guid.NewGuid()], default), default);
 
         result.IsFailure.Should().BeTrue();
     }
@@ -70,7 +70,7 @@ public class CreateRouteCommandHandlerTests
             .Setup(x => x.GetByIdsAsync(It.IsAny<IReadOnlyList<Guid>>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync([order]);
 
-        var result = await _handler.Handle(new CreateRouteCommand([order.Id]), default);
+        var result = await _handler.Handle(new CreateRouteCommand([order.Id], default), default);
 
         result.IsFailure.Should().BeTrue();
     }
@@ -88,7 +88,7 @@ public class CreateRouteCommandHandlerTests
             .Setup(x => x.GetByIdsAsync(It.IsAny<IReadOnlyList<Guid>>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync([order]);
 
-        var result = await _handler.Handle(new CreateRouteCommand([order.Id]), default);
+        var result = await _handler.Handle(new CreateRouteCommand([order.Id], default), default);
 
         result.IsFailure.Should().BeTrue();
     }
@@ -109,10 +109,42 @@ public class CreateRouteCommandHandlerTests
             .Setup(x => x.AddAsync(It.IsAny<Domain.Entities.Route.Route>(), It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
 
-        var result = await _handler.Handle(new CreateRouteCommand([order.Id]), default);
+        var result = await _handler.Handle(new CreateRouteCommand([order.Id], default), default);
 
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBe(Guid.Empty);
+    }
+
+    [Fact]
+    public async Task Handle_OrdersAtSameAddress_AreGroupedIntoSingleStop()
+    {
+        var warehouseId = Guid.NewGuid();
+        _currentUser.Setup(x => x.WarehouseId).Returns(warehouseId);
+        SetupWarehouse(warehouseId);
+
+        var first = CreateOrder(warehouseId, "ul. Wspolna 5", apartment: "12");
+        var second = CreateOrder(warehouseId, "ul. Wspolna 5", apartment: "34");
+        var other = CreateOrder(warehouseId, "ul. Inna 7");
+
+        _orderRepository
+            .Setup(x => x.GetByIdsAsync(It.IsAny<IReadOnlyList<Guid>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync([first, second, other]);
+
+        Domain.Entities.Route.Route? captured = null;
+        _routeRepository
+            .Setup(x => x.AddAsync(It.IsAny<Domain.Entities.Route.Route>(), It.IsAny<CancellationToken>()))
+            .Callback<Domain.Entities.Route.Route, CancellationToken>((r, _) => captured = r)
+            .Returns(Task.CompletedTask);
+
+        var result = await _handler.Handle(new CreateRouteCommand([first.Id, second.Id, other.Id], default), default);
+
+        result.IsSuccess.Should().BeTrue();
+        captured.Should().NotBeNull();
+        captured!.Stops.Should().HaveCount(2);
+
+        var groupedStop = captured.Stops.Single(s => s.Orders.Count == 2);
+        groupedStop.Orders.Should().BeEquivalentTo([first.Id, second.Id]);
+        captured.Stops.Select(s => s.Sequence).Should().BeEquivalentTo([0, 1]);
     }
 
     private void SetupWarehouse(Guid warehouseId)
@@ -125,9 +157,9 @@ public class CreateRouteCommandHandlerTests
             .ReturnsAsync(warehouse);
     }
 
-    private static BusinessOrder CreateOrder(Guid warehouseId)
+    private static BusinessOrder CreateOrder(Guid warehouseId, string street = "ul. Testowa 1", string? apartment = null)
     {
-        var address = Address.Create("ul. Testowa 1", "Warszawa", "00-001", "Poland").Value!;
+        var address = Address.Create(street, "Warszawa", "00-001", "Poland", apartment).Value!;
         var location = GeoCoordinate.Create(52.23, 21.01).Value!;
         var weight = Weight.Create(10m).Value!;
         var volume = Volume.Create(1m).Value!;

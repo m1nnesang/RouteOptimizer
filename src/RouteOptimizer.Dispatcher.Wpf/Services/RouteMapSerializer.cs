@@ -19,7 +19,7 @@ public static class RouteMapSerializer
             {
                 lat = s.Latitude,
                 lng = s.Longitude,
-                seq = s.Sequence,
+                seq = s.Position,
                 status = s.Status,
                 label = BuildLabel(s),
             });
@@ -34,6 +34,6 @@ public static class RouteMapSerializer
     {
         var address = string.Join(", ",
             new[] { stop.Street, stop.City }.Where(p => !string.IsNullOrWhiteSpace(p)));
-        return address.Length == 0 ? $"Stop {stop.Sequence}" : address;
+        return address.Length == 0 ? $"Stop {stop.Position}" : address;
     }
 }

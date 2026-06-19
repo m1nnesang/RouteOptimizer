@@ -19,8 +19,21 @@ public class RouteStop
     public double Longitude { get; set; }
     public string Status { get; set; } = string.Empty;
     public List<Guid> OrderIds { get; set; } = [];
+    public List<StopOrder> Orders { get; set; } = [];
 
-    public int Position => Sequence;
+    public int Position => Sequence + 1;
     public int OrdersCount => OrderIds.Count;
+    public bool HasMultipleOrders => OrdersCount > 1;
     public string DeliveryWindow => string.Empty;
+}
+
+public class StopOrder
+{
+    public Guid OrderId { get; set; }
+    public string Recipient { get; set; } = string.Empty;
+    public string? Apartment { get; set; }
+    public string Type { get; set; } = string.Empty;
+    public string Phone { get; set; } = string.Empty;
+
+    public string ApartmentDisplay => string.IsNullOrWhiteSpace(Apartment) ? "—" : $"ap. {Apartment}";
 }

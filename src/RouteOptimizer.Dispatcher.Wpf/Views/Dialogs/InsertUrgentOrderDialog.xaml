@@ -11,7 +11,7 @@
         <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
     </Window.Resources>
 
-    <Grid Margin="16">
+    <Grid Margin="24">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -21,56 +21,54 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Header -->
         <TextBlock Grid.Row="0"
                    Text="Insert an urgent order into the active route"
-                   FontSize="14" FontWeight="Bold" Margin="0,0,0,6"/>
+                   Style="{StaticResource HeaderTextStyle}" FontSize="18" Margin="0,0,0,10"/>
 
-        <!-- Info banner -->
-        <Border Grid.Row="1" Background="#FFF3CD" CornerRadius="4" Padding="10,6" Margin="0,0,0,10">
-            <TextBlock TextWrapping="Wrap" FontSize="11">
+        <Border Grid.Row="1" Background="#FEF9C3" BorderBrush="#FDE68A" BorderThickness="1"
+                CornerRadius="10" Padding="14,10" Margin="0,0,0,12">
+            <TextBlock TextWrapping="Wrap" Foreground="#854D0E">
                 The order will be inserted at the optimal position in the route.
                 The driver will receive a real-time notification via SignalR.
             </TextBlock>
         </Border>
 
-        <!-- Toolbar -->
-        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,0,0,8">
-            <Button Content="Refresh" Command="{Binding LoadOrdersCommand}" Padding="12,4"/>
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,0,0,12">
+            <Button Content="Refresh" Style="{StaticResource SecondaryButtonStyle}"
+                    Command="{Binding LoadOrdersCommand}"/>
             <TextBlock Text="Loading..." Margin="12,0,0,0" VerticalAlignment="Center"
+                       Foreground="{StaticResource TextSecondaryBrush}"
                        Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}"/>
         </StackPanel>
 
-        <!-- Orders list (single select) -->
-        <DataGrid Grid.Row="3"
-                  ItemsSource="{Binding AvailableOrders}"
-                  SelectedItem="{Binding SelectedOrder}"
-                  AutoGenerateColumns="False"
-                  IsReadOnly="True"
-                  SelectionMode="Single"
-                  GridLinesVisibility="Horizontal"
-                  HeadersVisibility="Column">
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="Type"        Binding="{Binding OrderType}"                 Width="80"/>
-                <DataGridTextColumn Header="Status"      Binding="{Binding Status}"                    Width="100"/>
-                <DataGridTextColumn Header="City"        Binding="{Binding City}"                      Width="110"/>
-                <DataGridTextColumn Header="Street"      Binding="{Binding Street}"                    Width="*"/>
-                <DataGridTextColumn Header="Cargo"       Binding="{Binding CargoType}"                 Width="100"/>
-                <DataGridTextColumn Header="Weight (kg)" Binding="{Binding Weight, StringFormat=F1}"   Width="90"/>
-            </DataGrid.Columns>
-        </DataGrid>
+        <Border Grid.Row="3" Style="{StaticResource CardBorderStyle}" Padding="1">
+            <DataGrid ItemsSource="{Binding AvailableOrders}"
+                      SelectedItem="{Binding SelectedOrder}"
+                      IsReadOnly="True"
+                      BorderThickness="0"
+                      Background="Transparent">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Type"        Binding="{Binding OrderType}"                 Width="90"/>
+                    <DataGridTextColumn Header="Status"      Binding="{Binding Status}"                    Width="110"/>
+                    <DataGridTextColumn Header="City"        Binding="{Binding City}"                      Width="120"/>
+                    <DataGridTextColumn Header="Street"      Binding="{Binding Street}"                    Width="*"/>
+                    <DataGridTextColumn Header="Cargo"       Binding="{Binding CargoType}"                 Width="110"/>
+                    <DataGridTextColumn Header="Weight (kg)" Binding="{Binding Weight, StringFormat=F1}"   Width="100"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Border>
 
-        <!-- Error -->
         <TextBlock Grid.Row="4"
                    Text="{Binding ErrorMessage}"
-                   Foreground="Red"
-                   Margin="0,6,0,0"
+                   Foreground="{StaticResource DangerBrush}"
+                   TextWrapping="Wrap"
+                   Margin="0,8,0,0"
                    Visibility="{Binding HasError, Converter={StaticResource BoolToVisibilityConverter}}"/>
 
-        <!-- Footer -->
-        <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
-            <Button Content="Cancel" Width="90" Padding="0,6" Margin="0,0,8,0" Click="CancelButton_Click"/>
-            <Button Content="Insert"  Width="90" Padding="0,6"
+        <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
+            <Button Content="Cancel" Width="92" Margin="0,0,8,0"
+                    Style="{StaticResource SecondaryButtonStyle}" Click="CancelButton_Click"/>
+            <Button Content="Insert" Width="92"
                     IsEnabled="{Binding HasSelectedOrder}"
                     Click="ConfirmButton_Click"/>
         </StackPanel>

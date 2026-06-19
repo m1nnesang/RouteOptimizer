@@ -16,7 +16,9 @@ public partial class LoginView : Window
 
     private void OnLoginSucceeded()
     {
-        _mainWindowFactory().Show();
+        var mainWindow = _mainWindowFactory();
+        Application.Current.MainWindow = mainWindow;
+        mainWindow.Show();
         Close();
     }
 

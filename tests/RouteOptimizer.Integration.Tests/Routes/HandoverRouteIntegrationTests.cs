@@ -162,13 +162,13 @@ public sealed class HandoverRouteIntegrationTests : IntegrationTestBase
 
     private async Task<(Guid RouteId, IReadOnlyList<Guid> StopIds)> CreateAndOptimizeRouteAsync(Guid warehouseId)
     {
-        var order1 = await CreateIndividualOrderAsync(warehouseId);
-        var order2 = await CreateIndividualOrderAsync(warehouseId);
+        var order1 = await CreateIndividualOrderAsync(warehouseId, "1 Market Street");
+        var order2 = await CreateIndividualOrderAsync(warehouseId, "2 Other Avenue");
 
         var createResponse = await Client.PostAsJsonAsync("/api/routes", new
         {
-            WarehouseId = warehouseId,
-            OrderIds = new[] { order1, order2 }
+            OrderIds = new[] { order1, order2 },
+            Date = DateOnly.FromDateTime(DateTime.UtcNow)
         });
         var routeId = await createResponse.Content.ReadFromJsonAsync<Guid>();
 
@@ -181,12 +181,12 @@ public sealed class HandoverRouteIntegrationTests : IntegrationTestBase
         return (routeId, optimizeResult!.OrderedStopIds);
     }
 
-    private async Task<Guid> CreateIndividualOrderAsync(Guid warehouseId)
+    private async Task<Guid> CreateIndividualOrderAsync(Guid warehouseId, string street = "1 Market Street")
     {
         var response = await Client.PostAsJsonAsync("/api/orders/individual", new
         {
             WarehouseId = warehouseId,
-            Street = "1 Market Street",
+            Street = street,
             City = "Berlin",
             Postcode = "10115",
             Country = "Germany",

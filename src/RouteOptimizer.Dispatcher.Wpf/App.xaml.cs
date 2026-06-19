@@ -1,10 +1,12 @@
 ﻿using System.Net.Http;
 using System.Windows;
+using System.Windows.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using RouteOptimizer.Dispatcher.Wpf.Services;
 using RouteOptimizer.Dispatcher.Wpf.Services.Interfaces;
 using RouteOptimizer.Dispatcher.Wpf.VIewModels;
 using RouteOptimizer.Dispatcher.Wpf.Views;
+using RouteOptimizer.Dispatcher.Wpf.Views.Dialogs;
 
 namespace RouteOptimizer.Dispatcher.Wpf;
 
@@ -15,6 +17,8 @@ public partial class App : Application
 
     protected override void OnStartup(StartupEventArgs e)
     {
+        DispatcherUnhandledException += OnDispatcherUnhandledException;
+
         var services = new ServiceCollection();
 
         services.AddSingleton<TokenStorage>();
@@ -27,6 +31,7 @@ public partial class App : Application
                 sp.GetRequiredService<TokenStorage>());
         });
 
+        services.AddSingleton<IDialogService, WpfDialogService>();
         services.AddTransient<LoginViewModel>();
         services.AddTransient<LoginView>(sp => new LoginView(
             sp.GetRequiredService<LoginViewModel>(),
@@ -42,5 +47,15 @@ public partial class App : Application
 
         var loginView = _serviceProvider.GetRequiredService<LoginView>();
         loginView.Show();
+    }
+
+    private void OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
+    {
+        MessageBox.Show(
+            e.Exception.Message,
+            "Unexpected error",
+            MessageBoxButton.OK,
+            MessageBoxImage.Error);
+        e.Handled = true;
     }
 }

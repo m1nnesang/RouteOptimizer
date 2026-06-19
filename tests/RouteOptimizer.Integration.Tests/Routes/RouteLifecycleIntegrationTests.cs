@@ -214,13 +214,13 @@ public sealed class RouteLifecycleIntegrationTests : IntegrationTestBase
 
     private async Task<(Guid RouteId, IReadOnlyList<Guid> StopIds)> CreateAndOptimizeRouteAsync(Guid warehouseId)
     {
-        var firstOrderId = await CreateIndividualOrderAsync(warehouseId);
-        var secondOrderId = await CreateIndividualOrderAsync(warehouseId);
+        var firstOrderId = await CreateIndividualOrderAsync(warehouseId, "1 Market Street");
+        var secondOrderId = await CreateIndividualOrderAsync(warehouseId, "2 Other Avenue");
 
         var createRouteResponse = await Client.PostAsJsonAsync("/api/routes", new
         {
-            WarehouseId = warehouseId,
-            OrderIds = new[] { firstOrderId, secondOrderId }
+            OrderIds = new[] { firstOrderId, secondOrderId },
+            Date = DateOnly.FromDateTime(DateTime.UtcNow)
         });
         createRouteResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         var routeId = await createRouteResponse.Content.ReadFromJsonAsync<Guid>();
@@ -243,12 +243,12 @@ public sealed class RouteLifecycleIntegrationTests : IntegrationTestBase
         return (await response.Content.ReadFromJsonAsync<RouteDto>())!;
     }
 
-    private async Task<Guid> CreateIndividualOrderAsync(Guid warehouseId)
+    private async Task<Guid> CreateIndividualOrderAsync(Guid warehouseId, string street = "1 Market Street")
     {
         var response = await Client.PostAsJsonAsync("/api/orders/individual", new
         {
             WarehouseId = warehouseId,
-            Street = "1 Market Street",
+            Street = street,
             City = "Berlin",
             Postcode = "10115",
             Country = "Germany",
@@ -274,5 +274,5 @@ public sealed class RouteLifecycleIntegrationTests : IntegrationTestBase
         IReadOnlyList<StopDto> Stops);
 
     private sealed record StopDto(Guid Id, int Sequence, string City, string Street, double Latitude,
-        double Longitude, string Status, IReadOnlyList<Guid> Orders);
+        double Longitude, string Status, IReadOnlyList<Guid> OrderIds);
 }

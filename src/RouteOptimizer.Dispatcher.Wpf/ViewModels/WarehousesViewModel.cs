@@ -1,22 +1,22 @@
 using System.Collections.ObjectModel;
 using System.Net.Http;
-using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using RouteOptimizer.Dispatcher.Wpf.Models;
 using RouteOptimizer.Dispatcher.Wpf.Services.Interfaces;
 using RouteOptimizer.Dispatcher.Wpf.ViewModels.Dialogs;
-using RouteOptimizer.Dispatcher.Wpf.Views.Dialogs;
 
 namespace RouteOptimizer.Dispatcher.Wpf.VIewModels;
 
 public partial class WarehousesViewModel : ObservableObject
 {
     private readonly IApiHttpClient _apiHttpClient;
+    private readonly IDialogService _dialogService;
 
-    public WarehousesViewModel(IApiHttpClient apiHttpClient)
+    public WarehousesViewModel(IApiHttpClient apiHttpClient, IDialogService dialogService)
     {
         _apiHttpClient = apiHttpClient;
+        _dialogService = dialogService;
         _ = LoadWarehousesAsync();
     }
 
@@ -62,9 +62,7 @@ public partial class WarehousesViewModel : ObservableObject
     private async Task CreateWarehouseAsync()
     {
         var dialogViewModel = new WarehouseEditDialogViewModel();
-        var dialog = new WarehouseEditDialog(dialogViewModel) { Owner = Application.Current.MainWindow };
-
-        if (dialog.ShowDialog() != true)
+        if (_dialogService.ShowWarehouseEditDialog(dialogViewModel) != true)
             return;
 
         try
@@ -86,9 +84,7 @@ public partial class WarehousesViewModel : ObservableObject
             return;
 
         var dialogViewModel = new WarehouseEditDialogViewModel(SelectedWarehouse);
-        var dialog = new WarehouseEditDialog(dialogViewModel) { Owner = Application.Current.MainWindow };
-
-        if (dialog.ShowDialog() != true)
+        if (_dialogService.ShowWarehouseEditDialog(dialogViewModel) != true)
             return;
 
         try
@@ -109,10 +105,7 @@ public partial class WarehousesViewModel : ObservableObject
         if (SelectedWarehouse is null)
             return;
 
-        var confirm = MessageBox.Show(
-            $"Delete warehouse \"{SelectedWarehouse.Name}\"?",
-            "Confirm delete", MessageBoxButton.YesNo, MessageBoxImage.Warning);
-        if (confirm != MessageBoxResult.Yes)
+        if (!_dialogService.ShowConfirm($"Delete warehouse \"{SelectedWarehouse.Name}\"?", "Confirm delete"))
             return;
 
         try

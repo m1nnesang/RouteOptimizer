@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using RouteOptimizer.Dispatcher.Wpf.Models;
@@ -31,6 +32,26 @@ public partial class RouteMapView : UserControl
     private static void OnStopsChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) =>
         ((RouteMapView)d).RenderStops();
 
+    public static readonly DependencyProperty DepotLatProperty = DependencyProperty.Register(
+        nameof(DepotLat), typeof(double), typeof(RouteMapView),
+        new PropertyMetadata(double.NaN, OnStopsChanged));
+
+    public static readonly DependencyProperty DepotLngProperty = DependencyProperty.Register(
+        nameof(DepotLng), typeof(double), typeof(RouteMapView),
+        new PropertyMetadata(double.NaN, OnStopsChanged));
+
+    public double DepotLat
+    {
+        get => (double)GetValue(DepotLatProperty);
+        set => SetValue(DepotLatProperty, value);
+    }
+
+    public double DepotLng
+    {
+        get => (double)GetValue(DepotLngProperty);
+        set => SetValue(DepotLngProperty, value);
+    }
+
     private async void OnLoaded(object sender, RoutedEventArgs e)
     {
         if (_isReady)
@@ -52,7 +73,10 @@ public partial class RouteMapView : UserControl
 
         var stops = (Stops ?? Array.Empty<RouteStop>()).OfType<RouteStop>();
         var json = RouteMapSerializer.Serialize(stops);
-        await MapWebView.CoreWebView2.ExecuteScriptAsync($"renderRoute({json});");
+        var depotJson = !double.IsNaN(DepotLat) && !double.IsNaN(DepotLng)
+            ? string.Format(CultureInfo.InvariantCulture, "{{\"lat\":{0},\"lng\":{1}}}", DepotLat, DepotLng)
+            : "null";
+        await MapWebView.CoreWebView2.ExecuteScriptAsync($"renderRoute({json}, {depotJson});");
     }
 
     private const string MapHtml = """
@@ -73,18 +97,25 @@ public partial class RouteMapView : UserControl
         .stop-marker.done { background: #27ae60; }
         .stop-marker.failed { background: #c0392b; }
         .stop-marker.skipped { background: #7f8c8d; }
+        .depot-marker {
+            background: #34495e; color: #fff; border-radius: 4px;
+            width: 30px; height: 30px; line-height: 30px; text-align: center;
+            font-size: 18px; box-shadow: 0 0 3px rgba(0,0,0,0.5);
+        }
     </style>
 </head>
 <body>
     <div id="map"></div>
     <script>
-        const map = L.map('map').setView([52.1, 5.1], 7);
+        const map = L.map('map').setView([52.1, 19.0], 7);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
             attribution: '&copy; OpenStreetMap'
         }).addTo(map);
 
         let layer = L.layerGroup().addTo(map);
+        const OSRM_URL = 'http://localhost:5000';
+        let renderToken = 0;
 
         function statusClass(status) {
             switch ((status || '').toLowerCase()) {
@@ -95,14 +126,39 @@ public partial class RouteMapView : UserControl
             }
         }
 
-        function renderRoute(stops) {
+        async function fetchRoadGeometry(points) {
+            const coords = points.map(p => p[1] + ',' + p[0]).join(';');
+            const url = OSRM_URL + '/route/v1/driving/' + coords + '?overview=full&geometries=geojson';
+            const res = await fetch(url);
+            if (!res.ok) throw new Error('OSRM HTTP ' + res.status);
+            const data = await res.json();
+            if (data.code !== 'Ok' || !data.routes || data.routes.length === 0)
+                throw new Error('OSRM code ' + data.code);
+            return data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
+        }
+
+        async function renderRoute(stops, depot) {
+            const token = ++renderToken;
             layer.clearLayers();
             if (!stops || stops.length === 0) {
-                map.setView([52.1, 5.1], 7);
+                map.setView([52.1, 19.0], 7);
                 return;
             }
 
             const points = [];
+
+            if (depot) {
+                const depotLatLng = [depot.lat, depot.lng];
+                points.push(depotLatLng);
+                const depotIcon = L.divIcon({
+                    className: '',
+                    html: '<div class="depot-marker">🏠</div>',
+                    iconSize: [30, 30],
+                    iconAnchor: [15, 15]
+                });
+                L.marker(depotLatLng, { icon: depotIcon }).bindPopup('<b>Warehouse</b>').addTo(layer);
+            }
+
             stops.forEach(s => {
                 const latlng = [s.lat, s.lng];
                 points.push(latlng);
@@ -116,7 +172,25 @@ public partial class RouteMapView : UserControl
             });
 
             if (points.length > 1) {
-                L.polyline(points, { color: '#2980b9', weight: 3, opacity: 0.7 }).addTo(layer);
+                let line = points;
+                let osrmFailed = false;
+                try {
+                    line = await fetchRoadGeometry(points);
+                } catch (e) {
+                    console.warn('Falling back to straight line:', e);
+                    osrmFailed = true;
+                }
+                if (token !== renderToken) return;
+                const lineOpts = osrmFailed
+                    ? { color: '#e67e22', weight: 2, opacity: 0.75, dashArray: '10 7' }
+                    : { color: '#2980b9', weight: 4, opacity: 0.8 };
+                L.polyline(line, lineOpts).addTo(layer);
+                if (osrmFailed) {
+                    L.popup({ closeButton: false, autoClose: false, closeOnClick: false })
+                        .setLatLng(line[Math.floor(line.length / 2)])
+                        .setContent('<span style="color:#e67e22;font-size:11px">⚠ Routing unavailable — straight line</span>')
+                        .openOn(map);
+                }
             }
 
             map.fitBounds(L.latLngBounds(points).pad(0.2));

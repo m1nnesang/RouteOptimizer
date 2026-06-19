@@ -5,6 +5,7 @@ public record OrderDto(
     string Status,
     string City,
     string Street,
+    string? Apartment,
     string PostalCode,
     string Country,
     double Latitude,

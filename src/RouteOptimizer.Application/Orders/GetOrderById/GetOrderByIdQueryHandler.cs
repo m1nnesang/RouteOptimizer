@@ -29,12 +29,12 @@ public class GetOrderByIdQueryHandler : IRequestHandler<GetOrderByIdQuery, Resul
         var dto = result switch
         {
             BusinessOrder b => new OrderDto(b.Id, b.Status.ToString(), b.Address.City, b.Address.Street,
-                b.Address.PostalCode, b.Address.Country, b.Location.Latitude, b.Location.Longitude,
+                b.Address.Apartment, b.Address.PostalCode, b.Address.Country, b.Location.Latitude, b.Location.Longitude,
                 b.DeliveryWindow?.Start, b.DeliveryWindow?.End, b.CompanyName, b.ContactPerson, null,
                 b.Number.Value, b.Weight.Value, b.Volume.Value, b.CargoType.ToString(), b.Notes),
 
             IndividualOrder i => new OrderDto(i.Id, i.Status.ToString(), i.Address.City, i.Address.Street,
-                i.Address.PostalCode, i.Address.Country, i.Location.Latitude, i.Location.Longitude,
+                i.Address.Apartment, i.Address.PostalCode, i.Address.Country, i.Location.Latitude, i.Location.Longitude,
                 i.DeliveryWindow?.Start, i.DeliveryWindow?.End, null, null, i.CustomerName, i.Number.Value,
                 i.Weight.Value, i.Volume.Value, i.CargoType.ToString(), i.Notes),
             _ => throw new InvalidOperationException("Invalid order type")

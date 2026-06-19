@@ -41,7 +41,7 @@ public partial class InsertUrgentOrderDialogViewModel : ObservableObject
         ErrorMessage = string.Empty;
         try
         {
-            var result = await _apiHttpClient.GetAsync<PagedResult<OrderListItem>>("api/orders?status=Created&pageSize=200");
+            var result = await _apiHttpClient.GetAsync<PagedResult<OrderListItem>>("api/orders?status=Created&pageSize=100");
             AvailableOrders = new ObservableCollection<OrderListItem>(result?.Items ?? []);
         }
         catch (HttpRequestException)

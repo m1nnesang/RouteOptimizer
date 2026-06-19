@@ -18,6 +18,11 @@ public partial class CreateRouteDialogViewModel : ObservableObject
     }
 
     [ObservableProperty]
+    public partial DateTime SelectedDate { get; set; } = DateTime.Today;
+
+    public DateOnly RouteDate => DateOnly.FromDateTime(SelectedDate);
+
+    [ObservableProperty]
     public partial ObservableCollection<SelectableOrderItem> AvailableOrders { get; set; } = [];
 
     [ObservableProperty]
@@ -45,7 +50,7 @@ public partial class CreateRouteDialogViewModel : ObservableObject
         ErrorMessage = string.Empty;
         try
         {
-            var result = await _apiHttpClient.GetAsync<PagedResult<OrderListItem>>("api/orders?status=Created&pageSize=200");
+            var result = await _apiHttpClient.GetAsync<PagedResult<OrderListItem>>("api/orders?status=Created&pageSize=100");
 
             foreach (var item in AvailableOrders)
                 item.PropertyChanged -= OnItemPropertyChanged;

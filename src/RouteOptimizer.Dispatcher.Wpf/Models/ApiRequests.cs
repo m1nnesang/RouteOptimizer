@@ -7,7 +7,7 @@ public enum HandoverType
     ReturnToPool
 }
 
-public record CreateRouteRequest(IReadOnlyList<Guid> OrderIds);
+public record CreateRouteRequest(IReadOnlyList<Guid> OrderIds, DateOnly Date);
 
 public record OptimizeRouteRequest(DateOnly RouteDate);
 
@@ -37,14 +37,52 @@ public record UpdateVehicleRequest(
     string LicenseCategory,
     IReadOnlyList<string> AllowedCargoTypes);
 
+public record CreateBusinessOrderRequest(
+    Guid WarehouseId,
+    string CompanyName,
+    string ContactPerson,
+    TimeOnly Start,
+    TimeOnly End,
+    string Street,
+    string City,
+    string Postcode,
+    string Country,
+    string PhoneNumber,
+    decimal Weight,
+    decimal Volume,
+    string CargoType,
+    string? Notes,
+    string WindowStrictness,
+    string? Apartment = null,
+    double? Latitude = null,
+    double? Longitude = null);
+
+public record CreateIndividualOrderRequest(
+    Guid WarehouseId,
+    string Street,
+    string City,
+    string Postcode,
+    string Country,
+    string CustomerName,
+    string PhoneNumber,
+    decimal Weight,
+    decimal Volume,
+    string CargoType,
+    bool AllowLeaveAtDoor,
+    string? Notes,
+    TimeOnly? Start,
+    TimeOnly? End,
+    string? WindowStrictness,
+    string? Apartment = null,
+    double? Latitude = null,
+    double? Longitude = null);
+
 public record CreateWarehouseRequest(
     string Name,
     string City,
     string Street,
     string PostalCode,
-    string Country,
-    double Latitude,
-    double Longitude);
+    string Country);
 
 public record UpdateWarehouseRequest(
     string Name,

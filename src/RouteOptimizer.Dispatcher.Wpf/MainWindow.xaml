@@ -26,27 +26,44 @@
     </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="48" />
+            <RowDefinition Height="60" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <StackPanel Grid.Row="0" Orientation="Horizontal" Background="#2C3E50">
-            <Button Content="Orders"
-                    Command="{Binding ShowOrdersCommand}"
-                    Margin="8,8,4,8" Padding="16,4" />
-            <Button Content="Routes"
-                    Command="{Binding ShowRoutesCommand}"
-                    Margin="4,8,4,8" Padding="16,4" />
-            <Button Content="Drivers"
-                    Command="{Binding ShowDriversCommand}"
-                    Margin="4,8,4,8" Padding="16,4" />
-            <Button Content="Vehicles"
-                    Command="{Binding ShowVehiclesCommand}"
-                    Margin="4,8,4,8" Padding="16,4" />
-            <Button Content="Warehouses"
-                    Command="{Binding ShowWarehousesCommand}"
-                    Margin="4,8,8,8" Padding="16,4" />
-        </StackPanel>
+        <Border Grid.Row="0" Background="{StaticResource NavBarBrush}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Margin="20,0">
+                    <Border Width="34" Height="34" CornerRadius="8"
+                            Background="{StaticResource PrimaryBrush}"
+                            VerticalAlignment="Center">
+                        <TextBlock Text="R" Foreground="White" FontSize="18" FontWeight="Bold"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <TextBlock Text="Route Optimizer" Foreground="White"
+                               FontSize="16" FontWeight="SemiBold"
+                               VerticalAlignment="Center" Margin="12,0,0,0"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal"
+                            HorizontalAlignment="Right" Margin="0,0,12,0">
+                    <Button Content="Orders" Style="{StaticResource NavButtonStyle}"
+                            Command="{Binding ShowOrdersCommand}" Margin="2,10" />
+                    <Button Content="Routes" Style="{StaticResource NavButtonStyle}"
+                            Command="{Binding ShowRoutesCommand}" Margin="2,10" />
+                    <Button Content="Drivers" Style="{StaticResource NavButtonStyle}"
+                            Command="{Binding ShowDriversCommand}" Margin="2,10" />
+                    <Button Content="Vehicles" Style="{StaticResource NavButtonStyle}"
+                            Command="{Binding ShowVehiclesCommand}" Margin="2,10" />
+                    <Button Content="Warehouses" Style="{StaticResource NavButtonStyle}"
+                            Command="{Binding ShowWarehousesCommand}" Margin="2,10" />
+                </StackPanel>
+            </Grid>
+        </Border>
 
         <ContentControl Grid.Row="1"
                         Content="{Binding CurrentViewModel}" />

@@ -89,10 +89,10 @@ public class RoutesController : ControllerBase
 
     [Authorize(Roles = "Dispatcher,Manager")]
     [HttpGet]
-    public async Task<IActionResult> GetRoutes([FromQuery] RouteStatus? status,
+    public async Task<IActionResult> GetRoutes([FromQuery] RouteStatus? status, [FromQuery] DateOnly? date,
         [FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken ct = default)
     {
-        var result = await _mediator.Send(new GetRoutesQuery(status, page, pageSize), ct);
+        var result = await _mediator.Send(new GetRoutesQuery(status, date, page, pageSize), ct);
 
         return Ok(result);
     }
@@ -110,7 +110,7 @@ public class RoutesController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> CreateRoute([FromBody] CreateRouteRequest request, CancellationToken ct)
     {
-        var result = await _mediator.Send(new CreateRouteCommand(request.OrderIds), ct);
+        var result = await _mediator.Send(new CreateRouteCommand(request.OrderIds, request.Date), ct);
         return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Error);
     }
 
@@ -175,7 +175,7 @@ public class RoutesController : ControllerBase
     }
 
     public record HandoverRouteRequest(HandoverType Type, Guid? TargetShiftId, IReadOnlyList<ShiftStopsAssignment>? Assignments);
-    public record CreateRouteRequest(IReadOnlyList<Guid> OrderIds);
+    public record CreateRouteRequest(IReadOnlyList<Guid> OrderIds, DateOnly Date);
     public record AssignRouteRequest(Guid ShiftId);
     public record InsertUrgentOrderRequest(Guid OrderId);
     public record OptimizeRouteRequest(DateOnly RouteDate);

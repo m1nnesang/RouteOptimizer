@@ -33,6 +33,14 @@ public static class ServiceCollectionExtensions
             client.DefaultRequestHeaders.UserAgent.ParseAdd("RouteOptimizer/1.0");
         });
 
+        var photonBaseUrl = configuration["Photon:BaseUrl"] ?? "https://photon.komoot.io/";
+        services.AddHttpClient("Photon", client =>
+        {
+            client.BaseAddress = new Uri(photonBaseUrl);
+            client.DefaultRequestHeaders.UserAgent.ParseAdd("RouteOptimizer/1.0");
+        });
+        services.AddScoped<IAddressAutocompleteService, PhotonAddressAutocompleteService>();
+
         services.AddStackExchangeRedisCache(options =>
         {
             options.Configuration = configuration.GetConnectionString("Redis");

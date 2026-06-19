@@ -15,7 +15,14 @@ public class StopConfiguration : IEntityTypeConfiguration<Stop>
         builder.Property(x => x.Sequence).IsRequired();
         builder.Property(x => x.Status).IsRequired();
 
-        builder.OwnsOne(x => x.Address);
+        builder.OwnsOne(x => x.Address, a =>
+        {
+            a.Property(p => p.Street).HasColumnName("Address_Street");
+            a.Property(p => p.City).HasColumnName("Address_City");
+            a.Property(p => p.PostalCode).HasColumnName("Address_PostalCode");
+            a.Property(p => p.Country).HasColumnName("Address_Country");
+            a.Property(p => p.Apartment).HasColumnName("Address_Apartment");
+        });
 
         builder.OwnsOne(x => x.Location, loc =>
         {
@@ -23,7 +30,13 @@ public class StopConfiguration : IEntityTypeConfiguration<Stop>
             loc.Property(l => l.Longitude).HasColumnName("Location_Longitude");
         });
 
-        builder.OwnsOne(x => x.DeliveryWindow);
+        builder.OwnsOne(x => x.DeliveryWindow, dw =>
+        {
+            dw.Property(p => p.Start).HasColumnName("DeliveryWindow_Start");
+            dw.Property(p => p.End).HasColumnName("DeliveryWindow_End");
+            dw.Property(p => p.Strictness).HasColumnName("DeliveryWindow_Strictness");
+            dw.Property(p => p.Tolerance).HasColumnName("DeliveryWindow_Tolerance");
+        });
 
         builder.Property(x => x.Orders)
             .HasColumnType("jsonb")

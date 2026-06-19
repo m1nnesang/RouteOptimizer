@@ -1,10 +1,12 @@
-﻿using RouteOptimizer.Application.Abstractions;
+using RouteOptimizer.Application.Abstractions;
 using RouteOptimizer.Application.Models;
 
 namespace RouteOptimizer.Application.Algorithms;
 
 public sealed class TwoOptOptimizer : IRouteOptimizer
 {
+    private const double Epsilon = 1e-9;
+
     public string Name => "Two Opt";
 
     public Task<RouteOptimizerOutput> OptimizeAsync(RouteOptimizerInput input, CancellationToken ct = default)
@@ -20,60 +22,99 @@ public sealed class TwoOptOptimizer : IRouteOptimizer
         if (input.Matrix.Size != input.Stops.Count + 1)
             throw new InvalidOperationException("Matrix size does not match number of stops");
 
-        List<Guid> orderedStopIds = [];
-        double totalDurationSeconds = 0;
+        var tour = BuildNearestNeighborTour(input.Matrix, input.Stops.Count);
 
-        var route = Enumerable.Range(0, input.Stops.Count)
+        ImproveWithTwoOpt(tour, input.Matrix, ct);
+
+        var orderedStopIds = tour
+            .Skip(1)
+            .Select(matrixIndex => input.Stops[matrixIndex - 1].StopId)
             .ToList();
 
-        bool improved = true;
+        return Task.FromResult(new RouteOptimizerOutput
+        {
+            OrderedStopIds = orderedStopIds,
+            TotalDurationSeconds = TourDuration(tour, input.Matrix),
+            AlgorithmName = Name
+        });
+    }
+
+    private static List<int> BuildNearestNeighborTour(DistanceMatrix matrix, int stopCount)
+    {
+        var visited = new bool[stopCount + 1];
+        visited[0] = true;
+
+        var tour = new List<int> { 0 };
+        var current = 0;
+
+        for (int step = 0; step < stopCount; step++)
+        {
+            var bestIndex = -1;
+            var bestDuration = double.MaxValue;
+
+            for (int candidate = 1; candidate <= stopCount; candidate++)
+            {
+                if (visited[candidate])
+                    continue;
+
+                var duration = matrix.GetDuration(current, candidate);
+                if (duration < bestDuration)
+                {
+                    bestDuration = duration;
+                    bestIndex = candidate;
+                }
+            }
+
+            visited[bestIndex] = true;
+            tour.Add(bestIndex);
+            current = bestIndex;
+        }
+
+        return tour;
+    }
+
+    private static void ImproveWithTwoOpt(List<int> tour, DistanceMatrix matrix, CancellationToken ct)
+    {
+        var size = tour.Count;
+        var improved = true;
 
         while (improved)
         {
             improved = false;
-            for (int i = 0; i <= route.Count - 2; i++)
+
+            for (int i = 1; i < size - 1; i++)
             {
                 ct.ThrowIfCancellationRequested();
 
-                for (int j = i + 2; j <= route.Count - 1; j++)
+                for (int j = i + 1; j < size; j++)
                 {
-                    var rightEnd = j == route.Count - 1 ? 0 : route[j + 1] + 1;
+                    var a = tour[i - 1];
+                    var b = tour[i];
+                    var c = tour[j];
+                    var d = tour[(j + 1) % size];
 
-                    var currentCost = input.Matrix.GetDuration(route[i] + 1, route[i + 1] + 1)
-                                      + input.Matrix.GetDuration(route[j] + 1, rightEnd);
+                    var currentCost = matrix.GetDuration(a, b) + matrix.GetDuration(c, d);
+                    var newCost = matrix.GetDuration(a, c) + matrix.GetDuration(b, d);
 
-                    var newCost = input.Matrix.GetDuration(route[i] + 1, route[j] + 1)
-                                  + input.Matrix.GetDuration(route[i + 1] + 1, rightEnd);
-
-                    if (newCost < currentCost)
+                    if (newCost < currentCost - Epsilon)
                     {
-                        route.Reverse(i + 1, j - i);
+                        tour.Reverse(i, j - i + 1);
                         improved = true;
                     }
                 }
             }
         }
+    }
 
-        foreach (var stopIndex in route )
-        {
-            orderedStopIds.Add(input.Stops[stopIndex].StopId);
-        }
+    private static double TourDuration(List<int> tour, DistanceMatrix matrix)
+    {
+        double total = 0;
 
-        for (int i = 0; i < route.Count - 1; i++)
-        {
-            totalDurationSeconds += input.Matrix.GetDuration(route[i] + 1, route[i + 1] + 1);
-        }
+        for (int i = 0; i < tour.Count - 1; i++)
+            total += matrix.GetDuration(tour[i], tour[i + 1]);
 
-        totalDurationSeconds += input.Matrix.GetDuration(0, route[0] + 1);
-        totalDurationSeconds += input.Matrix.GetDuration(route[route.Count - 1] + 1, 0);
+        total += matrix.GetDuration(tour[^1], tour[0]);
 
-        var output = new RouteOptimizerOutput
-        {
-            OrderedStopIds = orderedStopIds,
-            TotalDurationSeconds = totalDurationSeconds,
-            AlgorithmName = Name
-        };
-
-        return Task.FromResult(output);
+        return total;
     }
 }

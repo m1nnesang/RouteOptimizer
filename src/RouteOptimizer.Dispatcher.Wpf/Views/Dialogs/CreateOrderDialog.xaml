@@ -1,0 +1,194 @@
+<Window x:Class="RouteOptimizer.Dispatcher.Wpf.Views.Dialogs.CreateOrderDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="{Binding Title}"
+        Width="500" Height="660"
+        MinWidth="460" MinHeight="480"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="CanResizeWithGrip">
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+    </Window.Resources>
+
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="{Binding Title}"
+                   Style="{StaticResource HeaderTextStyle}" FontSize="18" Margin="0,0,0,16"/>
+
+        <!-- Step 1: choose order type -->
+        <StackPanel Grid.Row="1" VerticalAlignment="Top"
+                    Visibility="{Binding IsTypeNotSelected, Converter={StaticResource BoolToVisibilityConverter}}">
+            <TextBlock Text="Choose the order type to continue."
+                       Style="{StaticResource CaptionTextStyle}" Margin="0,0,0,16"/>
+
+            <Button Height="64" Margin="0,0,0,12"
+                    HorizontalContentAlignment="Left"
+                    Style="{StaticResource SecondaryButtonStyle}"
+                    Command="{Binding SelectBusinessCommand}">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="&#x1F3E2;" FontFamily="Segoe UI Emoji" FontSize="28"
+                               Width="36" TextAlignment="Center"
+                               VerticalAlignment="Center" Margin="0,0,12,0"/>
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="Business" FontWeight="SemiBold" FontSize="15"/>
+                        <TextBlock Text="Company, contact person and a delivery time window"
+                                   Style="{StaticResource CaptionTextStyle}"/>
+                    </StackPanel>
+                </StackPanel>
+            </Button>
+
+            <Button Height="64"
+                    HorizontalContentAlignment="Left"
+                    Style="{StaticResource SecondaryButtonStyle}"
+                    Command="{Binding SelectIndividualCommand}">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="&#x1F464;" FontFamily="Segoe UI Emoji" FontSize="28"
+                               Width="36" TextAlignment="Center"
+                               VerticalAlignment="Center" Margin="0,0,12,0"/>
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="Individual" FontWeight="SemiBold" FontSize="15"/>
+                        <TextBlock Text="Private customer, optional time window"
+                                   Style="{StaticResource CaptionTextStyle}"/>
+                    </StackPanel>
+                </StackPanel>
+            </Button>
+        </StackPanel>
+
+        <!-- Step 2: order details -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto"
+                      Visibility="{Binding IsTypeSelected, Converter={StaticResource BoolToVisibilityConverter}}">
+            <StackPanel Margin="0,0,8,0">
+                <TextBlock Text="Warehouse" Style="{StaticResource CaptionTextStyle}" Margin="0,0,0,4"/>
+                <ComboBox ItemsSource="{Binding Warehouses}"
+                          SelectedItem="{Binding SelectedWarehouse}"
+                          DisplayMemberPath="Name" Margin="0,0,0,12"/>
+
+                <!-- Business-only -->
+                <StackPanel Visibility="{Binding IsBusiness, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <TextBlock Text="Company name" Style="{StaticResource CaptionTextStyle}" Margin="0,0,0,4"/>
+                    <TextBox Text="{Binding CompanyName, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,12"/>
+
+                    <TextBlock Text="Contact person" Style="{StaticResource CaptionTextStyle}" Margin="0,0,0,4"/>
+                    <TextBox Text="{Binding ContactPerson, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,12"/>
+                </StackPanel>
+
+                <!-- Individual-only -->
+                <StackPanel Visibility="{Binding IsIndividual, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <TextBlock Text="Customer name" Style="{StaticResource CaptionTextStyle}" Margin="0,0,0,4"/>
+                    <TextBox Text="{Binding CustomerName, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,12"/>
+                </StackPanel>
+
+                <TextBlock Text="Phone number" Style="{StaticResource CaptionTextStyle}" Margin="0,0,0,4"/>
+                <TextBox Text="{Binding PhoneNumber, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,12"/>
+
+                <TextBlock Text="Street" Style="{StaticResource CaptionTextStyle}" Margin="0,0,0,4"/>
+                <TextBox Text="{Binding Street, UpdateSourceTrigger=PropertyChanged}"/>
+                <ListBox ItemsSource="{Binding AddressSuggestions}"
+                         SelectedItem="{Binding SelectedSuggestion, Mode=TwoWay}"
+                         DisplayMemberPath="Label"
+                         MaxHeight="160" Margin="0,2,0,12"
+                         Visibility="{Binding IsSuggestionsOpen, Converter={StaticResource BoolToVisibilityConverter}}"/>
+
+                <TextBlock Text="Apartment / office No. (optional)" Style="{StaticResource CaptionTextStyle}" Margin="0,0,0,4"/>
+                <TextBox Text="{Binding Apartment, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,12"/>
+
+                <Grid Margin="0,0,0,12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="12"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="City" Style="{StaticResource CaptionTextStyle}" Margin="0,0,0,4"/>
+                        <TextBox Text="{Binding City, UpdateSourceTrigger=PropertyChanged}"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Text="Postcode" Style="{StaticResource CaptionTextStyle}" Margin="0,0,0,4"/>
+                        <TextBox Text="{Binding Postcode, UpdateSourceTrigger=PropertyChanged}"/>
+                    </StackPanel>
+                </Grid>
+
+                <TextBlock Text="Country" Style="{StaticResource CaptionTextStyle}" Margin="0,0,0,4"/>
+                <TextBox Text="{Binding Country, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,12"/>
+
+                <Grid Margin="0,0,0,12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="12"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="12"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Weight (kg)" Style="{StaticResource CaptionTextStyle}" Margin="0,0,0,4"/>
+                        <TextBox Text="{Binding WeightText, UpdateSourceTrigger=PropertyChanged}"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Text="Volume (m³)" Style="{StaticResource CaptionTextStyle}" Margin="0,0,0,4"/>
+                        <TextBox Text="{Binding VolumeText, UpdateSourceTrigger=PropertyChanged}"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="4">
+                        <TextBlock Text="Cargo type" Style="{StaticResource CaptionTextStyle}" Margin="0,0,0,4"/>
+                        <ComboBox ItemsSource="{Binding CargoTypeOptions}"
+                                  SelectedItem="{Binding SelectedCargoType}"/>
+                    </StackPanel>
+                </Grid>
+
+                <Grid Margin="0,0,0,12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="12"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="12"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Window start (HH:mm)" Style="{StaticResource CaptionTextStyle}" Margin="0,0,0,4"/>
+                        <TextBox Text="{Binding StartText, UpdateSourceTrigger=PropertyChanged}"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Text="Window end (HH:mm)" Style="{StaticResource CaptionTextStyle}" Margin="0,0,0,4"/>
+                        <TextBox Text="{Binding EndText, UpdateSourceTrigger=PropertyChanged}"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="4">
+                        <TextBlock Text="Strictness" Style="{StaticResource CaptionTextStyle}" Margin="0,0,0,4"/>
+                        <ComboBox ItemsSource="{Binding StrictnessOptions}"
+                                  SelectedItem="{Binding SelectedStrictness}"/>
+                    </StackPanel>
+                </Grid>
+
+                <TextBlock Text="For business orders the time window is required."
+                           Style="{StaticResource CaptionTextStyle}" TextWrapping="Wrap" Margin="0,0,0,12"
+                           Visibility="{Binding IsBusiness, Converter={StaticResource BoolToVisibilityConverter}}"/>
+
+                <CheckBox Content="Allow leaving the parcel at the door"
+                          IsChecked="{Binding AllowLeaveAtDoor}" Margin="0,0,0,12"
+                          Visibility="{Binding IsIndividual, Converter={StaticResource BoolToVisibilityConverter}}"/>
+
+                <TextBlock Text="Notes (optional)" Style="{StaticResource CaptionTextStyle}" Margin="0,0,0,4"/>
+                <TextBox Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged}"
+                         AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60"
+                         VerticalContentAlignment="Top" Margin="0,0,0,4"/>
+            </StackPanel>
+        </ScrollViewer>
+
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
+            <Button Content="Back" Width="92" Margin="0,0,8,0"
+                    Style="{StaticResource SecondaryButtonStyle}"
+                    Command="{Binding BackCommand}"
+                    Visibility="{Binding IsTypeSelected, Converter={StaticResource BoolToVisibilityConverter}}"/>
+            <Button Content="Cancel" Width="92" Margin="0,0,8,0"
+                    Style="{StaticResource SecondaryButtonStyle}" Click="CancelButton_Click"/>
+            <Button Content="Create order" Width="130"
+                    IsEnabled="{Binding CanConfirm}"
+                    Click="ConfirmButton_Click"
+                    Visibility="{Binding IsTypeSelected, Converter={StaticResource BoolToVisibilityConverter}}"/>
+        </StackPanel>
+    </Grid>
+</Window>

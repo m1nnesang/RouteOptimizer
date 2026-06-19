@@ -43,10 +43,10 @@ public class GetRoutesQueryHandlerTests
     public async Task Handle_NoRoutes_ReturnsEmptyList()
     {
         _routeRepository
-            .Setup(x => x.GetAllAsync(It.IsAny<Guid?>(), It.IsAny<RouteStatus?>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .Setup(x => x.GetAllAsync(It.IsAny<Guid?>(), It.IsAny<RouteStatus?>(), It.IsAny<DateOnly?>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((new List<Route>(), 0));
 
-        var result = await _handler.Handle(new GetRoutesQuery(null), default);
+        var result = await _handler.Handle(new GetRoutesQuery(null, null), default);
 
         result.Items.Should().BeEmpty();
     }
@@ -58,10 +58,10 @@ public class GetRoutesQueryHandlerTests
         var route2 = CreateRouteWithStop();
 
         _routeRepository
-            .Setup(x => x.GetAllAsync(It.IsAny<Guid?>(), It.IsAny<RouteStatus?>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .Setup(x => x.GetAllAsync(It.IsAny<Guid?>(), It.IsAny<RouteStatus?>(), It.IsAny<DateOnly?>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((new List<Route> { route1, route2 }, 2));
 
-        var result = await _handler.Handle(new GetRoutesQuery(null), default);
+        var result = await _handler.Handle(new GetRoutesQuery(null, null), default);
 
         result.Items.Should().HaveCount(2);
         result.Items[0].Id.Should().Be(route1.Id);
@@ -79,13 +79,13 @@ public class GetRoutesQueryHandlerTests
         _currentUser.Setup(x => x.WarehouseId).Returns(warehouseId);
 
         _routeRepository
-            .Setup(x => x.GetAllAsync(warehouseId, status, It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .Setup(x => x.GetAllAsync(warehouseId, status, It.IsAny<DateOnly?>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((new List<Route>(), 0));
 
-        await _handler.Handle(new GetRoutesQuery(status), default);
+        await _handler.Handle(new GetRoutesQuery(status, null), default);
 
         _routeRepository.Verify(
-            x => x.GetAllAsync(warehouseId, status, It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()),
+            x => x.GetAllAsync(warehouseId, status, It.IsAny<DateOnly?>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()),
             Times.Once);
     }
 

@@ -45,23 +45,35 @@ public class CreateRouteCommandHandler : IRequestHandler<CreateRouteCommand, Res
         if (orders.Any(o => o.WarehouseId != warehouseId))
             return Result<Guid>.Failure("One or more orders are not from this warehouse");
 
-        var routeResult = Route.Create(warehouseId);
+        var routeResult = Route.Create(warehouseId, request.Date);
 
         if (routeResult.IsFailure)
             return Result<Guid>.Failure(routeResult.Error!);
 
         var route = routeResult.Value;
 
-        foreach (var order in orders)
+        var stopGroups = orders
+            .GroupBy(o => (o.Address.Street, o.Address.City, o.Address.PostalCode, o.Address.Country))
+            .ToList();
+
+        var sequence = 0;
+        foreach (var group in stopGroups)
         {
-            var stopResult = Stop.Create(route!.Id, order.Address, order.Location, order.DeliveryWindow,
-                sequenceNumber: 0, [order.Id]);
+            var anchor = group.First();
+            var orderIds = group.Select(o => o.Id).ToList();
+
+            var stopResult = Stop.Create(route!.Id, anchor.Address, anchor.Location, anchor.DeliveryWindow,
+                sequence, orderIds);
 
             if (stopResult.IsFailure)
                 return Result<Guid>.Failure(stopResult.Error!);
 
             route!.AddStop(stopResult.Value!);
-            order.AssignToRoute(route.Id);
+
+            foreach (var order in group)
+                order.AssignToRoute(route.Id);
+
+            sequence++;
         }
 
         await _routeRepository.AddAsync(route!, ct);

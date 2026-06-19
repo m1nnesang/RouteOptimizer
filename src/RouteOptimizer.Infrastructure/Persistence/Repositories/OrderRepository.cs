@@ -45,8 +45,8 @@ public class OrderRepository : IOrderRepository
 
         if (date is not null)
         {
-            var from = date.Value.ToDateTime(TimeOnly.MinValue);
-            var to = date.Value.AddDays(1).ToDateTime(TimeOnly.MinValue);
+            var from = DateTime.SpecifyKind(date.Value.ToDateTime(TimeOnly.MinValue), DateTimeKind.Utc);
+            var to = DateTime.SpecifyKind(date.Value.AddDays(1).ToDateTime(TimeOnly.MinValue), DateTimeKind.Utc);
             query = query.Where(x => x.CreatedAt >= from && x.CreatedAt < to);
         }
 

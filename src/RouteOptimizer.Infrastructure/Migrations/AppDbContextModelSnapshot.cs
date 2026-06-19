@@ -199,6 +199,9 @@ namespace RouteOptimizer.Infrastructure.Migrations
                     b.Property<Guid?>("AssignedShiftId")
                         .HasColumnType("uuid");
 
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
+
                     b.Property<int>("Status")
                         .HasColumnType("integer");
 
@@ -428,6 +431,30 @@ namespace RouteOptimizer.Infrastructure.Migrations
                             b1.Property<Guid>("OrderId")
                                 .HasColumnType("uuid");
 
+                            b1.Property<string>("Apartment")
+                                .HasColumnType("text")
+                                .HasColumnName("Address_Apartment");
+
+                            b1.Property<string>("City")
+                                .IsRequired()
+                                .HasColumnType("text")
+                                .HasColumnName("Address_City");
+
+                            b1.Property<string>("Country")
+                                .IsRequired()
+                                .HasColumnType("text")
+                                .HasColumnName("Address_Country");
+
+                            b1.Property<string>("PostalCode")
+                                .IsRequired()
+                                .HasColumnType("text")
+                                .HasColumnName("Address_PostalCode");
+
+                            b1.Property<string>("Street")
+                                .IsRequired()
+                                .HasColumnType("text")
+                                .HasColumnName("Address_Street");
+
                             b1.HasKey("OrderId");
 
                             b1.ToTable("Orders");
@@ -440,6 +467,22 @@ namespace RouteOptimizer.Infrastructure.Migrations
                         {
                             b1.Property<Guid>("OrderId")
                                 .HasColumnType("uuid");
+
+                            b1.Property<TimeOnly?>("End")
+                                .HasColumnType("time without time zone")
+                                .HasColumnName("DeliveryWindow_End");
+
+                            b1.Property<TimeOnly?>("Start")
+                                .HasColumnType("time without time zone")
+                                .HasColumnName("DeliveryWindow_Start");
+
+                            b1.Property<int>("Strictness")
+                                .HasColumnType("integer")
+                                .HasColumnName("DeliveryWindow_Strictness");
+
+                            b1.Property<TimeSpan?>("Tolerance")
+                                .HasColumnType("interval")
+                                .HasColumnName("DeliveryWindow_Tolerance");
 
                             b1.HasKey("OrderId");
 
@@ -562,6 +605,30 @@ namespace RouteOptimizer.Infrastructure.Migrations
                             b1.Property<Guid>("StopId")
                                 .HasColumnType("uuid");
 
+                            b1.Property<string>("Apartment")
+                                .HasColumnType("text")
+                                .HasColumnName("Address_Apartment");
+
+                            b1.Property<string>("City")
+                                .IsRequired()
+                                .HasColumnType("text")
+                                .HasColumnName("Address_City");
+
+                            b1.Property<string>("Country")
+                                .IsRequired()
+                                .HasColumnType("text")
+                                .HasColumnName("Address_Country");
+
+                            b1.Property<string>("PostalCode")
+                                .IsRequired()
+                                .HasColumnType("text")
+                                .HasColumnName("Address_PostalCode");
+
+                            b1.Property<string>("Street")
+                                .IsRequired()
+                                .HasColumnType("text")
+                                .HasColumnName("Address_Street");
+
                             b1.HasKey("StopId");
 
                             b1.ToTable("Stops");
@@ -574,6 +641,22 @@ namespace RouteOptimizer.Infrastructure.Migrations
                         {
                             b1.Property<Guid>("StopId")
                                 .HasColumnType("uuid");
+
+                            b1.Property<TimeOnly?>("End")
+                                .HasColumnType("time without time zone")
+                                .HasColumnName("DeliveryWindow_End");
+
+                            b1.Property<TimeOnly?>("Start")
+                                .HasColumnType("time without time zone")
+                                .HasColumnName("DeliveryWindow_Start");
+
+                            b1.Property<int>("Strictness")
+                                .HasColumnType("integer")
+                                .HasColumnName("DeliveryWindow_Strictness");
+
+                            b1.Property<TimeSpan?>("Tolerance")
+                                .HasColumnType("interval")
+                                .HasColumnName("DeliveryWindow_Tolerance");
 
                             b1.HasKey("StopId");
 
@@ -696,6 +779,26 @@ namespace RouteOptimizer.Infrastructure.Migrations
                         {
                             b1.Property<Guid>("WarehouseId")
                                 .HasColumnType("uuid");
+
+                            b1.Property<string>("City")
+                                .IsRequired()
+                                .HasColumnType("text")
+                                .HasColumnName("Address_City");
+
+                            b1.Property<string>("Country")
+                                .IsRequired()
+                                .HasColumnType("text")
+                                .HasColumnName("Address_Country");
+
+                            b1.Property<string>("PostalCode")
+                                .IsRequired()
+                                .HasColumnType("text")
+                                .HasColumnName("Address_PostalCode");
+
+                            b1.Property<string>("Street")
+                                .IsRequired()
+                                .HasColumnType("text")
+                                .HasColumnName("Address_Street");
 
                             b1.HasKey("WarehouseId");
 

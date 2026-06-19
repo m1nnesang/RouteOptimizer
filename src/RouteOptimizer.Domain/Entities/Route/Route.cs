@@ -14,12 +14,14 @@ public class Route : AggregateRoot<Guid>
     {
     } // EF Core
 
-    private Route(Guid id, Guid warehouseId) : base(id)
+    private Route(Guid id, Guid warehouseId, DateOnly date) : base(id)
     {
         WarehouseId = warehouseId;
+        Date = date;
     }
 
     public Guid WarehouseId { get; }
+    public DateOnly Date { get; private set; }
     public Guid? AssignedShiftId { get; private set; }
     public RouteStatus Status { get; private set; } = RouteStatus.Draft;
 
@@ -37,12 +39,13 @@ public class Route : AggregateRoot<Guid>
     public Stop? CurrentStop => _stops.FirstOrDefault(s => s.Status is StopStatus.InProgress)
                                 ?? _stops.FirstOrDefault(s => s.Status is StopStatus.Pending);
 
-    public static Result<Route> Create(Guid warehouseId)
+    public static Result<Route> Create(Guid warehouseId, DateOnly? date = null)
     {
         if (warehouseId == Guid.Empty)
             return Result<Route>.Failure("Stop need a warehouse");
 
-        return Result<Route>.Success(new Route(Guid.NewGuid(), warehouseId));
+        return Result<Route>.Success(
+            new Route(Guid.NewGuid(), warehouseId, date ?? DateOnly.FromDateTime(DateTime.UtcNow)));
     }
 
     public void Optimize()
@@ -126,7 +129,7 @@ public class Route : AggregateRoot<Guid>
 
         var sequenceNumber = _stops.Count > 0 ? _stops.Max(s => s.Sequence) + 1 : 0;
 
-        var address = Address.Create(order.Address.Street, order.Address.City, order.Address.PostalCode, order.Address.Country).Value!;
+        var address = Address.Create(order.Address.Street, order.Address.City, order.Address.PostalCode, order.Address.Country, order.Address.Apartment).Value!;
         var location = GeoCoordinate.Create(order.Location.Latitude, order.Location.Longitude).Value!;
         var deliveryWindow = order.DeliveryWindow?.Clone();
 

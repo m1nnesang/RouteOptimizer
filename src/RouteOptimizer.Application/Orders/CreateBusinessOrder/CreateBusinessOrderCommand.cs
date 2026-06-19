@@ -18,4 +18,7 @@ public record CreateBusinessOrderCommand(
     decimal Volume,
     string CargoType,
     string? Notes,
-    string WindowStrictness) : ICommand<Result<Guid>>;
+    string WindowStrictness,
+    string? Apartment = null,
+    double? Latitude = null,
+    double? Longitude = null) : ICommand<Result<Guid>>;

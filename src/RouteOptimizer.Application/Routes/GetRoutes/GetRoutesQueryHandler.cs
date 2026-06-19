@@ -30,7 +30,7 @@ public class GetRoutesQueryHandler : IRequestHandler<GetRoutesQuery, PagedResult
     {
         var skip = (request.Page - 1) * request.PageSize;
         var (routes, totalCount) = await _routeRepository.GetAllAsync(
-            _currentUser.WarehouseId, request.Status, skip, request.PageSize, ct);
+            _currentUser.WarehouseId, request.Status, request.Date, skip, request.PageSize, ct);
 
         var warehouses = await _warehouseRepository.GetAllAsync(ct);
         var warehouseNames = warehouses.ToDictionary(w => w.Id, w => w.Name);
@@ -48,14 +48,10 @@ public class GetRoutesQueryHandler : IRequestHandler<GetRoutesQuery, PagedResult
 
         var items = routes.Select(r =>
         {
-            DateOnly? shiftDate = null;
             string? driverName = null;
 
             if (r.AssignedShiftId.HasValue && shiftsById.TryGetValue(r.AssignedShiftId.Value, out var shift))
-            {
-                shiftDate = shift.ShiftDate;
                 driverNames.TryGetValue(shift.DriverId, out driverName);
-            }
 
             return new RouteListItemDto(
                 r.Id,
@@ -63,7 +59,7 @@ public class GetRoutesQueryHandler : IRequestHandler<GetRoutesQuery, PagedResult
                 r.Status.ToString(),
                 r.Stops.Count,
                 r.AssignedShiftId,
-                shiftDate,
+                r.Date,
                 driverName,
                 warehouseNames.GetValueOrDefault(r.WarehouseId, string.Empty));
         }).ToList();

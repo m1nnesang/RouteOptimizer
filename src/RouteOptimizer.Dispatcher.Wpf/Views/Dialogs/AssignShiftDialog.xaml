@@ -11,7 +11,7 @@
         <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
     </Window.Resources>
 
-    <Grid Margin="16">
+    <Grid Margin="24">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -20,50 +20,47 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Header -->
         <TextBlock Grid.Row="0"
                    Text="Select a shift to assign this route to"
-                   FontSize="14" FontWeight="Bold" Margin="0,0,0,10"/>
+                   Style="{StaticResource HeaderTextStyle}" FontSize="18" Margin="0,0,0,12"/>
 
-        <!-- Filters + toolbar -->
-        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,8">
-            <TextBlock Text="Date:" VerticalAlignment="Center" Margin="0,0,8,0"/>
-            <DatePicker SelectedDate="{Binding FilterDate}" Width="130" VerticalAlignment="Center"/>
-            <Button Content="Refresh" Command="{Binding LoadShiftsCommand}"
-                    Margin="8,0,0,0" Padding="12,4"/>
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,12" VerticalAlignment="Center">
+            <TextBlock Text="Date" Style="{StaticResource CaptionTextStyle}" Margin="0,0,8,0"/>
+            <DatePicker SelectedDate="{Binding FilterDate}" Width="140" VerticalAlignment="Center"/>
+            <Button Content="Refresh" Style="{StaticResource SecondaryButtonStyle}"
+                    Command="{Binding LoadShiftsCommand}" Margin="8,0,0,0"/>
             <TextBlock Text="Loading..." Margin="12,0,0,0" VerticalAlignment="Center"
+                       Foreground="{StaticResource TextSecondaryBrush}"
                        Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}"/>
         </StackPanel>
 
-        <!-- Shifts list -->
-        <DataGrid Grid.Row="2"
-                  ItemsSource="{Binding Shifts}"
-                  SelectedItem="{Binding SelectedShift}"
-                  AutoGenerateColumns="False"
-                  IsReadOnly="True"
-                  SelectionMode="Single"
-                  GridLinesVisibility="Horizontal"
-                  HeadersVisibility="Column">
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="Driver"    Binding="{Binding DriverName}"                       Width="160"/>
-                <DataGridTextColumn Header="Vehicle"   Binding="{Binding VehicleType}"                      Width="120"/>
-                <DataGridTextColumn Header="Warehouse" Binding="{Binding WarehouseName}"                    Width="140"/>
-                <DataGridTextColumn Header="Date"      Binding="{Binding ShiftDate, StringFormat=dd.MM.yyyy}" Width="90"/>
-                <DataGridTextColumn Header="Status"    Binding="{Binding ShiftStatus}"                      Width="*"/>
-            </DataGrid.Columns>
-        </DataGrid>
+        <Border Grid.Row="2" Style="{StaticResource CardBorderStyle}" Padding="1">
+            <DataGrid ItemsSource="{Binding Shifts}"
+                      SelectedItem="{Binding SelectedShift}"
+                      IsReadOnly="True"
+                      BorderThickness="0"
+                      Background="Transparent">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Driver"    Binding="{Binding DriverName}"                       Width="170"/>
+                    <DataGridTextColumn Header="Vehicle"   Binding="{Binding VehicleType}"                      Width="130"/>
+                    <DataGridTextColumn Header="Warehouse" Binding="{Binding WarehouseName}"                    Width="150"/>
+                    <DataGridTextColumn Header="Date"      Binding="{Binding ShiftDate, StringFormat=dd.MM.yyyy}" Width="100"/>
+                    <DataGridTextColumn Header="Status"    Binding="{Binding ShiftStatus}"                      Width="*"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Border>
 
-        <!-- Error -->
         <TextBlock Grid.Row="3"
                    Text="{Binding ErrorMessage}"
-                   Foreground="Red"
-                   Margin="0,6,0,0"
+                   Foreground="{StaticResource DangerBrush}"
+                   TextWrapping="Wrap"
+                   Margin="0,8,0,0"
                    Visibility="{Binding HasError, Converter={StaticResource BoolToVisibilityConverter}}"/>
 
-        <!-- Footer -->
-        <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
-            <Button Content="Cancel" Width="90" Padding="0,6" Margin="0,0,8,0" Click="CancelButton_Click"/>
-            <Button Content="Assign" Width="90" Padding="0,6"
+        <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
+            <Button Content="Cancel" Width="92" Margin="0,0,8,0"
+                    Style="{StaticResource SecondaryButtonStyle}" Click="CancelButton_Click"/>
+            <Button Content="Assign" Width="92"
                     IsEnabled="{Binding HasSelectedShift}"
                     Click="ConfirmButton_Click"/>
         </StackPanel>

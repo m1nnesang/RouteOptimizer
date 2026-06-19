@@ -13,8 +13,6 @@ public partial class WarehouseEditDialogViewModel : ObservableObject
             Name = existing.Name;
             City = existing.City;
             Street = existing.Street;
-            Latitude = existing.Latitude;
-            Longitude = existing.Longitude;
         }
     }
 
@@ -40,19 +38,13 @@ public partial class WarehouseEditDialogViewModel : ObservableObject
     [ObservableProperty]
     public partial string Country { get; set; } = string.Empty;
 
-    [ObservableProperty]
-    public partial double Latitude { get; set; }
-
-    [ObservableProperty]
-    public partial double Longitude { get; set; }
-
     public bool CanConfirm =>
         !string.IsNullOrWhiteSpace(Name) &&
         !string.IsNullOrWhiteSpace(City) &&
         !string.IsNullOrWhiteSpace(Street);
 
     public CreateWarehouseRequest BuildCreateRequest() =>
-        new(Name, City, Street, PostalCode, Country, Latitude, Longitude);
+        new(Name, City, Street, PostalCode, Country);
 
     public UpdateWarehouseRequest BuildUpdateRequest() =>
         new(Name, Street, City, PostalCode, Country);

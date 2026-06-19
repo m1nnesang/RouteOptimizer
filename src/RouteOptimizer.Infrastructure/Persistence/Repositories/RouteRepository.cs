@@ -37,7 +37,7 @@ public class RouteRepository : IRouteRepository
     }
 
     public async Task<(IReadOnlyList<Route> Items, int TotalCount)> GetAllAsync(Guid? warehouseId, RouteStatus? status,
-        int skip, int take, CancellationToken ct)
+        DateOnly? date, int skip, int take, CancellationToken ct)
     {
         var query = _db.Routes
             .Include(r => r.Stops.OrderBy(s => s.Sequence))
@@ -47,8 +47,10 @@ public class RouteRepository : IRouteRepository
 
         if (status is not null) query = query.Where(x => x.Status == status);
 
+        if (date is not null) query = query.Where(x => x.Date == date.Value);
+
         var totalCount = await query.CountAsync(ct);
-        var items = await query.OrderBy(r => r.Id).Skip(skip).Take(take).ToListAsync(ct);
+        var items = await query.OrderBy(r => r.Date).ThenBy(r => r.Id).Skip(skip).Take(take).ToListAsync(ct);
 
         return (items, totalCount);
     }

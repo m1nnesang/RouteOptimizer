@@ -19,7 +19,7 @@ public class NominatimGeocodingService : IGeocodingService
     public async Task<Result<GeoCoordinate>> GeocodeAsync(Address address, CancellationToken ct)
     {
         var query = Uri.EscapeDataString($"{address.Street}, {address.City}, {address.PostalCode}, {address.Country}");
-        var url = $"search?q={query}&format=json&limit=1";
+        var url = $"search?q={query}&format=json&limit=1&countrycodes=pl";
 
         var response = await _client.GetAsync(url, ct);
         response.EnsureSuccessStatusCode();

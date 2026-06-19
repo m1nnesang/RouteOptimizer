@@ -19,10 +19,12 @@ public class CreateBusinessOrderCommandHandler : IRequestHandler<CreateBusinessO
 
     public async Task<Result<Guid>> Handle(CreateBusinessOrderCommand request, CancellationToken ct)
     {
-        var address = Address.Create(request.Street, request.City, request.Postcode, request.Country);
+        var address = Address.Create(request.Street, request.City, request.Postcode, request.Country, request.Apartment);
         if (address.IsFailure) return Result<Guid>.Failure(address.Error ?? "Address is invalid");
 
-        var geocodeResult = await _geocodingService.GeocodeAsync(address.Value!, ct);
+        var geocodeResult = request is { Latitude: { } lat, Longitude: { } lon }
+            ? GeoCoordinate.Create(lat, lon)
+            : await _geocodingService.GeocodeAsync(address.Value!, ct);
         if (geocodeResult.IsFailure) return Result<Guid>.Failure(geocodeResult.Error ?? "Geocoding failed");
 
         var weight = Weight.Create(request.Weight);

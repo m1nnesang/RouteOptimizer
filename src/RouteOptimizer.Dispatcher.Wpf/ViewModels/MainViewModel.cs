@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using RouteOptimizer.Dispatcher.Wpf.Services.Interfaces;
 
@@ -8,11 +8,13 @@ public partial class MainViewModel : ObservableObject
 {
     private readonly IAuthService _authService;
     private readonly IApiHttpClient _apiHttpClient;
+    private readonly IDialogService _dialogService;
 
-    public MainViewModel(IAuthService authService, IApiHttpClient apiHttpClient)
+    public MainViewModel(IAuthService authService, IApiHttpClient apiHttpClient, IDialogService dialogService)
     {
         _authService = authService;
         _apiHttpClient = apiHttpClient;
+        _dialogService = dialogService;
         ShowOrders();
     }
 
@@ -20,14 +22,13 @@ public partial class MainViewModel : ObservableObject
     public partial ObservableObject? CurrentViewModel { get; set; }
 
     [RelayCommand]
-    private void ShowOrders() => CurrentViewModel = new OrdersViewModel(_apiHttpClient);
+    private void ShowOrders() => CurrentViewModel = new OrdersViewModel(_apiHttpClient, _dialogService);
     [RelayCommand]
-    private void ShowRoutes() => CurrentViewModel = new RoutesViewModel(_apiHttpClient);
+    private void ShowRoutes() => CurrentViewModel = new RoutesViewModel(_apiHttpClient, _dialogService);
     [RelayCommand]
     private void ShowDrivers() => CurrentViewModel = new DriversViewModel(_apiHttpClient);
     [RelayCommand]
-    private void ShowVehicles() => CurrentViewModel = new VehiclesViewModel(_apiHttpClient);
+    private void ShowVehicles() => CurrentViewModel = new VehiclesViewModel(_apiHttpClient, _dialogService);
     [RelayCommand]
-    private void ShowWarehouses() => CurrentViewModel = new WarehousesViewModel(_apiHttpClient);
-
+    private void ShowWarehouses() => CurrentViewModel = new WarehousesViewModel(_apiHttpClient, _dialogService);
 }

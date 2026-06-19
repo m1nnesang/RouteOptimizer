@@ -1,12 +1,10 @@
 using System.Collections.ObjectModel;
 using System.Net.Http;
-using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using RouteOptimizer.Dispatcher.Wpf.Models;
 using RouteOptimizer.Dispatcher.Wpf.Services.Interfaces;
 using RouteOptimizer.Dispatcher.Wpf.ViewModels.Dialogs;
-using RouteOptimizer.Dispatcher.Wpf.Views.Dialogs;
 
 namespace RouteOptimizer.Dispatcher.Wpf.VIewModels;
 
@@ -21,10 +19,13 @@ public partial class RoutesViewModel : ObservableObject
     ];
 
     private readonly IApiHttpClient _apiHttpClient;
+    private readonly IDialogService _dialogService;
+    private Guid? _previousSelectedRouteId;
 
-    public RoutesViewModel(IApiHttpClient apiHttpClient)
+    public RoutesViewModel(IApiHttpClient apiHttpClient, IDialogService dialogService)
     {
         _apiHttpClient = apiHttpClient;
+        _dialogService = dialogService;
         StatusFilters = new ObservableCollection<string>(
             new[] { AllFilter }.Concat(RouteStatuses));
         _ = LoadRoutesAsync();
@@ -42,10 +43,24 @@ public partial class RoutesViewModel : ObservableObject
     public partial ObservableCollection<RouteStop> SelectedRouteStops { get; set; } = [];
 
     [ObservableProperty]
+    public partial double DepotLat { get; set; } = double.NaN;
+
+    [ObservableProperty]
+    public partial double DepotLng { get; set; } = double.NaN;
+
+    private List<WarehouseListItem>? _warehouses;
+
+    [ObservableProperty]
     public partial ObservableCollection<string> StatusFilters { get; set; } = [];
 
     [ObservableProperty]
     public partial string SelectedStatusFilter { get; set; } = AllFilter;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasDateFilter))]
+    public partial DateTime? SelectedDate { get; set; }
+
+    public bool HasDateFilter => SelectedDate is not null;
 
     [ObservableProperty]
     public partial ObservableCollection<AlgorithmComparison> OptimizationComparisons { get; set; } = [];
@@ -71,8 +86,12 @@ public partial class RoutesViewModel : ObservableObject
 
     partial void OnSelectedRouteChanged(RouteListItem? value)
     {
-        OptimizationComparisons = [];
-        HasOptimizationResultFlag = false;
+        if (value?.Id != _previousSelectedRouteId)
+        {
+            OptimizationComparisons = [];
+            HasOptimizationResultFlag = false;
+        }
+        _previousSelectedRouteId = value?.Id;
         SelectedRouteStops = [];
         if (value is not null)
             _ = LoadRouteDetailAsync(value.Id);
@@ -80,19 +99,35 @@ public partial class RoutesViewModel : ObservableObject
 
     partial void OnSelectedStatusFilterChanged(string value) => _ = LoadRoutesAsync();
 
+    partial void OnSelectedDateChanged(DateTime? value) => _ = LoadRoutesAsync();
+
+    [RelayCommand]
+    private void ClearDateFilter() => SelectedDate = null;
+
     [RelayCommand]
     private async Task LoadRoutesAsync()
     {
         IsLoading = true;
         ErrorMessage = string.Empty;
+        var previousId = SelectedRoute?.Id;
         try
         {
             var url = "api/routes?pageSize=100";
             if (!string.IsNullOrEmpty(SelectedStatusFilter) && SelectedStatusFilter != AllFilter)
                 url += $"&status={SelectedStatusFilter}";
+            if (SelectedDate is not null)
+                url += $"&date={SelectedDate.Value:yyyy-MM-dd}";
 
             var result = await _apiHttpClient.GetAsync<PagedResult<RouteListItem>>(url);
-            Routes = new ObservableCollection<RouteListItem>(result?.Items ?? []);
+            var items = (IEnumerable<RouteListItem>)(result?.Items ?? []);
+
+            if (SelectedStatusFilter == AllFilter)
+                items = items.Where(r => r.Status != "Interrupted");
+
+            Routes = new ObservableCollection<RouteListItem>(items);
+
+            if (previousId is { } id)
+                SelectedRoute = Routes.FirstOrDefault(r => r.Id == id);
         }
         catch (HttpRequestException)
         {
@@ -111,6 +146,7 @@ public partial class RoutesViewModel : ObservableObject
             var detail = await _apiHttpClient.GetAsync<RouteDetail>($"api/routes/{routeId}");
             var stops = (detail?.Stops ?? []).OrderBy(s => s.Sequence);
             SelectedRouteStops = new ObservableCollection<RouteStop>(stops);
+            await SetDepotAsync(detail?.WarehouseId);
         }
         catch (HttpRequestException)
         {
@@ -118,19 +154,33 @@ public partial class RoutesViewModel : ObservableObject
         }
     }
 
+    private async Task SetDepotAsync(Guid? warehouseId)
+    {
+        if (warehouseId is null)
+        {
+            DepotLat = double.NaN;
+            DepotLng = double.NaN;
+            return;
+        }
+
+        _warehouses ??= await _apiHttpClient.GetAsync<List<WarehouseListItem>>("api/warehouses");
+        var warehouse = _warehouses?.FirstOrDefault(w => w.Id == warehouseId.Value);
+
+        DepotLat = warehouse?.Latitude ?? double.NaN;
+        DepotLng = warehouse?.Longitude ?? double.NaN;
+    }
+
     [RelayCommand]
     private async Task CreateRouteAsync()
     {
         var dialogViewModel = new CreateRouteDialogViewModel(_apiHttpClient);
-        var dialog = new CreateRouteDialog(dialogViewModel) { Owner = Application.Current.MainWindow };
-
-        if (dialog.ShowDialog() != true || dialogViewModel.SelectedOrderIds.Count == 0)
+        if (_dialogService.ShowCreateRouteDialog(dialogViewModel) != true || dialogViewModel.SelectedOrderIds.Count == 0)
             return;
 
         try
         {
             await _apiHttpClient.PostAsync<CreateRouteRequest, Guid>(
-                "api/routes", new CreateRouteRequest(dialogViewModel.SelectedOrderIds));
+                "api/routes", new CreateRouteRequest(dialogViewModel.SelectedOrderIds, dialogViewModel.RouteDate));
             await LoadRoutesAsync();
         }
         catch (HttpRequestException)
@@ -170,9 +220,7 @@ public partial class RoutesViewModel : ObservableObject
             return;
 
         var dialogViewModel = new AssignShiftDialogViewModel(_apiHttpClient);
-        var dialog = new AssignShiftDialog(dialogViewModel) { Owner = Application.Current.MainWindow };
-
-        if (dialog.ShowDialog() != true || dialogViewModel.SelectedShift is null)
+        if (_dialogService.ShowAssignShiftDialog(dialogViewModel) != true || dialogViewModel.SelectedShift is null)
             return;
 
         try
@@ -195,9 +243,7 @@ public partial class RoutesViewModel : ObservableObject
             return;
 
         var dialogViewModel = new InsertUrgentOrderDialogViewModel(_apiHttpClient);
-        var dialog = new InsertUrgentOrderDialog(dialogViewModel) { Owner = Application.Current.MainWindow };
-
-        if (dialog.ShowDialog() != true || dialogViewModel.SelectedOrder is null)
+        if (_dialogService.ShowInsertUrgentOrderDialog(dialogViewModel) != true || dialogViewModel.SelectedOrder is null)
             return;
 
         try
@@ -224,9 +270,7 @@ public partial class RoutesViewModel : ObservableObject
             .ToList();
 
         var dialogViewModel = new HandoverDialogViewModel(_apiHttpClient, pendingStops);
-        var dialog = new HandoverDialog(dialogViewModel) { Owner = Application.Current.MainWindow };
-
-        if (dialog.ShowDialog() != true || !dialogViewModel.CanConfirm)
+        if (_dialogService.ShowHandoverDialog(dialogViewModel) != true || !dialogViewModel.CanConfirm)
             return;
 
         try

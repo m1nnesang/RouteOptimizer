@@ -18,7 +18,7 @@ public class RouteMapSerializerTests
 
         var markers = Parse(RouteMapSerializer.Serialize(stops));
 
-        markers.Select(m => m.GetProperty("seq").GetInt32()).Should().ContainInOrder(1, 2);
+        markers.Select(m => m.GetProperty("seq").GetInt32()).Should().ContainInOrder(2, 3);
     }
 
     [Fact]
@@ -33,7 +33,7 @@ public class RouteMapSerializerTests
         var markers = Parse(RouteMapSerializer.Serialize(stops));
 
         markers.Should().HaveCount(1);
-        markers[0].GetProperty("seq").GetInt32().Should().Be(2);
+        markers[0].GetProperty("seq").GetInt32().Should().Be(3);
     }
 
     [Fact]
@@ -59,7 +59,7 @@ public class RouteMapSerializerTests
 
         var markers = Parse(RouteMapSerializer.Serialize(stops));
 
-        markers[0].GetProperty("label").GetString().Should().Be("Stop 3");
+        markers[0].GetProperty("label").GetString().Should().Be("Stop 4");
     }
 
     [Fact]

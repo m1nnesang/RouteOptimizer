@@ -11,6 +11,7 @@ public class RouteConfiguration : IEntityTypeConfiguration<Route>
         builder.ToTable("Routes");
 
         builder.Property(x => x.WarehouseId).IsRequired();
+        builder.Property(x => x.Date).IsRequired();
         builder.Property(x => x.AssignedShiftId);
         builder.Property(x => x.Status).IsRequired();
 
