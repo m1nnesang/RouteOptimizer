@@ -97,6 +97,8 @@ public partial class RoutesViewModel : ObservableObject, IDisposable
 
     public bool HasOptimizationResult => HasOptimizationResultFlag;
 
+    public bool CanOptimize => SelectedRoute?.Status == "Draft";
+
     partial void OnSelectedRouteChanged(RouteListItem? value)
     {
         if (value?.Id != _previousSelectedRouteId)
@@ -106,6 +108,7 @@ public partial class RoutesViewModel : ObservableObject, IDisposable
         }
         _previousSelectedRouteId = value?.Id;
         SelectedRouteStops = [];
+        OptimizeCommand.NotifyCanExecuteChanged();
         if (value is not null)
             _ = LoadRouteDetailAsync(value.Id);
     }
@@ -202,7 +205,7 @@ public partial class RoutesViewModel : ObservableObject, IDisposable
         }
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanOptimize))]
     private async Task OptimizeAsync()
     {
         if (SelectedRoute is null)
