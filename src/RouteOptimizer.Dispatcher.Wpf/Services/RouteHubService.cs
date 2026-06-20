@@ -6,8 +6,6 @@ namespace RouteOptimizer.Dispatcher.Wpf.Services;
 
 public class RouteHubService : IRouteHubService
 {
-    private const string HubUrl = "http://localhost:8080/hubs/routes";
-
     private const string RouteStartedEventName = "RouteStarted";
     private const string StopCompletedEventName = "StopCompleted";
     private const string StopFailedEventName = "StopFailed";
@@ -16,9 +14,14 @@ public class RouteHubService : IRouteHubService
     private const string DriverLocationEventName = "DriverLocation";
 
     private readonly TokenStorage _tokenStorage;
+    private readonly string _hubUrl;
     private HubConnection? _connection;
 
-    public RouteHubService(TokenStorage tokenStorage) => _tokenStorage = tokenStorage;
+    public RouteHubService(TokenStorage tokenStorage, DispatcherSettings settings)
+    {
+        _tokenStorage = tokenStorage;
+        _hubUrl = settings.RouteHubUrl;
+    }
 
     public event Action<RouteStartedEvent>? RouteStarted;
     public event Action<StopEvent>? StopCompleted;
@@ -33,7 +36,7 @@ public class RouteHubService : IRouteHubService
             return;
 
         var connection = new HubConnectionBuilder()
-            .WithUrl(HubUrl, options =>
+            .WithUrl(_hubUrl, options =>
             {
                 options.AccessTokenProvider = () => Task.FromResult(_tokenStorage.AccessToken);
             })

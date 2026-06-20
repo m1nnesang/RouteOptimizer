@@ -89,7 +89,8 @@ public partial class RouteMapView : UserControl
                 RenderStops();
                 RenderDriver();
             };
-            MapWebView.NavigateToString(MapHtml);
+            var html = MapHtml.Replace("__OSRM_URL__", App.Settings.OsrmUrl);
+            MapWebView.NavigateToString(html);
         }
         catch (Exception)
         {
@@ -174,7 +175,7 @@ public partial class RouteMapView : UserControl
 
         let layer = L.layerGroup().addTo(map);
         let driverMarker = null;
-        const OSRM_URL = 'http://localhost:5000';
+        const OSRM_URL = '__OSRM_URL__';
         let renderToken = 0;
 
         function updateDriver(loc) {

@@ -1,6 +1,8 @@
-﻿using System.Net.Http;
+﻿using System.IO;
+using System.Net.Http;
 using System.Windows;
 using System.Windows.Threading;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using RouteOptimizer.Dispatcher.Wpf.Services;
 using RouteOptimizer.Dispatcher.Wpf.Services.Interfaces;
@@ -15,19 +17,24 @@ public partial class App : Application
 {
     private IServiceProvider? _serviceProvider;
 
+    public static DispatcherSettings Settings { get; private set; } = new();
+
     protected override void OnStartup(StartupEventArgs e)
     {
         DispatcherUnhandledException += OnDispatcherUnhandledException;
 
+        var settings = LoadSettings();
+        Settings = settings;
+
         var services = new ServiceCollection();
 
+        services.AddSingleton(settings);
         services.AddSingleton<TokenStorage>();
         services.AddSingleton<ISessionNotifier, SessionNotifier>();
         services.AddSingleton<IRouteHubService, RouteHubService>();
         services.AddSingleton<IAuthService>(sp =>
         {
-            var httpClient = new HttpClient { BaseAddress = new
-                Uri("http://localhost:8080") };
+            var httpClient = new HttpClient { BaseAddress = new Uri(settings.ApiBaseUrl) };
             return new AuthService(httpClient,
                 sp.GetRequiredService<TokenStorage>());
         });
@@ -42,13 +49,28 @@ public partial class App : Application
         services.AddTransient<MainWindow>();
         services.AddTransient<MainViewModel>();
         services.AddHttpClient<IApiHttpClient, ApiHttpClient>(client =>
-            client.BaseAddress = new Uri("http://localhost:8080"));
+            client.BaseAddress = new Uri(settings.ApiBaseUrl));
 
 
         _serviceProvider = services.BuildServiceProvider();
 
         var loginView = _serviceProvider.GetRequiredService<LoginView>();
         loginView.Show();
+    }
+
+    private static DispatcherSettings LoadSettings()
+    {
+        var configuration = new ConfigurationBuilder()
+            .SetBasePath(AppContext.BaseDirectory)
+            .AddJsonFile("appsettings.json", optional: true, reloadOnChange: false)
+            .AddEnvironmentVariables("ROUTEOPTIMIZER_")
+            .Build();
+
+        return new DispatcherSettings
+        {
+            ApiBaseUrl = configuration["Api:BaseUrl"] ?? new DispatcherSettings().ApiBaseUrl,
+            OsrmUrl = configuration["Map:OsrmUrl"] ?? new DispatcherSettings().OsrmUrl
+        };
     }
 
     private void OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
