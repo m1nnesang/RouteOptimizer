@@ -1,11 +1,74 @@
 @page "/"
 @attribute [Authorize]
+@inject IRouteApi RouteApi
+@inject NavigationManager Navigation
 
 <PageTitle>Маршрут</PageTitle>
 
-<AuthorizeView>
-    <section class="screen">
-        <h1 class="screen__title">Маршрут на сегодня</h1>
-        <p class="screen__hint">Здесь появится список остановок вашей смены.</p>
-    </section>
-</AuthorizeView>
+<section class="screen">
+    <h1 class="screen__title">Маршрут на сегодня</h1>
+
+    @if (_loading)
+    {
+        <p class="screen__hint">Загрузка…</p>
+    }
+    else if (_error)
+    {
+        <p class="screen__hint">Не удалось загрузить маршрут.</p>
+        <button class="btn btn--secondary" @onclick="LoadAsync">Повторить</button>
+    }
+    else if (_routes.Count == 0)
+    {
+        <p class="screen__hint">На сегодня маршрутов нет. Начните смену у диспетчера.</p>
+    }
+    else
+    {
+        <div class="route-list">
+            @foreach (var route in _routes)
+            {
+                <button class="route-card" @onclick="() => OpenRoute(route.Id)">
+                    <div class="route-card__head">
+                        <span class="route-card__title">@route.WarehouseName</span>
+                        <span class="badge @StatusLabels.Css(route.Status)">@StatusLabels.Route(route.Status)</span>
+                    </div>
+                    <div class="route-card__meta">
+                        <span>Остановок: @route.StopsCount</span>
+                        @if (route.Date is { } date)
+                        {
+                            <span>@date.ToString("dd.MM.yyyy")</span>
+                        }
+                    </div>
+                </button>
+            }
+        </div>
+    }
+</section>
+
+@code {
+    private IReadOnlyList<RouteListItem> _routes = [];
+    private bool _loading = true;
+    private bool _error;
+
+    protected override Task OnInitializedAsync() => LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        _error = false;
+
+        try
+        {
+            _routes = await RouteApi.GetMyRoutesAsync();
+        }
+        catch (HttpRequestException)
+        {
+            _error = true;
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private void OpenRoute(Guid id) => Navigation.NavigateTo($"routes/{id}");
+}

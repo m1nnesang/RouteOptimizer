@@ -34,4 +34,6 @@ builder.Services.AddHttpClient("Api", client => client.BaseAddress = new Uri(api
 builder.Services.AddScoped(
     sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("Api"));
 
+builder.Services.AddScoped<IRouteApi, RouteApiClient>();
+
 await builder.Build().RunAsync();

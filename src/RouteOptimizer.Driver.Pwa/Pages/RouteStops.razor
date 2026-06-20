@@ -1,0 +1,94 @@
+@page "/routes/{RouteId:guid}"
+@attribute [Authorize]
+@inject IRouteApi RouteApi
+
+<PageTitle>Остановки</PageTitle>
+
+<section class="screen">
+    <a class="back-link" href="">← Маршрут</a>
+
+    @if (_loading)
+    {
+        <p class="screen__hint">Загрузка…</p>
+    }
+    else if (_error || _route is null)
+    {
+        <p class="screen__hint">Не удалось загрузить остановки.</p>
+        <button class="btn btn--secondary" @onclick="LoadAsync">Повторить</button>
+    }
+    else
+    {
+        <div class="route-detail__head">
+            <h1 class="screen__title">Остановки</h1>
+            <span class="badge @StatusLabels.Css(_route.Status)">@StatusLabels.Route(_route.Status)</span>
+        </div>
+
+        @if (_route.Stops.Count == 0)
+        {
+            <p class="screen__hint">В этом маршруте нет остановок.</p>
+        }
+        else
+        {
+            <ol class="stop-list">
+                @foreach (var stop in _route.Stops.OrderBy(s => s.Sequence))
+                {
+                    <li class="stop">
+                        <div class="stop__seq">@stop.Sequence</div>
+                        <div class="stop__body">
+                            <div class="stop__row">
+                                <span class="stop__address">@stop.Street, @stop.City</span>
+                                <span class="badge @StatusLabels.Css(stop.Status)">@StatusLabels.Stop(stop.Status)</span>
+                            </div>
+                            @foreach (var order in stop.Orders)
+                            {
+                                <div class="stop__order">
+                                    <span class="stop__recipient">
+                                        @order.Recipient
+                                        @if (!string.IsNullOrWhiteSpace(order.Apartment))
+                                        {
+                                            <span class="stop__apartment">кв. @order.Apartment</span>
+                                        }
+                                    </span>
+                                    @if (!string.IsNullOrWhiteSpace(order.Phone))
+                                    {
+                                        <a class="stop__phone" href="tel:@order.Phone">@order.Phone</a>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </li>
+                }
+            </ol>
+        }
+    }
+</section>
+
+@code {
+    [Parameter]
+    public Guid RouteId { get; set; }
+
+    private RouteDetail? _route;
+    private bool _loading = true;
+    private bool _error;
+
+    protected override Task OnParametersSetAsync() => LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        _error = false;
+
+        try
+        {
+            _route = await RouteApi.GetRouteAsync(RouteId);
+        }
+        catch (HttpRequestException)
+        {
+            _error = true;
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+}
