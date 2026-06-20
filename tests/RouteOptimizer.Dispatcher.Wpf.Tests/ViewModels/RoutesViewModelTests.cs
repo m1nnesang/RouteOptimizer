@@ -37,6 +37,25 @@ public class RoutesViewModelTests
     }
 
     [Fact]
+    public async Task SearchText_FiltersByDriverName_ClientSide()
+    {
+        var routes = new List<RouteListItem>
+        {
+            new() { Id = Guid.NewGuid(), Status = "Assigned", DriverName = "Jan Kowalski" },
+            new() { Id = Guid.NewGuid(), Status = "Assigned", DriverName = "Anna Nowak" }
+        };
+        _api.Setup(a => a.GetAsync<PagedResult<RouteListItem>>(It.IsAny<string>(), default))
+            .ReturnsAsync(new PagedResult<RouteListItem> { Items = routes });
+        var vm = new RoutesViewModel(_api.Object, _dialog.Object);
+        _api.Invocations.Clear();
+
+        vm.SearchText = "nowak";
+
+        vm.Routes.Should().ContainSingle().Which.DriverName.Should().Be("Anna Nowak");
+        _api.Verify(a => a.GetAsync<PagedResult<RouteListItem>>(It.IsAny<string>(), default), Times.Never);
+    }
+
+    [Fact]
     public async Task LoadRoutes_AllFilter_ExcludesInterrupted()
     {
         var routes = new List<RouteListItem>

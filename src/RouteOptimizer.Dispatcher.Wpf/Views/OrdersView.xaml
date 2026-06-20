@@ -29,8 +29,16 @@
             </StackPanel>
 
             <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="24,0,0,0" VerticalAlignment="Center">
+                <TextBox Width="200" VerticalAlignment="Center"
+                         Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged, Delay=200}"
+                         ToolTip="Search by city, street, recipient, phone..."/>
+                <TextBlock Text="Status" Style="{StaticResource CaptionTextStyle}"
+                           VerticalAlignment="Center" Margin="16,0,8,0"/>
+                <ComboBox ItemsSource="{Binding StatusFilters}"
+                          SelectedItem="{Binding SelectedStatusFilter}"
+                          Width="140"/>
                 <TextBlock Text="Date" Style="{StaticResource CaptionTextStyle}"
-                           VerticalAlignment="Center" Margin="0,0,8,0"/>
+                           VerticalAlignment="Center" Margin="16,0,8,0"/>
                 <DatePicker SelectedDate="{Binding SelectedDate}" Width="140"/>
                 <Button Content="✕" Width="28" Margin="4,0,0,0"
                         Style="{StaticResource SecondaryButtonStyle}"

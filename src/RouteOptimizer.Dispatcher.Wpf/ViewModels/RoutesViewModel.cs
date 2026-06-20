@@ -23,6 +23,7 @@ public partial class RoutesViewModel : ObservableObject, IDisposable
     private readonly IDialogService _dialogService;
     private readonly IRouteHubService? _routeHub;
     private Guid? _previousSelectedRouteId;
+    private List<RouteListItem> _allRoutes = [];
 
     public RoutesViewModel(IApiHttpClient apiHttpClient, IDialogService dialogService,
         IRouteHubService? routeHub = null)
@@ -77,6 +78,9 @@ public partial class RoutesViewModel : ObservableObject, IDisposable
 
     [ObservableProperty]
     public partial string SelectedStatusFilter { get; set; } = AllFilter;
+
+    [ObservableProperty]
+    public partial string SearchText { get; set; } = string.Empty;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasDateFilter))]
@@ -147,6 +151,14 @@ public partial class RoutesViewModel : ObservableObject, IDisposable
 
     partial void OnSelectedDateChanged(DateTime? value) => _ = LoadRoutesAsync();
 
+    partial void OnSearchTextChanged(string value)
+    {
+        var previousId = SelectedRoute?.Id;
+        ApplyFilter();
+        if (previousId is { } id)
+            SelectedRoute = Routes.FirstOrDefault(r => r.Id == id);
+    }
+
     [RelayCommand]
     private void ClearDateFilter() => SelectedDate = null;
 
@@ -165,12 +177,13 @@ public partial class RoutesViewModel : ObservableObject, IDisposable
                 url += $"&date={SelectedDate.Value:yyyy-MM-dd}";
 
             var result = await _apiHttpClient.GetAsync<PagedResult<RouteListItem>>(url);
-            var items = (IEnumerable<RouteListItem>)(result?.Items ?? []);
+            IEnumerable<RouteListItem> items = result?.Items ?? [];
 
             if (SelectedStatusFilter == AllFilter)
                 items = items.Where(r => r.Status != "Interrupted");
 
-            Routes = new ObservableCollection<RouteListItem>(items);
+            _allRoutes = items.ToList();
+            ApplyFilter();
 
             if (previousId is { } id)
                 SelectedRoute = Routes.FirstOrDefault(r => r.Id == id);
@@ -184,6 +197,26 @@ public partial class RoutesViewModel : ObservableObject, IDisposable
             IsLoading = false;
         }
     }
+
+    private void ApplyFilter()
+    {
+        var query = SearchText?.Trim();
+        IEnumerable<RouteListItem> items = _allRoutes;
+
+        if (!string.IsNullOrEmpty(query))
+            items = items.Where(r => MatchesSearch(r, query));
+
+        Routes = new ObservableCollection<RouteListItem>(items);
+    }
+
+    private static bool MatchesSearch(RouteListItem route, string query) =>
+        Contains(route.Status, query)
+        || Contains(route.DriverName, query)
+        || Contains(route.WarehouseName, query)
+        || Contains(route.Date?.ToString("dd.MM.yyyy"), query);
+
+    private static bool Contains(string? value, string query) =>
+        value is not null && value.Contains(query, StringComparison.OrdinalIgnoreCase);
 
     private async Task LoadRouteDetailAsync(Guid routeId)
     {

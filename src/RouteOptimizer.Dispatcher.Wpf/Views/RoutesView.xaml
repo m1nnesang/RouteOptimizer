@@ -25,7 +25,10 @@
             </StackPanel>
 
             <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="24,0,0,0" VerticalAlignment="Center">
-                <TextBlock Text="Status" Style="{StaticResource CaptionTextStyle}" Margin="0,0,8,0"/>
+                <TextBox Width="180" VerticalAlignment="Center"
+                         Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged, Delay=200}"
+                         ToolTip="Search by status, driver, warehouse, date..."/>
+                <TextBlock Text="Status" Style="{StaticResource CaptionTextStyle}" Margin="16,0,8,0"/>
                 <ComboBox ItemsSource="{Binding StatusFilters}"
                           SelectedItem="{Binding SelectedStatusFilter}"
                           Width="150"/>

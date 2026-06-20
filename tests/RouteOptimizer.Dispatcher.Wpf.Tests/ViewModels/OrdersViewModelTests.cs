@@ -108,6 +108,40 @@ public class OrdersViewModelTests
     }
 
     [Fact]
+    public async Task SearchText_FiltersLoadedOrders_ClientSide()
+    {
+        var orders = new List<OrderListItem>
+        {
+            new() { Id = Guid.NewGuid(), City = "Warszawa", Street = "Marszałkowska" },
+            new() { Id = Guid.NewGuid(), City = "Kraków", Street = "Floriańska" }
+        };
+        _api.Setup(a => a.GetAsync<PagedResult<OrderListItem>>(It.IsAny<string>(), default))
+            .ReturnsAsync(new PagedResult<OrderListItem> { Items = orders });
+        var vm = new OrdersViewModel(_api.Object, _dialog.Object);
+        _api.Invocations.Clear();
+
+        vm.SearchText = "krak";
+
+        vm.Orders.Should().ContainSingle().Which.City.Should().Be("Kraków");
+        _api.Verify(a => a.GetAsync<PagedResult<OrderListItem>>(It.IsAny<string>(), default), Times.Never);
+    }
+
+    [Fact]
+    public async Task SelectedStatusFilter_Set_AddsStatusToUrlAndReloads()
+    {
+        string? capturedUrl = null;
+        _api.Setup(a => a.GetAsync<PagedResult<OrderListItem>>(It.IsAny<string>(), default))
+            .Callback<string, CancellationToken>((url, _) => capturedUrl = url)
+            .ReturnsAsync(new PagedResult<OrderListItem>());
+        var vm = new OrdersViewModel(_api.Object, _dialog.Object);
+
+        vm.SelectedStatusFilter = "Delivered";
+        await Task.Yield();
+
+        capturedUrl.Should().Contain("status=Delivered");
+    }
+
+    [Fact]
     public async Task SelectedOrder_Set_LoadsDeliveryHistory()
     {
         var orderId = Guid.NewGuid();
