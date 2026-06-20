@@ -36,7 +36,16 @@ builder.Services.AddScoped(
 
 builder.Services.AddHttpClient("Upload");
 
-builder.Services.AddScoped<IRouteApi, RouteApiClient>();
+builder.Services.AddScoped<RouteApiClient>();
+builder.Services.AddScoped<IConnectivity, ConnectivityService>();
+builder.Services.AddScoped<IOfflineStore, OfflineStore>();
+builder.Services.AddScoped<OfflineRouteApi>();
+builder.Services.AddScoped<IRouteApi>(sp => sp.GetRequiredService<OfflineRouteApi>());
+builder.Services.AddScoped<IOutboxFlusher>(sp => sp.GetRequiredService<OfflineRouteApi>());
+builder.Services.AddTransient<IRouteHubClient>(sp => new RouteHubClient(
+    apiBaseUrl.TrimEnd('/') + "/hubs/routes",
+    sp.GetRequiredService<ITokenStore>()));
 builder.Services.AddScoped<IGeolocation, GeolocationService>();
+builder.Services.AddScoped<IMapInterop, MapInterop>();
 
 await builder.Build().RunAsync();

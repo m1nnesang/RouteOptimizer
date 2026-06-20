@@ -1,0 +1,54 @@
+<div class="drawer @(Open ? "drawer--open" : "")">
+    <div class="drawer__backdrop" @onclick="Close"></div>
+    <div class="drawer__panel">
+        <div class="drawer__head">
+            <h2 class="drawer__title">Все остановки</h2>
+            <button class="drawer__close" @onclick="Close" aria-label="Закрыть">✕</button>
+        </div>
+
+        <ul class="drawer__list">
+            @foreach (var stop in Stops.OrderBy(s => s.Sequence))
+            {
+                <li>
+                    <button class="drawer__stop @(stop.Id == CurrentStopId ? "drawer__stop--current" : "")"
+                            @onclick="() => Select(stop)">
+                        <div class="drawer__stop-head">
+                            <span class="drawer__stop-seq">@(stop.Sequence + 1)</span>
+                            <span class="drawer__stop-address">@stop.Street, @stop.City</span>
+                            <span class="badge @StatusLabels.Css(stop.Status)">@StatusLabels.Stop(stop.Status)</span>
+                        </div>
+                        <div class="drawer__stop-orders">
+                            @foreach (var order in stop.Orders)
+                            {
+                                <span class="drawer__order @StatusLabels.OrderCss(order.Status)">
+                                    @order.Recipient
+                                </span>
+                            }
+                        </div>
+                    </button>
+                </li>
+            }
+        </ul>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public bool Open { get; set; }
+
+    [Parameter]
+    public IReadOnlyList<RouteStop> Stops { get; set; } = [];
+
+    [Parameter]
+    public Guid? CurrentStopId { get; set; }
+
+    [Parameter]
+    public EventCallback<RouteStop> OnSelect { get; set; }
+
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+
+    private Task Select(RouteStop stop) => OnSelect.InvokeAsync(stop);
+
+    private Task Close() => OnClose.InvokeAsync();
+}

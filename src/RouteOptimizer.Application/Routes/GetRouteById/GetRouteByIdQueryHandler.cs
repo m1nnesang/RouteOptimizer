@@ -51,7 +51,7 @@ public class GetRouteByIdQueryHandler : IRequestHandler<GetRouteByIdQuery, Resul
     private static StopOrderDto MapOrder(Guid orderId, IReadOnlyDictionary<Guid, Order> ordersById)
     {
         if (!ordersById.TryGetValue(orderId, out var order))
-            return new StopOrderDto(orderId, string.Empty, null, string.Empty, string.Empty);
+            return new StopOrderDto(orderId, string.Empty, null, string.Empty, string.Empty, "Unknown");
 
         var (type, recipient) = order switch
         {
@@ -60,6 +60,6 @@ public class GetRouteByIdQueryHandler : IRequestHandler<GetRouteByIdQuery, Resul
             _ => (string.Empty, string.Empty)
         };
 
-        return new StopOrderDto(orderId, recipient, order.Address.Apartment, type, order.Number.Value);
+        return new StopOrderDto(orderId, recipient, order.Address.Apartment, type, order.Number.Value, order.Status.ToString());
     }
 }

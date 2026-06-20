@@ -25,6 +25,25 @@ public static class StatusLabels
         _ => status
     };
 
+    public static string Order(string status) => status switch
+    {
+        "Created" => "Создан",
+        "AssignedToRoute" => "Назначен",
+        "InTransit" => "В пути",
+        "Delivered" => "Доставлен",
+        "Failed" => "Не доставлен",
+        "Cancelled" => "Отменён",
+        _ => status
+    };
+
+    public static string OrderCss(string status) => status switch
+    {
+        "Delivered" => "is-done",
+        "Failed" => "is-failed",
+        "Cancelled" => "is-skipped",
+        _ => "is-active"
+    };
+
     public static string Css(string status) => status switch
     {
         "Completed" => "is-done",

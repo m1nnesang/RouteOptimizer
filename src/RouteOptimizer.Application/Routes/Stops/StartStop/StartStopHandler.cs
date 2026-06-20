@@ -9,11 +9,13 @@ namespace RouteOptimizer.Application.Routes.Stops.StartStop;
 public class StartStopHandler : IRequestHandler<StartStopCommand, Result>
 {
     private readonly IRouteRepository _routeRepository;
+    private readonly IOrderRepository _orderRepository;
     private readonly ICurrentUser _currentUser;
 
-    public StartStopHandler(IRouteRepository routeRepository, ICurrentUser currentUser)
+    public StartStopHandler(IRouteRepository routeRepository, IOrderRepository orderRepository, ICurrentUser currentUser)
     {
         _routeRepository = routeRepository;
+        _orderRepository = orderRepository;
         _currentUser = currentUser;
     }
 
@@ -46,6 +48,18 @@ public class StartStopHandler : IRequestHandler<StartStopCommand, Result>
         catch (InvalidOperationException ex)
         {
             return Result.Failure(ex.Message);
+        }
+
+        var orders = await _orderRepository.GetByIdsAsync(stop.Orders, ct);
+        foreach (var order in orders)
+        {
+            try
+            {
+                order.MarkAsInTransit();
+            }
+            catch (InvalidOperationException)
+            {
+            }
         }
 
         return Result.Success();

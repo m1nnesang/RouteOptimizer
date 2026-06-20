@@ -15,6 +15,8 @@ using RouteOptimizer.Application.Routes.Stops.CompleteStop;
 using RouteOptimizer.Application.Routes.Stops.FailDelivery;
 using RouteOptimizer.Application.Routes.HandoverRoute;
 using RouteOptimizer.Application.Routes.InsertUrgentOrder;
+using RouteOptimizer.Application.Routes.Orders.DeliverOrder;
+using RouteOptimizer.Application.Routes.Orders.FailOrder;
 using RouteOptimizer.Application.Routes.Optimize;
 using RouteOptimizer.Application.Routes.PushDriverLocation;
 using RouteOptimizer.Application.Routes.Stops.ResumeStop;
@@ -91,6 +93,28 @@ public class RoutesController : ControllerBase
         var driverId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
         var command = new FailDeliveryCommand(driverId ,routeId, stopId, request.Latitude, request.Longitude, request.FailureReason, request.Notes, request.PhotoKey);
+        var result = await _mediator.Send(command, ct);
+
+        return ToResponse(result);
+    }
+
+    [Authorize(Roles = "Driver")]
+    [HttpPost("{routeId}/stops/{stopId}/orders/{orderId}/deliver")]
+    public async Task<IActionResult> DeliverOrder([FromRoute] Guid routeId, [FromRoute] Guid stopId, [FromRoute] Guid orderId, CancellationToken ct)
+    {
+        var command = new DeliverOrderCommand(routeId, stopId, orderId);
+        var result = await _mediator.Send(command, ct);
+
+        return ToResponse(result);
+    }
+
+    [Authorize(Roles = "Driver")]
+    [HttpPost("{routeId}/stops/{stopId}/orders/{orderId}/fail")]
+    public async Task<IActionResult> FailOrder([FromRoute] Guid routeId, [FromRoute] Guid stopId, [FromRoute] Guid orderId, [FromBody] FailDeliveryRequest request, CancellationToken ct)
+    {
+        var driverId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+        var command = new FailOrderCommand(driverId, routeId, stopId, orderId, request.Latitude, request.Longitude, request.FailureReason, request.Notes, request.PhotoKey);
         var result = await _mediator.Send(command, ct);
 
         return ToResponse(result);

@@ -1,0 +1,76 @@
+@implements IAsyncDisposable
+@inject IMapInterop Map
+
+<div id="@_elementId" class="map"></div>
+
+@code {
+    private readonly string _elementId = "driver-map";
+    private bool _initialized;
+
+    [Parameter]
+    public IReadOnlyList<RouteStop> Stops { get; set; } = [];
+
+    [Parameter]
+    public Guid? CurrentStopId { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+            return;
+
+        await Map.InitAsync(_elementId);
+        _initialized = true;
+        await RefreshAsync();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (_initialized)
+            await RefreshAsync();
+    }
+
+    public async Task RefreshAsync()
+    {
+        if (!_initialized)
+            return;
+
+        await Map.RenderAsync(Stops, CurrentStopId);
+
+        var current = Stops.FirstOrDefault(s => s.Id == CurrentStopId);
+
+        if (current is not null)
+            await Map.FocusAsync(current.Latitude, current.Longitude);
+        else
+            await Map.FitAllAsync(Stops);
+    }
+
+    public async Task FocusStopAsync(RouteStop stop)
+    {
+        if (!_initialized)
+            return;
+
+        await Map.FocusAsync(stop.Latitude, stop.Longitude);
+    }
+
+    public async Task SetDriverAsync(double latitude, double longitude)
+    {
+        if (!_initialized)
+            return;
+
+        await Map.SetDriverAsync(latitude, longitude);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_initialized)
+        {
+            try
+            {
+                await Map.DisposeMapAsync();
+            }
+            catch (Exception)
+            {
+            }
+        }
+    }
+}

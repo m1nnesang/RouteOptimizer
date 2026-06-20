@@ -1,0 +1,306 @@
+@inject IRouteApi RouteApi
+@inject IGeolocation Geolocation
+@inject IConnectivity Connectivity
+
+<div class="stop-card">
+    <div class="stop-card__head">
+        <div class="stop-card__seq">@(Stop.Sequence + 1)</div>
+        <div class="stop-card__title">
+            <span class="stop-card__address">@Stop.Street</span>
+            <span class="stop-card__city">@Stop.City</span>
+        </div>
+        <span class="badge @StatusLabels.Css(Stop.Status)">@StatusLabels.Stop(Stop.Status)</span>
+    </div>
+
+    <a class="btn btn--secondary btn--sm stop-card__nav"
+       href="https://www.google.com/maps/dir/?api=1&destination=@Stop.Latitude,@Stop.Longitude"
+       target="_blank" rel="noopener">
+        🧭 Навигация
+    </a>
+
+    @if (_error is not null)
+    {
+        <p class="action-error">@_error</p>
+    }
+
+    <ul class="order-list">
+        @foreach (var order in Stop.Orders)
+        {
+            <li class="order-row @OrderRowCss(order.Status)">
+                <div class="order-row__main">
+                    <span class="order-row__recipient">
+                        @order.Recipient
+                        @if (!string.IsNullOrWhiteSpace(order.Apartment))
+                        {
+                            <span class="order-row__apartment">кв. @order.Apartment</span>
+                        }
+                    </span>
+                    @if (!string.IsNullOrWhiteSpace(order.Phone))
+                    {
+                        <a class="order-row__phone" href="tel:@order.Phone">@order.Phone</a>
+                    }
+                </div>
+
+                @if (IsOrderClosed(order.Status))
+                {
+                    <span class="badge @StatusLabels.OrderCss(order.Status)">@StatusLabels.Order(order.Status)</span>
+                }
+                else if (CanAct && _failOrderId != order.OrderId)
+                {
+                    <div class="order-row__actions">
+                        <button class="btn btn--sm btn--success" disabled="@_busy"
+                                @onclick="() => DeliverAsync(order.OrderId)">Доставлен</button>
+                        <button class="btn btn--sm btn--danger" disabled="@_busy"
+                                @onclick="() => OpenFailForm(order.OrderId)">Не доставлен</button>
+                    </div>
+                }
+
+                @if (_failOrderId == order.OrderId)
+                {
+                    <div class="fail-form">
+                        <label class="field__label" for="fail-reason-@order.OrderId">Причина</label>
+                        <select id="fail-reason-@order.OrderId" class="field__input" value="@_failReason"
+                                @onchange="OnFailReasonChanged">
+                            @foreach (var (value, label) in FailureReasons.All)
+                            {
+                                <option value="@value">@label</option>
+                            }
+                        </select>
+
+                        <textarea class="field__input fail-form__notes" rows="2"
+                                  placeholder="Комментарий (необязательно)" @bind="_failNotes"></textarea>
+
+                        <InputFile class="fail-form__file" accept="image/*" capture="environment"
+                                   OnChange="OnPhotoSelected" />
+                        @if (_failFile is not null)
+                        {
+                            <p class="fail-form__filename">Фото: @_failFile.Name</p>
+                        }
+
+                        @if (_failError is not null)
+                        {
+                            <p class="action-error">@_failError</p>
+                        }
+
+                        <div class="order-row__actions">
+                            <button class="btn btn--sm btn--danger" disabled="@_busy"
+                                    @onclick="() => SubmitFailAsync(order.OrderId)">
+                                @(_busy ? "Отправка…" : "Отправить")
+                            </button>
+                            <button class="btn btn--sm btn--ghost" disabled="@_busy" @onclick="CloseFailForm">
+                                Отмена
+                            </button>
+                        </div>
+                    </div>
+                }
+            </li>
+        }
+    </ul>
+
+    @if (CanAct)
+    {
+        <button class="btn btn--ghost btn--sm stop-card__skip" disabled="@_busy" @onclick="SkipAsync">
+            Пропустить стоп
+        </button>
+    }
+    else if (Stop.Status == "Skipped" && RouteInProgress)
+    {
+        <button class="btn btn--primary btn--sm stop-card__skip" disabled="@_busy" @onclick="ResumeAsync">
+            Вернуться к стопу
+        </button>
+    }
+</div>
+
+@code {
+    private const long MaxPhotoBytes = 8 * 1024 * 1024;
+    private const string DefaultPhotoContentType = "image/jpeg";
+
+    [Parameter, EditorRequired]
+    public RouteStop Stop { get; set; } = default!;
+
+    [Parameter, EditorRequired]
+    public Guid RouteId { get; set; }
+
+    [Parameter]
+    public bool RouteInProgress { get; set; }
+
+    [Parameter]
+    public EventCallback OnChanged { get; set; }
+
+    private bool _busy;
+    private string? _error;
+
+    private Guid? _failOrderId;
+    private string _failReason = FailureReasons.All[0].Value;
+    private string? _failNotes;
+    private IBrowserFile? _failFile;
+    private string? _failError;
+
+    private bool CanAct => RouteInProgress && Stop.Status == "InProgress";
+
+    private static bool IsOrderClosed(string status) =>
+        status is "Delivered" or "Failed" or "Cancelled";
+
+    private static string OrderRowCss(string status) => status switch
+    {
+        "Delivered" => "order-row--done",
+        "Failed" => "order-row--failed",
+        _ => string.Empty
+    };
+
+    private void OnFailReasonChanged(ChangeEventArgs e) =>
+        _failReason = e.Value?.ToString() ?? FailureReasons.All[0].Value;
+
+    private void OpenFailForm(Guid orderId)
+    {
+        _failOrderId = orderId;
+        _failReason = FailureReasons.All[0].Value;
+        _failNotes = null;
+        _failFile = null;
+        _failError = null;
+    }
+
+    private void CloseFailForm()
+    {
+        _failOrderId = null;
+        _failFile = null;
+        _failError = null;
+    }
+
+    private void OnPhotoSelected(InputFileChangeEventArgs e) => _failFile = e.File;
+
+    private async Task DeliverAsync(Guid orderId)
+    {
+        if (_busy)
+            return;
+
+        _busy = true;
+        _error = null;
+
+        try
+        {
+            var result = await RouteApi.DeliverOrderAsync(RouteId, Stop.Id, orderId);
+
+            if (result.Success)
+                await OnChanged.InvokeAsync();
+            else
+                _error = result.Error;
+        }
+        catch (HttpRequestException)
+        {
+            _error = "Нет связи с сервером.";
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private async Task SubmitFailAsync(Guid orderId)
+    {
+        if (_busy)
+            return;
+
+        if (_failFile is not null && !Connectivity.IsOnline)
+        {
+            _failError = "Фото-провал доступен только онлайн. Отправьте без фото или подключитесь к сети.";
+            return;
+        }
+
+        _busy = true;
+        _failError = null;
+
+        try
+        {
+            string? photoKey = null;
+
+            if (_failFile is not null)
+            {
+                photoKey = await UploadPhotoAsync(_failFile);
+
+                if (photoKey is null)
+                {
+                    _failError = "Не удалось загрузить фото.";
+                    return;
+                }
+            }
+
+            var position = await Geolocation.TryGetCurrentPositionAsync();
+
+            var request = new FailDeliveryRequest(
+                position?.Latitude ?? 0,
+                position?.Longitude ?? 0,
+                _failReason,
+                string.IsNullOrWhiteSpace(_failNotes) ? null : _failNotes,
+                photoKey);
+
+            var result = await RouteApi.FailOrderAsync(RouteId, Stop.Id, orderId, request);
+
+            if (result.Success)
+            {
+                CloseFailForm();
+                await OnChanged.InvokeAsync();
+            }
+            else
+            {
+                _failError = result.Error;
+            }
+        }
+        catch (HttpRequestException)
+        {
+            _failError = "Нет связи с сервером.";
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private async Task<string?> UploadPhotoAsync(IBrowserFile file)
+    {
+        var upload = await RouteApi.CreatePhotoUploadAsync();
+
+        if (upload is null)
+            return null;
+
+        await using var stream = file.OpenReadStream(MaxPhotoBytes);
+        using var buffer = new MemoryStream();
+        await stream.CopyToAsync(buffer);
+
+        var contentType = string.IsNullOrWhiteSpace(file.ContentType) ? DefaultPhotoContentType : file.ContentType;
+        var uploaded = await RouteApi.UploadPhotoAsync(upload.UploadUrl, buffer.ToArray(), contentType);
+
+        return uploaded ? upload.PhotoKey : null;
+    }
+
+    private Task SkipAsync() => RunAsync(() => RouteApi.SkipStopAsync(RouteId, Stop.Id));
+
+    private Task ResumeAsync() => RunAsync(() => RouteApi.ResumeStopAsync(RouteId, Stop.Id));
+
+    private async Task RunAsync(Func<Task<ApiResult>> action)
+    {
+        if (_busy)
+            return;
+
+        _busy = true;
+        _error = null;
+
+        try
+        {
+            var result = await action();
+
+            if (result.Success)
+                await OnChanged.InvokeAsync();
+            else
+                _error = result.Error;
+        }
+        catch (HttpRequestException)
+        {
+            _error = "Нет связи с сервером.";
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+}

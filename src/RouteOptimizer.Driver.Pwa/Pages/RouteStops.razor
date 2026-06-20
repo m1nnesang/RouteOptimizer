@@ -1,185 +1,123 @@
 @page "/routes/{RouteId:guid}"
 @attribute [Authorize]
-@implements IDisposable
+@implements IAsyncDisposable
 @inject IRouteApi RouteApi
 @inject IGeolocation Geolocation
+@inject IJSRuntime JS
+@inject IConnectivity Connectivity
+@inject IOutboxFlusher Outbox
+@inject IRouteHubClient Hub
 
-<PageTitle>Остановки</PageTitle>
+<PageTitle>Маршрут</PageTitle>
 
-<section class="screen">
-    <a class="back-link" href="">← Маршрут</a>
-
-    @if (_loading)
-    {
+@if (_loading)
+{
+    <section class="screen">
         <p class="screen__hint">Загрузка…</p>
-    }
-    else if (_error || _route is null)
-    {
-        <p class="screen__hint">Не удалось загрузить остановки.</p>
+    </section>
+}
+else if (_error || _route is null)
+{
+    <section class="screen">
+        <a class="back-link" href="">← Маршруты</a>
+        <p class="screen__hint">Не удалось загрузить маршрут.</p>
         <button class="btn btn--secondary" @onclick="LoadAsync">Повторить</button>
-    }
-    else
-    {
-        <div class="route-detail__head">
-            <h1 class="screen__title">Остановки</h1>
+    </section>
+}
+else
+{
+    <div class="nav-screen">
+        <RouteMap @ref="_map" Stops="_route.Stops" CurrentStopId="_currentStopId" />
+
+        <div class="topbar">
+            <a class="topbar__btn" href="">←</a>
             <span class="badge @StatusLabels.Css(_route.Status)">@StatusLabels.Route(_route.Status)</span>
+            <button class="topbar__btn" @onclick="OpenList">Список</button>
         </div>
+
+        @if (!_isOnline || _pendingCount > 0)
+        {
+            <div class="net-banner @(_isOnline ? "net-banner--sync" : "net-banner--offline")">
+                @if (!_isOnline)
+                {
+                    <span>Нет сети — работаем офлайн</span>
+                }
+                @if (_pendingCount > 0)
+                {
+                    <span>· @_pendingCount в очереди</span>
+                }
+            </div>
+        }
 
         @if (_actionError is not null)
         {
-            <p class="action-error">@_actionError</p>
+            <p class="action-error nav-screen__error">@_actionError</p>
         }
 
-        @if (_route.Status == "Assigned")
-        {
-            <button class="btn btn--primary route-action" disabled="@_busy" @onclick="StartRouteAsync">
-                Начать маршрут
-            </button>
-        }
-
-        @if (_route.Stops.Count == 0)
-        {
-            <p class="screen__hint">В этом маршруте нет остановок.</p>
-        }
-        else
-        {
-            <ol class="stop-list">
-                @foreach (var stop in _route.Stops.OrderBy(s => s.Sequence))
-                {
-                    <li class="stop">
-                        <div class="stop__seq">@stop.Sequence</div>
-                        <div class="stop__body">
-                            <div class="stop__row">
-                                <span class="stop__address">@stop.Street, @stop.City</span>
-                                <span class="badge @StatusLabels.Css(stop.Status)">@StatusLabels.Stop(stop.Status)</span>
-                            </div>
-                            @foreach (var order in stop.Orders)
-                            {
-                                <div class="stop__order">
-                                    <span class="stop__recipient">
-                                        @order.Recipient
-                                        @if (!string.IsNullOrWhiteSpace(order.Apartment))
-                                        {
-                                            <span class="stop__apartment">кв. @order.Apartment</span>
-                                        }
-                                    </span>
-                                    @if (!string.IsNullOrWhiteSpace(order.Phone))
-                                    {
-                                        <a class="stop__phone" href="tel:@order.Phone">@order.Phone</a>
-                                    }
-                                </div>
-                            }
-
-                            @if (_route.Status == "InProgress")
-                            {
-                                @if (_failStopId == stop.Id)
-                                {
-                                    <div class="fail-form">
-                                        <label class="field__label" for="fail-reason">Причина</label>
-                                        <select id="fail-reason" class="field__input" value="@_failReason"
-                                                @onchange="OnFailReasonChanged">
-                                            @foreach (var (value, label) in FailureReasons.All)
-                                            {
-                                                <option value="@value">@label</option>
-                                            }
-                                        </select>
-
-                                        <textarea class="field__input fail-form__notes" rows="2"
-                                                  placeholder="Комментарий (необязательно)"
-                                                  @bind="_failNotes"></textarea>
-
-                                        <InputFile class="fail-form__file" accept="image/*" capture="environment"
-                                                   OnChange="OnPhotoSelected" />
-                                        @if (_failFile is not null)
-                                        {
-                                            <p class="fail-form__filename">Фото: @_failFile.Name</p>
-                                        }
-
-                                        @if (_failError is not null)
-                                        {
-                                            <p class="action-error">@_failError</p>
-                                        }
-
-                                        <div class="stop__actions">
-                                            <button class="btn btn--sm btn--danger" disabled="@_failBusy"
-                                                    @onclick="() => SubmitFailAsync(stop.Id)">
-                                                @(_failBusy ? "Отправка…" : "Отправить")
-                                            </button>
-                                            <button class="btn btn--sm btn--ghost" disabled="@_failBusy"
-                                                    @onclick="CloseFailForm">
-                                                Отмена
-                                            </button>
-                                        </div>
-                                    </div>
-                                }
-                                else
-                                {
-                                    <div class="stop__actions">
-                                        @switch (stop.Status)
-                                        {
-                                            case "Pending":
-                                                <button class="btn btn--sm btn--primary" disabled="@_busy"
-                                                        @onclick="() => StartStopAsync(stop.Id)">Прибыл</button>
-                                                <button class="btn btn--sm btn--ghost" disabled="@_busy"
-                                                        @onclick="() => SkipStopAsync(stop.Id)">Пропустить</button>
-                                                break;
-
-                                            case "InProgress":
-                                                <button class="btn btn--sm btn--success" disabled="@_busy"
-                                                        @onclick="() => CompleteStopAsync(stop.Id, false)">Доставлено</button>
-                                                <button class="btn btn--sm btn--secondary" disabled="@_busy"
-                                                        @onclick="() => CompleteStopAsync(stop.Id, true)">Частично</button>
-                                                <button class="btn btn--sm btn--danger" disabled="@_busy"
-                                                        @onclick="() => OpenFailForm(stop.Id)">Не доставлено</button>
-                                                <button class="btn btn--sm btn--ghost" disabled="@_busy"
-                                                        @onclick="() => SkipStopAsync(stop.Id)">Пропустить</button>
-                                                break;
-
-                                            case "Skipped":
-                                                <button class="btn btn--sm btn--secondary" disabled="@_busy"
-                                                        @onclick="() => ResumeStopAsync(stop.Id)">Возобновить</button>
-                                                break;
-                                        }
-                                    </div>
-                                }
-                            }
-                        </div>
-                    </li>
-                }
-            </ol>
-
-            @if (_route.Status == "InProgress")
+        <div class="nav-screen__bottom">
+            @if (_route.Status == "Assigned")
             {
-                <button class="btn btn--secondary route-action" disabled="@_busy" @onclick="CompleteRouteAsync">
-                    Завершить маршрут
-                </button>
+                <button class="btn btn--primary" disabled="@_busy" @onclick="StartRouteAsync">Начать маршрут</button>
             }
-        }
-    }
-</section>
+            else if (_route.Stops.Count == 0)
+            {
+                <p class="screen__hint nav-screen__empty">В этом маршруте нет остановок.</p>
+            }
+            else
+            {
+                <div class="stop-slider" id="stop-slider">
+                    @foreach (var stop in _route.Stops.OrderBy(s => s.Sequence))
+                    {
+                        <div class="stop-slide" data-stop-id="@stop.Id">
+                            <StopCard Stop="stop" RouteId="RouteId"
+                                      RouteInProgress="@(_route.Status == "InProgress")"
+                                      OnChanged="ReloadAsync" />
+                        </div>
+                    }
+                </div>
+
+                @if (_route.Status == "InProgress" && AllStopsClosed)
+                {
+                    <button class="btn btn--secondary nav-screen__finish" disabled="@_busy" @onclick="CompleteRouteAsync">
+                        Завершить маршрут
+                    </button>
+                }
+            }
+        </div>
+
+        <StopListDrawer Open="_listOpen" Stops="_route.Stops" CurrentStopId="_currentStopId"
+                        OnSelect="SelectStop" OnClose="CloseList" />
+    </div>
+}
 
 @code {
-    private const long MaxPhotoBytes = 8 * 1024 * 1024;
-    private const string DefaultPhotoContentType = "image/jpeg";
-
     [Parameter]
     public Guid RouteId { get; set; }
 
     private RouteDetail? _route;
+    private RouteMap? _map;
+    private DotNetObjectReference<RouteStops>? _dotNetRef;
+
     private bool _loading = true;
     private bool _error;
     private bool _busy;
     private string? _actionError;
+    private bool _listOpen;
 
-    private Guid? _failStopId;
-    private string _failReason = FailureReasons.All[0].Value;
-    private string? _failNotes;
-    private IBrowserFile? _failFile;
-    private bool _failBusy;
-    private string? _failError;
+    private Guid? _currentStopId;
+    private bool _sliderInitNeeded;
+    private bool _servicesInitialized;
+
+    private bool _isOnline = true;
+    private int _pendingCount;
 
     private CancellationTokenSource? _gpsCts;
     private bool _gpsRunning;
+
+    private bool AllStopsClosed =>
+        _route is not null && _route.Stops.All(s => s.Status is not ("Pending" or "InProgress"));
+
+    protected override void OnInitialized() => _dotNetRef = DotNetObjectReference.Create(this);
 
     protected override Task OnParametersSetAsync() => LoadAsync();
 
@@ -192,6 +130,7 @@
         try
         {
             _route = await RouteApi.GetRouteAsync(RouteId);
+            UpdateCurrentStop();
         }
         catch (HttpRequestException)
         {
@@ -202,29 +141,124 @@
             _loading = false;
         }
 
+        _sliderInitNeeded = _route is not null && !_error;
         SyncGpsLoop();
     }
 
-    private void OnFailReasonChanged(ChangeEventArgs e) =>
-        _failReason = e.Value?.ToString() ?? FailureReasons.All[0].Value;
-
-    private void OpenFailForm(Guid stopId)
+    private async Task ReloadAsync()
     {
-        _failStopId = stopId;
-        _failReason = FailureReasons.All[0].Value;
-        _failNotes = null;
-        _failFile = null;
-        _failError = null;
+        try
+        {
+            _route = await RouteApi.GetRouteAsync(RouteId);
+            UpdateCurrentStop();
+        }
+        catch (HttpRequestException)
+        {
+            _actionError = "Нет связи с сервером.";
+            return;
+        }
+
+        _sliderInitNeeded = true;
+        SyncGpsLoop();
+        await RefreshPendingAsync();
     }
 
-    private void CloseFailForm()
+    private void UpdateCurrentStop()
     {
-        _failStopId = null;
-        _failFile = null;
-        _failError = null;
+        if (_route is null)
+        {
+            _currentStopId = null;
+            return;
+        }
+
+        var current = _route.Stops.FirstOrDefault(s => s.Status == "InProgress")
+                      ?? _route.Stops.OrderBy(s => s.Sequence).FirstOrDefault(s => s.Status == "Pending");
+
+        _currentStopId = current?.Id;
     }
 
-    private void OnPhotoSelected(InputFileChangeEventArgs e) => _failFile = e.File;
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !_servicesInitialized)
+        {
+            _servicesInitialized = true;
+            await InitServicesAsync();
+        }
+
+        if (_route is null || _error || !_sliderInitNeeded)
+            return;
+
+        _sliderInitNeeded = false;
+
+        await JS.InvokeVoidAsync("driverSlider.observe", "stop-slider", _dotNetRef);
+
+        if (_currentStopId is not null)
+            await JS.InvokeVoidAsync("driverSlider.scrollTo", "stop-slider", _currentStopId);
+    }
+
+    [JSInvokable]
+    public async Task OnStopFocused(string stopId)
+    {
+        if (_route is null || !Guid.TryParse(stopId, out var id))
+            return;
+
+        var stop = _route.Stops.FirstOrDefault(s => s.Id == id);
+
+        if (stop is not null && _map is not null)
+            await _map.FocusStopAsync(stop);
+    }
+
+    private async Task InitServicesAsync()
+    {
+        await Connectivity.InitializeAsync();
+        _isOnline = Connectivity.IsOnline;
+        Connectivity.Changed += OnConnectivityChangedAsync;
+
+        await RefreshPendingAsync();
+
+        if (_isOnline)
+            await FlushAndReloadAsync();
+
+        if (_route is not null)
+            await Hub.ConnectAsync(RouteId, OnRouteChangedAsync);
+    }
+
+    private async Task OnConnectivityChangedAsync(bool isOnline)
+    {
+        _isOnline = isOnline;
+
+        if (isOnline)
+            await FlushAndReloadAsync();
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task OnRouteChangedAsync() => await InvokeAsync(ReloadAsync);
+
+    private async Task FlushAndReloadAsync()
+    {
+        _pendingCount = await Outbox.FlushAsync();
+        await ReloadAsync();
+    }
+
+    private async Task RefreshPendingAsync()
+    {
+        _pendingCount = await Outbox.PendingCountAsync();
+        _isOnline = Connectivity.IsOnline;
+    }
+
+    private void OpenList() => _listOpen = true;
+
+    private void CloseList() => _listOpen = false;
+
+    private async Task SelectStop(RouteStop stop)
+    {
+        _listOpen = false;
+        await JS.InvokeVoidAsync("driverSlider.scrollTo", "stop-slider", stop.Id);
+
+        if (_map is not null)
+            await _map.FocusStopAsync(stop);
+    }
 
     private async Task StartRouteAsync()
     {
@@ -233,15 +267,6 @@
     }
 
     private Task CompleteRouteAsync() => RunActionAsync(() => RouteApi.CompleteRouteAsync(RouteId));
-
-    private Task StartStopAsync(Guid stopId) => RunActionAsync(() => RouteApi.StartStopAsync(RouteId, stopId));
-
-    private Task CompleteStopAsync(Guid stopId, bool isPartial) =>
-        RunActionAsync(() => RouteApi.CompleteStopAsync(RouteId, stopId, isPartial));
-
-    private Task SkipStopAsync(Guid stopId) => RunActionAsync(() => RouteApi.SkipStopAsync(RouteId, stopId));
-
-    private Task ResumeStopAsync(Guid stopId) => RunActionAsync(() => RouteApi.ResumeStopAsync(RouteId, stopId));
 
     private async Task RunActionAsync(Func<Task<ApiResult>> action)
     {
@@ -256,7 +281,7 @@
             var result = await action();
 
             if (result.Success)
-                await ReloadRouteAsync();
+                await ReloadAsync();
             else
                 _actionError = result.Error;
         }
@@ -268,83 +293,6 @@
         {
             _busy = false;
         }
-    }
-
-    private async Task SubmitFailAsync(Guid stopId)
-    {
-        if (_failBusy)
-            return;
-
-        _failBusy = true;
-        _failError = null;
-
-        try
-        {
-            string? photoKey = null;
-
-            if (_failFile is not null)
-            {
-                photoKey = await UploadPhotoAsync(_failFile);
-
-                if (photoKey is null)
-                {
-                    _failError = "Не удалось загрузить фото.";
-                    return;
-                }
-            }
-
-            var position = await Geolocation.TryGetCurrentPositionAsync();
-
-            var request = new FailDeliveryRequest(
-                position?.Latitude ?? 0,
-                position?.Longitude ?? 0,
-                _failReason,
-                string.IsNullOrWhiteSpace(_failNotes) ? null : _failNotes,
-                photoKey);
-
-            var result = await RouteApi.FailDeliveryAsync(RouteId, stopId, request);
-
-            if (result.Success)
-            {
-                CloseFailForm();
-                await ReloadRouteAsync();
-            }
-            else
-            {
-                _failError = result.Error;
-            }
-        }
-        catch (HttpRequestException)
-        {
-            _failError = "Нет связи с сервером.";
-        }
-        finally
-        {
-            _failBusy = false;
-        }
-    }
-
-    private async Task<string?> UploadPhotoAsync(IBrowserFile file)
-    {
-        var upload = await RouteApi.CreatePhotoUploadAsync();
-
-        if (upload is null)
-            return null;
-
-        await using var stream = file.OpenReadStream(MaxPhotoBytes);
-        using var buffer = new MemoryStream();
-        await stream.CopyToAsync(buffer);
-
-        var contentType = string.IsNullOrWhiteSpace(file.ContentType) ? DefaultPhotoContentType : file.ContentType;
-        var uploaded = await RouteApi.UploadPhotoAsync(upload.UploadUrl, buffer.ToArray(), contentType);
-
-        return uploaded ? upload.PhotoKey : null;
-    }
-
-    private async Task ReloadRouteAsync()
-    {
-        _route = await RouteApi.GetRouteAsync(RouteId);
-        SyncGpsLoop();
     }
 
     private void SyncGpsLoop()
@@ -397,6 +345,9 @@
         if (position is null)
             return;
 
+        if (_map is not null)
+            await _map.SetDriverAsync(position.Latitude, position.Longitude);
+
         try
         {
             await RouteApi.PushLocationAsync(RouteId, position.Latitude, position.Longitude);
@@ -406,5 +357,27 @@
         }
     }
 
-    public void Dispose() => StopGpsLoop();
+    public async ValueTask DisposeAsync()
+    {
+        StopGpsLoop();
+        Connectivity.Changed -= OnConnectivityChangedAsync;
+
+        try
+        {
+            await Hub.StopAsync();
+        }
+        catch (Exception)
+        {
+        }
+
+        try
+        {
+            await JS.InvokeVoidAsync("driverSlider.dispose", "stop-slider");
+        }
+        catch (Exception)
+        {
+        }
+
+        _dotNetRef?.Dispose();
+    }
 }

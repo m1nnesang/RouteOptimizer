@@ -191,6 +191,47 @@ public sealed class RouteLifecycleIntegrationTests : IntegrationTestBase
         route.Stops.Should().HaveCount(orderedStopIds.Count + 1);
     }
 
+    [Fact]
+    public async Task Driver_delivers_the_only_order_then_stop_completes()
+    {
+        var (routeId, orderedStopIds) = await StartAssignedRouteAsync();
+        var firstStopId = orderedStopIds[0];
+
+        var before = await GetRouteAsync(routeId);
+        var orderId = before.Stops.Single(s => s.Id == firstStopId).OrderIds[0];
+
+        var deliverResponse = await Client.PostAsync(
+            $"/api/routes/{routeId}/stops/{firstStopId}/orders/{orderId}/deliver", null);
+        deliverResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
+
+        var route = await GetRouteAsync(routeId);
+        route.Stops.Single(s => s.Id == firstStopId).Status.Should().Be(nameof(StopStatus.Completed));
+    }
+
+    [Fact]
+    public async Task Driver_fails_the_only_order_then_stop_fails()
+    {
+        var (routeId, orderedStopIds) = await StartAssignedRouteAsync();
+        var firstStopId = orderedStopIds[0];
+
+        var before = await GetRouteAsync(routeId);
+        var orderId = before.Stops.Single(s => s.Id == firstStopId).OrderIds[0];
+
+        var failResponse = await Client.PostAsJsonAsync(
+            $"/api/routes/{routeId}/stops/{firstStopId}/orders/{orderId}/fail", new
+            {
+                Latitude = 52.5200,
+                Longitude = 13.4050,
+                FailureReason = nameof(FailureReason.CustomerNotAtHome),
+                Notes = (string?)null,
+                PhotoKey = (string?)null
+            });
+        failResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
+
+        var route = await GetRouteAsync(routeId);
+        route.Stops.Single(s => s.Id == firstStopId).Status.Should().Be(nameof(StopStatus.Failed));
+    }
+
     private async Task<(Guid RouteId, IReadOnlyList<Guid> StopIds)> StartAssignedRouteAsync()
     {
         var warehouseId = await SeedWarehouseAsync();

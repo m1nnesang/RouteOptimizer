@@ -37,7 +37,29 @@ async function onActivate(event) {
         .map(key => caches.delete(key)));
 }
 
+const tileCacheName = 'osm-tiles-v1';
+
+async function cacheFirstTile(request) {
+    const cache = await caches.open(tileCacheName);
+    const cached = await cache.match(request);
+    if (cached) return cached;
+
+    try {
+        const response = await fetch(request);
+        if (response && response.status === 200) {
+            cache.put(request, response.clone());
+        }
+        return response;
+    } catch (e) {
+        return cached || Response.error();
+    }
+}
+
 async function onFetch(event) {
+    if (event.request.method === 'GET' && /tile\.openstreetmap\.org/.test(event.request.url)) {
+        return cacheFirstTile(event.request);
+    }
+
     let cachedResponse = null;
     if (event.request.method === 'GET') {
         // For all navigation requests, try to serve index.html from cache,

@@ -33,7 +33,8 @@ public sealed record StopOrder(
     string Recipient,
     string? Apartment,
     string Type,
-    string Phone);
+    string Phone,
+    string Status);
 
 public sealed record CompleteStopRequest(bool IsPartial);
 

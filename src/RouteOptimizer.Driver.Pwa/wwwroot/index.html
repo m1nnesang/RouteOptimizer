@@ -11,6 +11,7 @@
     <title>Маршрут — Водитель</title>
     <base href="/" />
     <link rel="preload" id="webassembly" />
+    <link rel="stylesheet" href="lib/leaflet/leaflet.css" />
     <link rel="stylesheet" href="css/app.css" />
     <link rel="icon" type="image/png" href="favicon.png" />
     <link href="RouteOptimizer.Driver.Pwa.styles.css" rel="stylesheet" />
@@ -34,7 +35,11 @@
         <a href="." class="reload">Reload</a>
         <span class="dismiss">🗙</span>
     </div>
+    <script src="lib/leaflet/leaflet.js"></script>
     <script src="js/geolocation.js"></script>
+    <script src="js/map.js"></script>
+    <script src="js/slider.js"></script>
+    <script src="js/connectivity.js"></script>
     <script src="_framework/blazor.webassembly#[.{fingerprint}].js"></script>
     <script>navigator.serviceWorker.register('service-worker.js', { updateViaCache: 'none' });</script>
 </body>

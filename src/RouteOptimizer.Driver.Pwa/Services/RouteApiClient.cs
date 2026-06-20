@@ -44,6 +44,12 @@ public sealed class RouteApiClient : IRouteApi
     public Task<ApiResult> FailDeliveryAsync(Guid routeId, Guid stopId, FailDeliveryRequest request, CancellationToken ct = default) =>
         SendAsync(HttpMethod.Post, $"api/routes/{routeId}/stops/{stopId}/fail", request, ct);
 
+    public Task<ApiResult> DeliverOrderAsync(Guid routeId, Guid stopId, Guid orderId, CancellationToken ct = default) =>
+        SendAsync(HttpMethod.Post, $"api/routes/{routeId}/stops/{stopId}/orders/{orderId}/deliver", null, ct);
+
+    public Task<ApiResult> FailOrderAsync(Guid routeId, Guid stopId, Guid orderId, FailDeliveryRequest request, CancellationToken ct = default) =>
+        SendAsync(HttpMethod.Post, $"api/routes/{routeId}/stops/{stopId}/orders/{orderId}/fail", request, ct);
+
     public Task<ApiResult> PushLocationAsync(Guid routeId, double latitude, double longitude, CancellationToken ct = default) =>
         SendAsync(HttpMethod.Post, $"api/routes/{routeId}/location", new PushLocationRequest(latitude, longitude), ct);
 
