@@ -1,0 +1,284 @@
+:root {
+    --color-bg: #0b1f3a;
+    --color-surface: #13294f;
+    --color-surface-alt: #1c3a6b;
+    --color-text: #f5f8ff;
+    --color-text-muted: #a9bce0;
+    --color-accent: #ffb300;
+    --color-accent-text: #1a1300;
+    --color-danger: #ff6b6b;
+    --color-border: #2c4a7d;
+    --nav-height: 4.5rem;
+    --tap-target: 3rem;
+    --radius: 0.875rem;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+}
+
+body {
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    font-size: 1.0625rem;
+    line-height: 1.45;
+    -webkit-text-size-adjust: 100%;
+}
+
+h1, h2, h3 {
+    margin: 0 0 0.5rem 0;
+    line-height: 1.2;
+}
+
+a {
+    color: var(--color-accent);
+    text-decoration: none;
+}
+
+h1:focus {
+    outline: none;
+}
+
+.app-shell {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.app-shell__content {
+    flex: 1 1 auto;
+    padding: 1.25rem;
+    padding-bottom: calc(var(--nav-height) + env(safe-area-inset-bottom, 0px) + 1.25rem);
+}
+
+.app-shell--plain .app-shell__content {
+    padding-bottom: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.app-splash {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    color: var(--color-text-muted);
+    font-size: 1.125rem;
+}
+
+.screen__title {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.screen__hint {
+    color: var(--color-text-muted);
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: var(--tap-target);
+    padding: 0.875rem 1.25rem;
+    border: none;
+    border-radius: var(--radius);
+    font-size: 1.125rem;
+    font-weight: 600;
+    cursor: pointer;
+    touch-action: manipulation;
+}
+
+.btn--primary {
+    background-color: var(--color-accent);
+    color: var(--color-accent-text);
+}
+
+.btn--primary:disabled {
+    opacity: 0.6;
+}
+
+.btn--secondary {
+    background-color: var(--color-surface-alt);
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
+}
+
+.login {
+    max-width: 26rem;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.login__head {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.login__title {
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+}
+
+.login__subtitle {
+    color: var(--color-text-muted);
+    margin: 0;
+}
+
+.login__form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.login__error {
+    color: var(--color-danger);
+    margin: 0;
+    font-weight: 600;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.field__label {
+    font-size: 0.95rem;
+    color: var(--color-text-muted);
+}
+
+.field__input {
+    width: 100%;
+    min-height: var(--tap-target);
+    padding: 0.75rem 1rem;
+    font-size: 1.125rem;
+    color: var(--color-text);
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+}
+
+.field__input:focus {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 1px;
+}
+
+.validation-message {
+    color: var(--color-danger);
+    font-size: 0.9rem;
+}
+
+.profile__email {
+    color: var(--color-text-muted);
+    margin-bottom: 1.5rem;
+    word-break: break-all;
+}
+
+.bottom-nav {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: calc(var(--nav-height) + env(safe-area-inset-bottom, 0px));
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    display: flex;
+    background-color: var(--color-surface);
+    border-top: 1px solid var(--color-border);
+}
+
+.bottom-nav__item {
+    flex: 1 1 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.15rem;
+    color: var(--color-text-muted);
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.bottom-nav__item.active {
+    color: var(--color-accent);
+}
+
+.bottom-nav__icon {
+    font-size: 1.5rem;
+    line-height: 1;
+}
+
+#blazor-error-ui {
+    background: var(--color-danger);
+    color: #fff;
+    bottom: 0;
+    box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.2);
+    display: none;
+    left: 0;
+    padding: 0.75rem 1.25rem;
+    position: fixed;
+    width: 100%;
+    z-index: 1000;
+}
+
+#blazor-error-ui .dismiss {
+    cursor: pointer;
+    position: absolute;
+    right: 0.75rem;
+    top: 0.5rem;
+}
+
+.blazor-error-boundary {
+    background: var(--color-danger);
+    padding: 1rem;
+    color: #fff;
+}
+
+.blazor-error-boundary::after {
+    content: "Произошла ошибка.";
+}
+
+.loading-progress {
+    position: absolute;
+    display: block;
+    width: 6rem;
+    height: 6rem;
+    top: calc(50% - 3rem);
+    left: calc(50% - 3rem);
+}
+
+.loading-progress circle {
+    fill: none;
+    stroke: var(--color-border);
+    stroke-width: 0.4rem;
+    transform-origin: 50% 50%;
+    transform: rotate(-90deg);
+}
+
+.loading-progress circle:last-child {
+    stroke: var(--color-accent);
+    stroke-dasharray: calc(3.141 * var(--blazor-load-percentage, 0%) * 0.8), 500%;
+    transition: stroke-dasharray 0.05s ease-in-out;
+}
+
+.loading-progress-text {
+    position: absolute;
+    text-align: center;
+    font-weight: 700;
+    inset: calc(50% - 0.8rem) 0 auto 0;
+    color: var(--color-text);
+}
+
+.loading-progress-text:after {
+    content: var(--blazor-load-percentage-text, "Загрузка");
+}

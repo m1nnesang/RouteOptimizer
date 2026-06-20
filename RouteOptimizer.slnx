@@ -21,4 +21,7 @@
     <Folder Name="/WPF/">
         <Project Path="src/RouteOptimizer.Dispatcher.Wpf/RouteOptimizer.Dispatcher.Wpf.csproj" />
     </Folder>
+    <Folder Name="/Driver/">
+        <Project Path="src/RouteOptimizer.Driver.Pwa/RouteOptimizer.Driver.Pwa.csproj" />
+    </Folder>
 </Solution>

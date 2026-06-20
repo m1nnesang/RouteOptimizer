@@ -1,0 +1,80 @@
+@page "/login"
+@layout MinimalLayout
+@inject IAuthService AuthService
+@inject JwtAuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Navigation
+
+<PageTitle>Вход</PageTitle>
+
+<section class="login">
+    <header class="login__head">
+        <h1 class="login__title">Маршрут</h1>
+        <p class="login__subtitle">Вход для водителя</p>
+    </header>
+
+    <EditForm class="login__form" Model="_model" OnValidSubmit="HandleLoginAsync">
+        <DataAnnotationsValidator />
+
+        <div class="field">
+            <label class="field__label" for="email">Эл. почта</label>
+            <InputText id="email" class="field__input" @bind-Value="_model.Email"
+                       autocomplete="username" inputmode="email" />
+            <ValidationMessage For="() => _model.Email" />
+        </div>
+
+        <div class="field">
+            <label class="field__label" for="password">Пароль</label>
+            <InputText id="password" type="password" class="field__input" @bind-Value="_model.Password"
+                       autocomplete="current-password" />
+            <ValidationMessage For="() => _model.Password" />
+        </div>
+
+        @if (_error is not null)
+        {
+            <p class="login__error" role="alert">@_error</p>
+        }
+
+        <button type="submit" class="btn btn--primary" disabled="@_busy">
+            @(_busy ? "Вход…" : "Войти")
+        </button>
+    </EditForm>
+</section>
+
+@code {
+    private readonly LoginModel _model = new();
+    private bool _busy;
+    private string? _error;
+
+    [SupplyParameterFromQuery]
+    public string? ReturnUrl { get; set; }
+
+    private async Task HandleLoginAsync()
+    {
+        _busy = true;
+        _error = null;
+
+        var success = await AuthService.LoginAsync(_model.Email, _model.Password);
+        _busy = false;
+
+        if (!success)
+        {
+            _error = "Неверная почта или пароль";
+            return;
+        }
+
+        AuthStateProvider.NotifyUserAuthentication();
+
+        var target = string.IsNullOrEmpty(ReturnUrl) ? string.Empty : Uri.UnescapeDataString(ReturnUrl);
+        Navigation.NavigateTo(target);
+    }
+
+    private sealed class LoginModel
+    {
+        [Required(ErrorMessage = "Укажите почту")]
+        [EmailAddress(ErrorMessage = "Некорректная почта")]
+        public string Email { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Укажите пароль")]
+        public string Password { get; set; } = string.Empty;
+    }
+}

@@ -1,0 +1,24 @@
+@page "/profile"
+@attribute [Authorize]
+@inject IAuthService AuthService
+@inject JwtAuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Navigation
+
+<PageTitle>Профиль</PageTitle>
+
+<AuthorizeView>
+    <section class="screen">
+        <h1 class="screen__title">Профиль</h1>
+        <p class="profile__email">@context.User.Identity?.Name</p>
+        <button class="btn btn--secondary" @onclick="LogoutAsync">Выйти</button>
+    </section>
+</AuthorizeView>
+
+@code {
+    private async Task LogoutAsync()
+    {
+        await AuthService.LogoutAsync();
+        AuthStateProvider.NotifyUserLogout();
+        Navigation.NavigateTo("login");
+    }
+}
