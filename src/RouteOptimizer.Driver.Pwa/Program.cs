@@ -34,6 +34,9 @@ builder.Services.AddHttpClient("Api", client => client.BaseAddress = new Uri(api
 builder.Services.AddScoped(
     sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("Api"));
 
+builder.Services.AddHttpClient("Upload");
+
 builder.Services.AddScoped<IRouteApi, RouteApiClient>();
+builder.Services.AddScoped<IGeolocation, GeolocationService>();
 
 await builder.Build().RunAsync();

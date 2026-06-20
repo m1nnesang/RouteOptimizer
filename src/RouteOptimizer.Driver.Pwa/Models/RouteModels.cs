@@ -34,3 +34,23 @@ public sealed record StopOrder(
     string? Apartment,
     string Type,
     string Phone);
+
+public sealed record CompleteStopRequest(bool IsPartial);
+
+public sealed record PushLocationRequest(double Latitude, double Longitude);
+
+public sealed record FailDeliveryRequest(
+    double Latitude,
+    double Longitude,
+    string FailureReason,
+    string? Notes,
+    string? PhotoKey);
+
+public sealed record DeliveryPhotoUpload(string PhotoKey, string UploadUrl);
+
+public sealed record ApiResult(bool Success, string? Error)
+{
+    public static readonly ApiResult Ok = new(true, null);
+
+    public static ApiResult Fail(string? error) => new(false, error);
+}
