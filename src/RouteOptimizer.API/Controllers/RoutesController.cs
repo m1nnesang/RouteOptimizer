@@ -6,6 +6,7 @@ using RouteOptimizer.Application.Routes.AssignRoute;
 using RouteOptimizer.Application.Routes.CancelRoute;
 using RouteOptimizer.Application.Routes.CompleteRoute;
 using RouteOptimizer.Application.Routes.CreateRoute;
+using RouteOptimizer.Application.Routes.GetMyRoutes;
 using RouteOptimizer.Application.Routes.GetRouteById;
 using RouteOptimizer.Application.Routes.GetRoutes;
 using RouteOptimizer.Application.Routes.InterruptRoute;
@@ -102,6 +103,15 @@ public class RoutesController : ControllerBase
         [FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken ct = default)
     {
         var result = await _mediator.Send(new GetRoutesQuery(status, date, page, pageSize), ct);
+
+        return Ok(result);
+    }
+
+    [Authorize(Roles = "Driver")]
+    [HttpGet("mine")]
+    public async Task<IActionResult> GetMyRoutes(CancellationToken ct)
+    {
+        var result = await _mediator.Send(new GetMyRoutesQuery(), ct);
 
         return Ok(result);
     }
