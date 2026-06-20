@@ -203,7 +203,10 @@ public class RoutesViewModelTests
         var routeId = Guid.NewGuid();
         var warehouseId = Guid.NewGuid();
         _api.Setup(a => a.GetAsync<PagedResult<RouteListItem>>(It.IsAny<string>(), default))
-            .ReturnsAsync(new PagedResult<RouteListItem>());
+            .ReturnsAsync(new PagedResult<RouteListItem>
+            {
+                Items = [new RouteListItem { Id = routeId, Status = "Assigned", Date = new DateOnly(2025, 6, 1) }]
+            });
         _api.Setup(a => a.GetAsync<RouteDetail>(It.IsAny<string>(), default))
             .ReturnsAsync(new RouteDetail { WarehouseId = warehouseId, Stops = [] });
         _api.Setup(a => a.GetAsync<List<WarehouseListItem>>("api/warehouses", default))
@@ -397,6 +400,163 @@ public class RoutesViewModelTests
         await vm.HandoverCommand.ExecuteAsync(null);
 
         _dialog.Verify(d => d.ShowHandoverDialog(It.Is<HandoverDialogViewModel>(hvm => hvm.PendingStops.Count == 2)), Times.Once);
+    }
+
+    [Fact]
+    public async Task DriverLocation_MatchingRoute_UpdatesDriverPosition()
+    {
+        var routeId = Guid.NewGuid();
+        var hub = new Mock<IRouteHubService>();
+        _api.Setup(a => a.GetAsync<PagedResult<RouteListItem>>(It.IsAny<string>(), default))
+            .ReturnsAsync(new PagedResult<RouteListItem>());
+        _api.Setup(a => a.GetAsync<RouteDetail>(It.IsAny<string>(), default))
+            .ReturnsAsync(new RouteDetail { Stops = [] });
+        var vm = new RoutesViewModel(_api.Object, _dialog.Object, hub.Object);
+        vm.SelectedRoute = new RouteListItem { Id = routeId, Status = "InProgress" };
+        await Task.Yield();
+
+        hub.Raise(h => h.DriverLocation += null,
+            new DriverLocationEvent { RouteId = routeId, Latitude = 52.1, Longitude = 21.0 });
+
+        vm.DriverLat.Should().Be(52.1);
+        vm.DriverLng.Should().Be(21.0);
+    }
+
+    [Fact]
+    public async Task DriverLocation_OtherRoute_IsIgnored()
+    {
+        var routeId = Guid.NewGuid();
+        var hub = new Mock<IRouteHubService>();
+        _api.Setup(a => a.GetAsync<PagedResult<RouteListItem>>(It.IsAny<string>(), default))
+            .ReturnsAsync(new PagedResult<RouteListItem>());
+        _api.Setup(a => a.GetAsync<RouteDetail>(It.IsAny<string>(), default))
+            .ReturnsAsync(new RouteDetail { Stops = [] });
+        var vm = new RoutesViewModel(_api.Object, _dialog.Object, hub.Object);
+        vm.SelectedRoute = new RouteListItem { Id = routeId, Status = "InProgress" };
+        await Task.Yield();
+
+        hub.Raise(h => h.DriverLocation += null,
+            new DriverLocationEvent { RouteId = Guid.NewGuid(), Latitude = 52.1, Longitude = 21.0 });
+
+        vm.DriverLat.Should().Be(double.NaN);
+        vm.DriverLng.Should().Be(double.NaN);
+    }
+
+    [Fact]
+    public async Task RouteChanged_ReloadsRoutes()
+    {
+        var hub = new Mock<IRouteHubService>();
+        var callCount = 0;
+        _api.Setup(a => a.GetAsync<PagedResult<RouteListItem>>(It.IsAny<string>(), default))
+            .Callback(() => callCount++)
+            .ReturnsAsync(new PagedResult<RouteListItem>());
+        var vm = new RoutesViewModel(_api.Object, _dialog.Object, hub.Object);
+        await Task.Yield();
+        var before = callCount;
+
+        hub.Raise(h => h.RouteChanged += null, new RouteChangedEvent { RouteId = Guid.NewGuid() });
+
+        callCount.Should().BeGreaterThan(before);
+    }
+
+    [Fact]
+    public async Task SelectedRoute_Changed_ResetsDriverPosition()
+    {
+        var hub = new Mock<IRouteHubService>();
+        var routeId = Guid.NewGuid();
+        _api.Setup(a => a.GetAsync<PagedResult<RouteListItem>>(It.IsAny<string>(), default))
+            .ReturnsAsync(new PagedResult<RouteListItem>());
+        _api.Setup(a => a.GetAsync<RouteDetail>(It.IsAny<string>(), default))
+            .ReturnsAsync(new RouteDetail { Stops = [] });
+        var vm = new RoutesViewModel(_api.Object, _dialog.Object, hub.Object);
+        vm.SelectedRoute = new RouteListItem { Id = routeId, Status = "InProgress" };
+        await Task.Yield();
+        hub.Raise(h => h.DriverLocation += null,
+            new DriverLocationEvent { RouteId = routeId, Latitude = 52.1, Longitude = 21.0 });
+
+        vm.SelectedRoute = new RouteListItem { Id = Guid.NewGuid(), Status = "InProgress" };
+
+        vm.DriverLat.Should().Be(double.NaN);
+        vm.DriverLng.Should().Be(double.NaN);
+    }
+
+    [Fact]
+    public async Task CancelRoute_ConfirmDeclined_DoesNotPost()
+    {
+        var routeId = Guid.NewGuid();
+        _api.Setup(a => a.GetAsync<PagedResult<RouteListItem>>(It.IsAny<string>(), default))
+            .ReturnsAsync(new PagedResult<RouteListItem>());
+        _api.Setup(a => a.GetAsync<RouteDetail>(It.IsAny<string>(), default))
+            .ReturnsAsync(new RouteDetail { Stops = [] });
+        _dialog.Setup(d => d.ShowConfirm(It.IsAny<string>(), It.IsAny<string>())).Returns(false);
+        var vm = new RoutesViewModel(_api.Object, _dialog.Object);
+        vm.SelectedRoute = new RouteListItem { Id = routeId, Status = "Draft" };
+        await Task.Yield();
+
+        await vm.CancelRouteCommand.ExecuteAsync(null);
+
+        _api.Verify(a => a.PostAsync(It.IsAny<string>(), default), Times.Never);
+    }
+
+    [Fact]
+    public async Task CancelRoute_Confirmed_PostsCancel()
+    {
+        var routeId = Guid.NewGuid();
+        _api.Setup(a => a.GetAsync<PagedResult<RouteListItem>>(It.IsAny<string>(), default))
+            .ReturnsAsync(new PagedResult<RouteListItem>());
+        _api.Setup(a => a.GetAsync<RouteDetail>(It.IsAny<string>(), default))
+            .ReturnsAsync(new RouteDetail { Stops = [] });
+        _dialog.Setup(d => d.ShowConfirm(It.IsAny<string>(), It.IsAny<string>())).Returns(true);
+        var vm = new RoutesViewModel(_api.Object, _dialog.Object);
+        vm.SelectedRoute = new RouteListItem { Id = routeId, Status = "Optimized" };
+        await Task.Yield();
+
+        await vm.CancelRouteCommand.ExecuteAsync(null);
+
+        _api.Verify(a => a.PostAsync($"api/routes/{routeId}/cancel", default), Times.Once);
+    }
+
+    [Fact]
+    public async Task InterruptRoute_Confirmed_PostsInterrupt()
+    {
+        var routeId = Guid.NewGuid();
+        _api.Setup(a => a.GetAsync<PagedResult<RouteListItem>>(It.IsAny<string>(), default))
+            .ReturnsAsync(new PagedResult<RouteListItem>());
+        _api.Setup(a => a.GetAsync<RouteDetail>(It.IsAny<string>(), default))
+            .ReturnsAsync(new RouteDetail { Stops = [] });
+        _dialog.Setup(d => d.ShowConfirm(It.IsAny<string>(), It.IsAny<string>())).Returns(true);
+        var vm = new RoutesViewModel(_api.Object, _dialog.Object);
+        vm.SelectedRoute = new RouteListItem { Id = routeId, Status = "InProgress" };
+        await Task.Yield();
+
+        await vm.InterruptRouteCommand.ExecuteAsync(null);
+
+        _api.Verify(a => a.PostAsync($"api/routes/{routeId}/interrupt", default), Times.Once);
+    }
+
+    [Fact]
+    public void CanCancelAndInterrupt_DependOnStatus()
+    {
+        var vm = CreateViewModel();
+
+        vm.SelectedRoute = new RouteListItem { Id = Guid.NewGuid(), Status = "Draft" };
+        vm.CanCancel.Should().BeTrue();
+        vm.CanInterrupt.Should().BeFalse();
+
+        vm.SelectedRoute = new RouteListItem { Id = Guid.NewGuid(), Status = "InProgress" };
+        vm.CanCancel.Should().BeFalse();
+        vm.CanInterrupt.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task IsEmpty_TrueWhenNoRoutesAndNotLoading()
+    {
+        _api.Setup(a => a.GetAsync<PagedResult<RouteListItem>>(It.IsAny<string>(), default))
+            .ReturnsAsync(new PagedResult<RouteListItem>());
+        var vm = new RoutesViewModel(_api.Object, _dialog.Object);
+        await Task.Yield();
+
+        vm.IsEmpty.Should().BeTrue();
     }
 
     [Fact]

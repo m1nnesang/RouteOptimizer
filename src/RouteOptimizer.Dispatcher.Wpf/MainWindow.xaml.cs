@@ -1,23 +1,26 @@
-﻿using System.Text;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using RouteOptimizer.Dispatcher.Wpf.ViewModels;
+using RouteOptimizer.Dispatcher.Wpf.Views;
 
 namespace RouteOptimizer.Dispatcher.Wpf;
 
 public partial class MainWindow : Window
 {
-    public MainWindow(MainViewModel viewModel)
+    private readonly Func<LoginView> _loginViewFactory;
+
+    public MainWindow(MainViewModel viewModel, Func<LoginView> loginViewFactory)
     {
         InitializeComponent();
         DataContext = viewModel;
+        _loginViewFactory = loginViewFactory;
+        viewModel.LogoutRequested += OnLogoutRequested;
     }
 
+    private void OnLogoutRequested()
+    {
+        var loginView = _loginViewFactory();
+        Application.Current.MainWindow = loginView;
+        loginView.Show();
+        Close();
+    }
 }

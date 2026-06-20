@@ -52,6 +52,29 @@ public partial class RouteMapView : UserControl
         set => SetValue(DepotLngProperty, value);
     }
 
+    public static readonly DependencyProperty DriverLatProperty = DependencyProperty.Register(
+        nameof(DriverLat), typeof(double), typeof(RouteMapView),
+        new PropertyMetadata(double.NaN, OnDriverChanged));
+
+    public static readonly DependencyProperty DriverLngProperty = DependencyProperty.Register(
+        nameof(DriverLng), typeof(double), typeof(RouteMapView),
+        new PropertyMetadata(double.NaN, OnDriverChanged));
+
+    public double DriverLat
+    {
+        get => (double)GetValue(DriverLatProperty);
+        set => SetValue(DriverLatProperty, value);
+    }
+
+    public double DriverLng
+    {
+        get => (double)GetValue(DriverLngProperty);
+        set => SetValue(DriverLngProperty, value);
+    }
+
+    private static void OnDriverChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) =>
+        ((RouteMapView)d).RenderDriver();
+
     private async void OnLoaded(object sender, RoutedEventArgs e)
     {
         if (_isReady)
@@ -64,6 +87,7 @@ public partial class RouteMapView : UserControl
             {
                 _isReady = true;
                 RenderStops();
+                RenderDriver();
             };
             MapWebView.NavigateToString(MapHtml);
         }
@@ -85,6 +109,23 @@ public partial class RouteMapView : UserControl
                 ? string.Format(CultureInfo.InvariantCulture, "{{\"lat\":{0},\"lng\":{1}}}", DepotLat, DepotLng)
                 : "null";
             await MapWebView.CoreWebView2.ExecuteScriptAsync($"renderRoute({json}, {depotJson});");
+        }
+        catch (Exception)
+        {
+        }
+    }
+
+    private async void RenderDriver()
+    {
+        if (!_isReady || MapWebView.CoreWebView2 is null)
+            return;
+
+        try
+        {
+            var driverJson = !double.IsNaN(DriverLat) && !double.IsNaN(DriverLng)
+                ? string.Format(CultureInfo.InvariantCulture, "{{\"lat\":{0},\"lng\":{1}}}", DriverLat, DriverLng)
+                : "null";
+            await MapWebView.CoreWebView2.ExecuteScriptAsync($"updateDriver({driverJson});");
         }
         catch (Exception)
         {
@@ -114,6 +155,12 @@ public partial class RouteMapView : UserControl
             width: 30px; height: 30px; line-height: 30px; text-align: center;
             font-size: 18px; box-shadow: 0 0 3px rgba(0,0,0,0.5);
         }
+        .driver-marker {
+            background: #8e44ad; color: #fff; border-radius: 50%;
+            width: 30px; height: 30px; line-height: 30px; text-align: center;
+            font-size: 17px; box-shadow: 0 0 6px rgba(142,68,173,0.9);
+            border: 2px solid #fff;
+        }
     </style>
 </head>
 <body>
@@ -126,8 +173,30 @@ public partial class RouteMapView : UserControl
         }).addTo(map);
 
         let layer = L.layerGroup().addTo(map);
+        let driverMarker = null;
         const OSRM_URL = 'http://localhost:5000';
         let renderToken = 0;
+
+        function updateDriver(loc) {
+            if (!loc) {
+                if (driverMarker) { map.removeLayer(driverMarker); driverMarker = null; }
+                return;
+            }
+            const latlng = [loc.lat, loc.lng];
+            if (driverMarker) {
+                driverMarker.setLatLng(latlng);
+            } else {
+                const icon = L.divIcon({
+                    className: '',
+                    html: '<div class="driver-marker">🚚</div>',
+                    iconSize: [30, 30],
+                    iconAnchor: [15, 15]
+                });
+                driverMarker = L.marker(latlng, { icon, zIndexOffset: 1000 })
+                    .bindPopup('<b>Driver</b>')
+                    .addTo(map);
+            }
+        }
 
         function statusClass(status) {
             switch ((status || '').toLowerCase()) {

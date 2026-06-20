@@ -13,13 +13,16 @@ public class ApiHttpClient : IApiHttpClient
     private readonly HttpClient _httpClient;
     private readonly TokenStorage _tokenStorage;
     private readonly IAuthService _authService;
+    private readonly ISessionNotifier _sessionNotifier;
     private readonly SemaphoreSlim _refreshLock = new(1, 1);
 
-    public ApiHttpClient(HttpClient httpClient, TokenStorage tokenStorage, IAuthService authService)
+    public ApiHttpClient(HttpClient httpClient, TokenStorage tokenStorage,
+        IAuthService authService, ISessionNotifier sessionNotifier)
     {
         _httpClient = httpClient;
         _tokenStorage = tokenStorage;
         _authService = authService;
+        _sessionNotifier = sessionNotifier;
     }
 
     private static readonly JsonSerializerOptions JsonOptions = new()
@@ -49,6 +52,11 @@ public class ApiHttpClient : IApiHttpClient
         using var response = await SendAsync(() => CreateJsonRequest(HttpMethod.Post, url, body), ct);
     }
 
+    public async Task PostAsync(string url, CancellationToken ct = default)
+    {
+        using var response = await SendAsync(() => new HttpRequestMessage(HttpMethod.Post, url), ct);
+    }
+
     public async Task PutAsync<TRequest>(string url, TRequest body, CancellationToken ct = default)
     {
         using var response = await SendAsync(() => CreateJsonRequest(HttpMethod.Put, url, body), ct);
@@ -65,15 +73,23 @@ public class ApiHttpClient : IApiHttpClient
     {
         var token = _tokenStorage.AccessToken;
         if (token is null)
-            throw new InvalidOperationException("Access token is not set");
+        {
+            _sessionNotifier.NotifySessionExpired();
+            throw new SessionExpiredException();
+        }
 
         var response = await SendOnceAsync(requestFactory, token, ct);
 
         if (response.StatusCode == HttpStatusCode.Unauthorized)
         {
             response.Dispose();
-            if (await TryRefreshAsync(token, ct))
-                response = await SendOnceAsync(requestFactory, _tokenStorage.AccessToken, ct);
+            if (!await TryRefreshAsync(token, ct))
+            {
+                _sessionNotifier.NotifySessionExpired();
+                throw new SessionExpiredException();
+            }
+
+            response = await SendOnceAsync(requestFactory, _tokenStorage.AccessToken, ct);
         }
 
         response.EnsureSuccessStatusCode();

@@ -64,6 +64,7 @@
         </Grid>
 
         <Border Grid.Row="2" Style="{StaticResource CardBorderStyle}" Padding="1">
+            <Grid>
             <DataGrid ItemsSource="{Binding Vehicles}"
                       SelectedItem="{Binding SelectedVehicle}"
                       IsReadOnly="True"
@@ -77,6 +78,12 @@
                     <DataGridTextColumn Header="Cargo Types" Binding="{Binding AllowedCargoTypesDisplay}" Width="*"/>
                 </DataGrid.Columns>
             </DataGrid>
+                <TextBlock Text="No vehicles in this warehouse yet."
+                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                           TextWrapping="Wrap" TextAlignment="Center" Margin="16"
+                           Foreground="{StaticResource TextSecondaryBrush}"
+                           Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVisibilityConverter}}"/>
+            </Grid>
         </Border>
 
         <TextBlock Grid.Row="3"

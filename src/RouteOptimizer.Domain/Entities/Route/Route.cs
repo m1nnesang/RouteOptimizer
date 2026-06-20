@@ -139,6 +139,8 @@ public class Route : AggregateRoot<Guid>
         _stops.Add(stop.Value!);
         order.AssignToRoute(Id);
 
+        AddDomainEvent(new UrgentOrderInserted(Id));
+
         return Result.Success();
     }
 

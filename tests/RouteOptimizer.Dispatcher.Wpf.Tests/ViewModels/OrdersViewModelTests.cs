@@ -108,6 +108,23 @@ public class OrdersViewModelTests
     }
 
     [Fact]
+    public async Task SelectedOrder_Set_LoadsDeliveryHistory()
+    {
+        var orderId = Guid.NewGuid();
+        _api.Setup(a => a.GetAsync<PagedResult<OrderListItem>>(It.IsAny<string>(), default))
+            .ReturnsAsync(new PagedResult<OrderListItem>());
+        _api.Setup(a => a.GetAsync<List<DeliveryAttemptItem>>(It.IsAny<string>(), default))
+            .ReturnsAsync([]);
+        var vm = new OrdersViewModel(_api.Object, _dialog.Object);
+
+        vm.SelectedOrder = new OrderListItem { Id = orderId };
+        await Task.Yield();
+
+        vm.HasSelectedOrder.Should().BeTrue();
+        _api.Verify(a => a.GetAsync<List<DeliveryAttemptItem>>($"api/orders/{orderId}/delivery-attempts", default), Times.Once);
+    }
+
+    [Fact]
     public async Task CreateOrder_NoWarehouses_SetsErrorAndSkipsPost()
     {
         _api.Setup(a => a.GetAsync<PagedResult<OrderListItem>>(It.IsAny<string>(), default))

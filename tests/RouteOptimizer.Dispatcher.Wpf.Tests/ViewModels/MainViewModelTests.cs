@@ -11,11 +11,13 @@ public class MainViewModelTests
     private readonly Mock<IApiHttpClient> _api = new();
     private readonly Mock<IDialogService> _dialog = new();
     private readonly Mock<IRouteHubService> _routeHub = new();
+    private readonly Mock<ISessionNotifier> _sessionNotifier = new();
 
     private MainViewModel CreateViewModel()
     {
         _api.Setup(a => a.GetAsync<object>(It.IsAny<string>(), default)).ReturnsAsync((object?)null);
-        return new MainViewModel(_auth.Object, _api.Object, _dialog.Object, _routeHub.Object);
+        return new MainViewModel(_auth.Object, _api.Object, _dialog.Object,
+            _routeHub.Object, _sessionNotifier.Object);
     }
 
     [Fact]
@@ -64,5 +66,30 @@ public class MainViewModelTests
         vm.ShowRoutesCommand.Execute(null);
         vm.ShowOrdersCommand.Execute(null);
         vm.CurrentViewModel.Should().BeOfType<OrdersViewModel>();
+    }
+
+    [Fact]
+    public void SessionExpired_ShowsBanner()
+    {
+        var vm = CreateViewModel();
+
+        _sessionNotifier.Raise(s => s.SessionExpired += null);
+
+        vm.IsSessionExpired.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task ReLogin_HidesBanner_LogsOut_AndRaisesLogoutRequested()
+    {
+        var vm = CreateViewModel();
+        _sessionNotifier.Raise(s => s.SessionExpired += null);
+        var logoutRaised = false;
+        vm.LogoutRequested += () => logoutRaised = true;
+
+        await vm.ReLoginCommand.ExecuteAsync(null);
+
+        vm.IsSessionExpired.Should().BeFalse();
+        _auth.Verify(a => a.Logout(), Times.Once);
+        logoutRaised.Should().BeTrue();
     }
 }

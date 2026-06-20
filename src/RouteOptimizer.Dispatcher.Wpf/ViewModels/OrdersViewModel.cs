@@ -17,11 +17,30 @@ public partial class OrdersViewModel : ObservableObject
     {
         _apiHttpClient = apiHttpClient;
         _dialogService = dialogService;
+        DeliveryHistory = new OrderDeliveryHistoryViewModel(apiHttpClient);
         _ = LoadOrdersAsync();
     }
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsEmpty))]
     public partial ObservableCollection<OrderListItem> Orders { get; set; } = [];
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasSelectedOrder))]
+    [NotifyPropertyChangedFor(nameof(NoOrderSelected))]
+    public partial OrderListItem? SelectedOrder { get; set; }
+
+    public OrderDeliveryHistoryViewModel DeliveryHistory { get; }
+
+    public bool HasSelectedOrder => SelectedOrder is not null;
+
+    public bool NoOrderSelected => SelectedOrder is null;
+
+    partial void OnSelectedOrderChanged(OrderListItem? value)
+    {
+        if (value is not null)
+            _ = DeliveryHistory.LoadAsync(value.Id);
+    }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasDateFilter))]
@@ -30,13 +49,17 @@ public partial class OrdersViewModel : ObservableObject
     public bool HasDateFilter => SelectedDate is not null;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsEmpty))]
     public partial bool IsLoading { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasError))]
+    [NotifyPropertyChangedFor(nameof(IsEmpty))]
     public partial string ErrorMessage { get; set; } = string.Empty;
 
     public bool HasError => !string.IsNullOrEmpty(ErrorMessage);
+
+    public bool IsEmpty => !IsLoading && !HasError && Orders.Count == 0;
 
     partial void OnSelectedDateChanged(DateTime? value) => _ = LoadOrdersAsync();
 

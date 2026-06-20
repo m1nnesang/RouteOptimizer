@@ -27,6 +27,7 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="60" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
@@ -65,7 +66,23 @@
             </Grid>
         </Border>
 
-        <ContentControl Grid.Row="1"
+        <Border Grid.Row="1" Background="#FEF3C7" BorderBrush="#F59E0B" BorderThickness="0,0,0,1"
+                Padding="20,10"
+                Visibility="{Binding IsSessionExpired, Converter={StaticResource BoolToVisibilityConverter}}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" VerticalAlignment="Center"
+                           Foreground="#92400E" TextWrapping="Wrap"
+                           Text="Your session has expired or the connection was lost. Please sign in again."/>
+                <Button Grid.Column="1" Content="Sign in again"
+                        Command="{Binding ReLoginCommand}"/>
+            </Grid>
+        </Border>
+
+        <ContentControl Grid.Row="2"
                         Content="{Binding CurrentViewModel}" />
     </Grid>
 </Window>

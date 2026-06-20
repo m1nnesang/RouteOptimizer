@@ -5,4 +5,6 @@ namespace RouteOptimizer.Application.Abstractions;
 public interface IDeliveryAttemptRepository
 {
     Task AddAsync(DeliveryAttempt attempt, CancellationToken ct);
+
+    Task<IReadOnlyList<DeliveryAttempt>> GetByOrderIdAsync(Guid orderId, CancellationToken ct);
 }

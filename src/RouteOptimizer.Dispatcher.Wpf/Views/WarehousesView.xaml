@@ -46,6 +46,7 @@
         </StackPanel>
 
         <Border Grid.Row="2" Style="{StaticResource CardBorderStyle}" Padding="1">
+            <Grid>
             <DataGrid ItemsSource="{Binding Warehouses}"
                       SelectedItem="{Binding SelectedWarehouse}"
                       IsReadOnly="True"
@@ -59,6 +60,12 @@
                     <DataGridTextColumn Header="Lon" Binding="{Binding Longitude, StringFormat=F5}" Width="100"/>
                 </DataGrid.Columns>
             </DataGrid>
+                <TextBlock Text="No warehouses yet. Create one to get started."
+                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                           TextWrapping="Wrap" TextAlignment="Center" Margin="16"
+                           Foreground="{StaticResource TextSecondaryBrush}"
+                           Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVisibilityConverter}}"/>
+            </Grid>
         </Border>
 
         <TextBlock Grid.Row="3"

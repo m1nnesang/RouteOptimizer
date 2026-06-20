@@ -15,6 +15,7 @@ using RouteOptimizer.Application.Routes.Stops.FailDelivery;
 using RouteOptimizer.Application.Routes.HandoverRoute;
 using RouteOptimizer.Application.Routes.InsertUrgentOrder;
 using RouteOptimizer.Application.Routes.Optimize;
+using RouteOptimizer.Application.Routes.PushDriverLocation;
 using RouteOptimizer.Application.Routes.Stops.ResumeStop;
 using RouteOptimizer.Application.Routes.Stops.SkipStop;
 using RouteOptimizer.Domain.Common;
@@ -80,6 +81,14 @@ public class RoutesController : ControllerBase
         var command = new FailDeliveryCommand(driverId ,routeId, stopId, request.Latitude, request.Longitude, request.FailureReason, request.Notes, request.PhotoKey);
         var result = await _mediator.Send(command, ct);
 
+        return ToResponse(result);
+    }
+
+    [Authorize(Roles = "Driver")]
+    [HttpPost("{routeId}/location")]
+    public async Task<IActionResult> PushLocation([FromRoute] Guid routeId, [FromBody] PushLocationRequest request, CancellationToken ct)
+    {
+        var result = await _mediator.Send(new PushDriverLocationCommand(routeId, request.Latitude, request.Longitude), ct);
         return ToResponse(result);
     }
     #endregion
@@ -179,6 +188,7 @@ public class RoutesController : ControllerBase
     public record AssignRouteRequest(Guid ShiftId);
     public record InsertUrgentOrderRequest(Guid OrderId);
     public record OptimizeRouteRequest(DateOnly RouteDate);
+    public record PushLocationRequest(double Latitude, double Longitude);
     public record CompleteStopRequest(bool IsPartial);
     public record FailDeliveryRequest(
         double Latitude,

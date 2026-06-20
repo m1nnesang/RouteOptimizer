@@ -1,4 +1,5 @@
-﻿using RouteOptimizer.Application.Abstractions;
+using Microsoft.EntityFrameworkCore;
+using RouteOptimizer.Application.Abstractions;
 using RouteOptimizer.Domain.Entities;
 
 namespace RouteOptimizer.Infrastructure.Persistence.Repositories;
@@ -15,4 +16,11 @@ public class DeliveryAttemptRepository : IDeliveryAttemptRepository
     {
         await _db.DeliveryAttempts.AddAsync(attempt, ct);
     }
+
+    public async Task<IReadOnlyList<DeliveryAttempt>> GetByOrderIdAsync(Guid orderId, CancellationToken ct) =>
+        await _db.DeliveryAttempts
+            .AsNoTracking()
+            .Where(a => a.OrderId == orderId)
+            .OrderByDescending(a => a.AttemptedAt)
+            .ToListAsync(ct);
 }

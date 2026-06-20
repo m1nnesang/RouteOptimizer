@@ -25,9 +25,11 @@ public partial class VehiclesViewModel : ObservableObject
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasSelectedWarehouse))]
+    [NotifyPropertyChangedFor(nameof(IsEmpty))]
     public partial WarehouseListItem? SelectedWarehouse { get; set; }
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsEmpty))]
     public partial ObservableCollection<VehicleListItem> Vehicles { get; set; } = [];
 
     [ObservableProperty]
@@ -35,13 +37,17 @@ public partial class VehiclesViewModel : ObservableObject
     public partial VehicleListItem? SelectedVehicle { get; set; }
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsEmpty))]
     public partial bool IsLoading { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasError))]
+    [NotifyPropertyChangedFor(nameof(IsEmpty))]
     public partial string ErrorMessage { get; set; } = string.Empty;
 
     public bool HasError => !string.IsNullOrEmpty(ErrorMessage);
+
+    public bool IsEmpty => !IsLoading && !HasError && HasSelectedWarehouse && Vehicles.Count == 0;
 
     public bool HasSelectedWarehouse => SelectedWarehouse is not null;
 

@@ -52,6 +52,23 @@ public class SignalRRouteEventsNotifierTests
         VerifySent(SignalRRouteEventsNotifier.StopSkippedEvent);
     }
 
+    [Fact]
+    public async Task RouteChangedAsync_SendsToWarehouseGroup()
+    {
+        await _notifier.RouteChangedAsync(_warehouseId, Guid.NewGuid(), default);
+
+        VerifySent(SignalRRouteEventsNotifier.RouteChangedEvent);
+    }
+
+    [Fact]
+    public async Task DriverLocationAsync_SendsToWarehouseGroup()
+    {
+        await _notifier.DriverLocationAsync(
+            _warehouseId, Guid.NewGuid(), Guid.NewGuid(), 52.1, 21.0, DateTimeOffset.UtcNow, default);
+
+        VerifySent(SignalRRouteEventsNotifier.DriverLocationEvent);
+    }
+
     private void VerifySent(string eventName) =>
         _group.Verify(g => g.SendCoreAsync(
             eventName,

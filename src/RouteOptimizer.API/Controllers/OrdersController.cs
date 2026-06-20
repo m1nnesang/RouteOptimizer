@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using RouteOptimizer.Application.Orders.CancelOrder;
 using RouteOptimizer.Application.Orders.CreateBusinessOrder;
 using RouteOptimizer.Application.Orders.CreateIndividualOrder;
+using RouteOptimizer.Application.Orders.GetDeliveryAttempts;
 using RouteOptimizer.Application.Orders.GetOrderById;
 using RouteOptimizer.Application.Orders.GetOrders;
 using RouteOptimizer.Domain.Common;
@@ -62,6 +63,14 @@ public class OrdersController : ControllerBase
     public async Task<IActionResult> GetById([FromRoute] Guid id, CancellationToken ct)
     {
         var result = await _mediator.Send(new GetOrderByIdQuery(id), ct);
+        return result.IsSuccess ? Ok(result.Value) : NotFound(result.Error);
+    }
+
+    [Authorize(Roles = "Dispatcher,Manager")]
+    [HttpGet("{id:guid}/delivery-attempts")]
+    public async Task<IActionResult> GetDeliveryAttempts([FromRoute] Guid id, CancellationToken ct)
+    {
+        var result = await _mediator.Send(new GetOrderDeliveryAttemptsQuery(id), ct);
         return result.IsSuccess ? Ok(result.Value) : NotFound(result.Error);
     }
 

@@ -18,6 +18,7 @@ public partial class DriversViewModel : ObservableObject
     }
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsEmpty))]
     public partial ObservableCollection<ShiftListItem> Shifts { get; set; } = [];
 
     [ObservableProperty]
@@ -27,13 +28,17 @@ public partial class DriversViewModel : ObservableObject
     public partial DateTime? FilterDate { get; set; }
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsEmpty))]
     public partial bool IsLoading { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasError))]
+    [NotifyPropertyChangedFor(nameof(IsEmpty))]
     public partial string ErrorMessage { get; set; } = string.Empty;
 
     public bool HasError => !string.IsNullOrEmpty(ErrorMessage);
+
+    public bool IsEmpty => !IsLoading && !HasError && Shifts.Count == 0;
 
     partial void OnFilterDateChanged(DateTime? value) => _ = LoadShiftsAsync();
 

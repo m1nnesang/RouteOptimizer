@@ -12,6 +12,8 @@ public class RouteHubService : IRouteHubService
     private const string StopCompletedEventName = "StopCompleted";
     private const string StopFailedEventName = "StopFailed";
     private const string StopSkippedEventName = "StopSkipped";
+    private const string RouteChangedEventName = "RouteChanged";
+    private const string DriverLocationEventName = "DriverLocation";
 
     private readonly TokenStorage _tokenStorage;
     private HubConnection? _connection;
@@ -22,6 +24,8 @@ public class RouteHubService : IRouteHubService
     public event Action<StopEvent>? StopCompleted;
     public event Action<StopEvent>? StopFailed;
     public event Action<StopEvent>? StopSkipped;
+    public event Action<RouteChangedEvent>? RouteChanged;
+    public event Action<DriverLocationEvent>? DriverLocation;
 
     public async Task StartAsync(CancellationToken ct = default)
     {
@@ -40,6 +44,8 @@ public class RouteHubService : IRouteHubService
         connection.On<StopEvent>(StopCompletedEventName, e => StopCompleted?.Invoke(e));
         connection.On<StopEvent>(StopFailedEventName, e => StopFailed?.Invoke(e));
         connection.On<StopEvent>(StopSkippedEventName, e => StopSkipped?.Invoke(e));
+        connection.On<RouteChangedEvent>(RouteChangedEventName, e => RouteChanged?.Invoke(e));
+        connection.On<DriverLocationEvent>(DriverLocationEventName, e => DriverLocation?.Invoke(e));
 
         connection.Reconnected += _ => connection.InvokeAsync("JoinWarehouse");
 

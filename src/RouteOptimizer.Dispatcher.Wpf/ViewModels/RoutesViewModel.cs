@@ -39,12 +39,15 @@ public partial class RoutesViewModel : ObservableObject, IDisposable
             _routeHub.StopCompleted += OnStopChanged;
             _routeHub.StopFailed += OnStopChanged;
             _routeHub.StopSkipped += OnStopChanged;
+            _routeHub.RouteChanged += OnRouteChanged;
+            _routeHub.DriverLocation += OnDriverLocation;
         }
 
         _ = LoadRoutesAsync();
     }
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsEmpty))]
     public partial ObservableCollection<RouteListItem> Routes { get; set; } = [];
 
     [ObservableProperty]
@@ -60,6 +63,12 @@ public partial class RoutesViewModel : ObservableObject, IDisposable
 
     [ObservableProperty]
     public partial double DepotLng { get; set; } = double.NaN;
+
+    [ObservableProperty]
+    public partial double DriverLat { get; set; } = double.NaN;
+
+    [ObservableProperty]
+    public partial double DriverLng { get; set; } = double.NaN;
 
     private List<WarehouseListItem>? _warehouses;
 
@@ -83,13 +92,17 @@ public partial class RoutesViewModel : ObservableObject, IDisposable
     public partial bool HasOptimizationResultFlag { get; set; }
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsEmpty))]
     public partial bool IsLoading { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasError))]
+    [NotifyPropertyChangedFor(nameof(IsEmpty))]
     public partial string ErrorMessage { get; set; } = string.Empty;
 
     public bool HasError => !string.IsNullOrEmpty(ErrorMessage);
+
+    public bool IsEmpty => !IsLoading && !HasError && Routes.Count == 0;
 
     public bool HasSelectedRoute => SelectedRoute is not null;
 
@@ -105,6 +118,10 @@ public partial class RoutesViewModel : ObservableObject, IDisposable
 
     public bool CanHandover => SelectedRoute?.Status == "InProgress";
 
+    public bool CanCancel => SelectedRoute?.Status is "Draft" or "Optimized" or "Assigned";
+
+    public bool CanInterrupt => SelectedRoute?.Status is "InProgress" or "Assigned";
+
     partial void OnSelectedRouteChanged(RouteListItem? value)
     {
         if (value?.Id != _previousSelectedRouteId)
@@ -114,10 +131,14 @@ public partial class RoutesViewModel : ObservableObject, IDisposable
         }
         _previousSelectedRouteId = value?.Id;
         SelectedRouteStops = [];
+        DriverLat = double.NaN;
+        DriverLng = double.NaN;
         OptimizeCommand.NotifyCanExecuteChanged();
         AssignShiftCommand.NotifyCanExecuteChanged();
         InsertUrgentOrderCommand.NotifyCanExecuteChanged();
         HandoverCommand.NotifyCanExecuteChanged();
+        CancelRouteCommand.NotifyCanExecuteChanged();
+        InterruptRouteCommand.NotifyCanExecuteChanged();
         if (value is not null)
             _ = LoadRouteDetailAsync(value.Id);
     }
@@ -311,6 +332,59 @@ public partial class RoutesViewModel : ObservableObject, IDisposable
         }
     }
 
+    [RelayCommand(CanExecute = nameof(CanCancel))]
+    private async Task CancelRouteAsync()
+    {
+        if (SelectedRoute is null)
+            return;
+
+        if (!_dialogService.ShowConfirm(
+            "Cancel this route? Its orders will be returned to the pool.", "Confirm cancel"))
+            return;
+
+        try
+        {
+            await _apiHttpClient.PostAsync($"api/routes/{SelectedRoute.Id}/cancel");
+            await LoadRoutesAsync();
+        }
+        catch (HttpRequestException)
+        {
+            ErrorMessage = "Failed to cancel route.";
+        }
+    }
+
+    [RelayCommand(CanExecute = nameof(CanInterrupt))]
+    private async Task InterruptRouteAsync()
+    {
+        if (SelectedRoute is null)
+            return;
+
+        if (!_dialogService.ShowConfirm(
+            "Interrupt this route? The driver will stop and remaining stops stay unassigned.", "Confirm interrupt"))
+            return;
+
+        try
+        {
+            await _apiHttpClient.PostAsync($"api/routes/{SelectedRoute.Id}/interrupt");
+            await LoadRoutesAsync();
+        }
+        catch (HttpRequestException)
+        {
+            ErrorMessage = "Failed to interrupt route.";
+        }
+    }
+
+    [RelayCommand]
+    private void ViewOrderProof(Guid orderId)
+    {
+        if (orderId == Guid.Empty)
+            return;
+
+        var historyViewModel = new OrderDeliveryHistoryViewModel(_apiHttpClient);
+        _ = historyViewModel.LoadAsync(orderId);
+        _dialogService.ShowDeliveryHistoryDialog(historyViewModel);
+    }
+
     private void OnRouteStarted(RouteStartedEvent e) => RunOnUi(() => _ = LoadRoutesAsync());
 
     private void OnStopChanged(StopEvent e) => RunOnUi(() =>
@@ -318,6 +392,22 @@ public partial class RoutesViewModel : ObservableObject, IDisposable
         if (SelectedRoute?.Id == e.RouteId)
             _ = LoadRouteDetailAsync(e.RouteId);
         _ = LoadRoutesAsync();
+    });
+
+    private void OnRouteChanged(RouteChangedEvent e) => RunOnUi(() =>
+    {
+        if (SelectedRoute?.Id == e.RouteId)
+            _ = LoadRouteDetailAsync(e.RouteId);
+        _ = LoadRoutesAsync();
+    });
+
+    private void OnDriverLocation(DriverLocationEvent e) => RunOnUi(() =>
+    {
+        if (SelectedRoute?.Id != e.RouteId)
+            return;
+
+        DriverLat = e.Latitude;
+        DriverLng = e.Longitude;
     });
 
     private static void RunOnUi(Action action)
@@ -337,6 +427,8 @@ public partial class RoutesViewModel : ObservableObject, IDisposable
             _routeHub.StopCompleted -= OnStopChanged;
             _routeHub.StopFailed -= OnStopChanged;
             _routeHub.StopSkipped -= OnStopChanged;
+            _routeHub.RouteChanged -= OnRouteChanged;
+            _routeHub.DriverLocation -= OnDriverLocation;
         }
 
         GC.SuppressFinalize(this);

@@ -40,6 +40,7 @@
         </StackPanel>
 
         <Border Grid.Row="2" Style="{StaticResource CardBorderStyle}" Padding="1">
+            <Grid>
             <DataGrid ItemsSource="{Binding Shifts}"
                       SelectedItem="{Binding SelectedShift}"
                       IsReadOnly="True"
@@ -55,6 +56,12 @@
                     <DataGridTextColumn Header="Status" Binding="{Binding ShiftStatus}" Width="*"/>
                 </DataGrid.Columns>
             </DataGrid>
+                <TextBlock Text="No shifts for the selected period."
+                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                           TextWrapping="Wrap" TextAlignment="Center" Margin="16"
+                           Foreground="{StaticResource TextSecondaryBrush}"
+                           Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVisibilityConverter}}"/>
+            </Grid>
         </Border>
 
         <TextBlock Grid.Row="3"

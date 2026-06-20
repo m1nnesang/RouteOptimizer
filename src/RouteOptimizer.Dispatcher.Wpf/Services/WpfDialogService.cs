@@ -1,5 +1,6 @@
 using System.Windows;
 using RouteOptimizer.Dispatcher.Wpf.Services.Interfaces;
+using RouteOptimizer.Dispatcher.Wpf.ViewModels;
 using RouteOptimizer.Dispatcher.Wpf.ViewModels.Dialogs;
 using RouteOptimizer.Dispatcher.Wpf.Views.Dialogs;
 
@@ -7,6 +8,12 @@ namespace RouteOptimizer.Dispatcher.Wpf.Services;
 
 public class WpfDialogService : IDialogService
 {
+    public void ShowDeliveryHistoryDialog(OrderDeliveryHistoryViewModel viewModel)
+    {
+        var dialog = new DeliveryHistoryDialog(viewModel) { Owner = Application.Current.MainWindow };
+        dialog.ShowDialog();
+    }
+
     public bool? ShowCreateOrderDialog(CreateOrderDialogViewModel viewModel)
     {
         var dialog = new CreateOrderDialog(viewModel) { Owner = Application.Current.MainWindow };

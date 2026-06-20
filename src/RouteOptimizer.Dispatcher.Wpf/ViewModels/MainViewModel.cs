@@ -1,3 +1,4 @@
+using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using RouteOptimizer.Dispatcher.Wpf.Services.Interfaces;
@@ -10,6 +11,7 @@ public partial class MainViewModel : ObservableObject
     private readonly IApiHttpClient _apiHttpClient;
     private readonly IDialogService _dialogService;
     private readonly IRouteHubService _routeHubService;
+    private readonly ISessionNotifier _sessionNotifier;
 
     private OrdersViewModel? _ordersViewModel;
     private RoutesViewModel? _routesViewModel;
@@ -18,17 +20,45 @@ public partial class MainViewModel : ObservableObject
     private WarehousesViewModel? _warehousesViewModel;
 
     public MainViewModel(IAuthService authService, IApiHttpClient apiHttpClient,
-        IDialogService dialogService, IRouteHubService routeHubService)
+        IDialogService dialogService, IRouteHubService routeHubService,
+        ISessionNotifier sessionNotifier)
     {
         _authService = authService;
         _apiHttpClient = apiHttpClient;
         _dialogService = dialogService;
         _routeHubService = routeHubService;
+        _sessionNotifier = sessionNotifier;
+        _sessionNotifier.SessionExpired += OnSessionExpired;
         ShowOrders();
     }
 
+    public event Action? LogoutRequested;
+
     [ObservableProperty]
     public partial ObservableObject? CurrentViewModel { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsSessionExpired { get; set; }
+
+    private void OnSessionExpired() => RunOnUi(() => IsSessionExpired = true);
+
+    [RelayCommand]
+    private async Task ReLoginAsync()
+    {
+        IsSessionExpired = false;
+        _authService.Logout();
+        try { await _routeHubService.StopAsync(); } catch { }
+        LogoutRequested?.Invoke();
+    }
+
+    private static void RunOnUi(Action action)
+    {
+        var dispatcher = Application.Current?.Dispatcher;
+        if (dispatcher is null || dispatcher.CheckAccess())
+            action();
+        else
+            dispatcher.BeginInvoke(action);
+    }
 
     [RelayCommand]
     private void ShowOrders() =>

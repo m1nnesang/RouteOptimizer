@@ -22,6 +22,7 @@ public partial class App : Application
         var services = new ServiceCollection();
 
         services.AddSingleton<TokenStorage>();
+        services.AddSingleton<ISessionNotifier, SessionNotifier>();
         services.AddSingleton<IRouteHubService, RouteHubService>();
         services.AddSingleton<IAuthService>(sp =>
         {
@@ -37,6 +38,7 @@ public partial class App : Application
             sp.GetRequiredService<LoginViewModel>(),
             () => sp.GetRequiredService<MainWindow>()
         ));
+        services.AddTransient<Func<LoginView>>(sp => () => sp.GetRequiredService<LoginView>());
         services.AddTransient<MainWindow>();
         services.AddTransient<MainViewModel>();
         services.AddHttpClient<IApiHttpClient, ApiHttpClient>(client =>
@@ -51,6 +53,12 @@ public partial class App : Application
 
     private void OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
     {
+        if (e.Exception is SessionExpiredException)
+        {
+            e.Handled = true;
+            return;
+        }
+
         MessageBox.Show(
             e.Exception.Message,
             "Unexpected error",

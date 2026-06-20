@@ -21,6 +21,7 @@ public partial class WarehousesViewModel : ObservableObject
     }
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsEmpty))]
     public partial ObservableCollection<WarehouseListItem> Warehouses { get; set; } = [];
 
     [ObservableProperty]
@@ -28,13 +29,17 @@ public partial class WarehousesViewModel : ObservableObject
     public partial WarehouseListItem? SelectedWarehouse { get; set; }
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsEmpty))]
     public partial bool IsLoading { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasError))]
+    [NotifyPropertyChangedFor(nameof(IsEmpty))]
     public partial string ErrorMessage { get; set; } = string.Empty;
 
     public bool HasError => !string.IsNullOrEmpty(ErrorMessage);
+
+    public bool IsEmpty => !IsLoading && !HasError && Warehouses.Count == 0;
 
     public bool HasSelectedWarehouse => SelectedWarehouse is not null;
 
