@@ -72,6 +72,15 @@ builder.Services.AddScoped<ICurrentUser, CurrentUser>();
 builder.Services.AddSignalR();
 builder.Services.AddSingleton<IRouteEventsNotifier, SignalRRouteEventsNotifier>();
 
+const string DriverPwaCorsPolicy = "DriverPwa";
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
+builder.Services.AddCors(options =>
+    options.AddPolicy(DriverPwaCorsPolicy, policy => policy
+        .WithOrigins(allowedOrigins)
+        .AllowAnyHeader()
+        .AllowAnyMethod()
+        .AllowCredentials()));
+
 var authPermitLimit = builder.Environment.IsEnvironment("Testing") ? int.MaxValue : 5;
 var authWindow = TimeSpan.FromMinutes(1);
 
@@ -113,6 +122,7 @@ app.UseSerilogRequestLogging();
 app.UseExceptionHandler();
 app.UseHttpsRedirection();
 app.UseRateLimiter();
+app.UseCors(DriverPwaCorsPolicy);
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseMiddleware<IdempotencyMiddleware>();
