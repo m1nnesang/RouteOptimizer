@@ -34,7 +34,8 @@ public class SignalRRouteEventsNotifier : IRouteEventsNotifier
             .SendAsync(StopSkippedEvent, new { routeId, stopId, nextStopId }, ct);
 
     public Task RouteChangedAsync(Guid warehouseId, Guid routeId, CancellationToken ct) =>
-        _hubContext.Clients.Group(RouteHub.WarehouseGroup(warehouseId))
+        _hubContext.Clients
+            .Groups(RouteHub.WarehouseGroup(warehouseId), RouteHub.RouteGroup(routeId))
             .SendAsync(RouteChangedEvent, new { routeId }, ct);
 
     public Task DriverLocationAsync(Guid warehouseId, Guid routeId, Guid driverId,

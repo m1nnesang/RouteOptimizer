@@ -1,3 +1,4 @@
+using FluentAssertions;
 using Microsoft.AspNetCore.SignalR;
 using Moq;
 using RouteOptimizer.API.Hubs;
@@ -11,12 +12,16 @@ public class SignalRRouteEventsNotifierTests
     private readonly Mock<IClientProxy> _group = new();
     private readonly SignalRRouteEventsNotifier _notifier;
     private readonly Guid _warehouseId = Guid.NewGuid();
+    private IReadOnlyList<string>? _targetedGroups;
 
     public SignalRRouteEventsNotifierTests()
     {
         var hubContext = new Mock<IHubContext<RouteHub>>();
         hubContext.SetupGet(h => h.Clients).Returns(_clients.Object);
         _clients.Setup(c => c.Group(RouteHub.WarehouseGroup(_warehouseId))).Returns(_group.Object);
+        _clients.Setup(c => c.Groups(It.IsAny<IReadOnlyList<string>>()))
+            .Callback<IReadOnlyList<string>>(groups => _targetedGroups = groups)
+            .Returns(_group.Object);
         _notifier = new SignalRRouteEventsNotifier(hubContext.Object);
     }
 
@@ -53,11 +58,15 @@ public class SignalRRouteEventsNotifierTests
     }
 
     [Fact]
-    public async Task RouteChangedAsync_SendsToWarehouseGroup()
+    public async Task RouteChangedAsync_SendsToWarehouseAndRouteGroups()
     {
-        await _notifier.RouteChangedAsync(_warehouseId, Guid.NewGuid(), default);
+        var routeId = Guid.NewGuid();
+
+        await _notifier.RouteChangedAsync(_warehouseId, routeId, default);
 
         VerifySent(SignalRRouteEventsNotifier.RouteChangedEvent);
+        _targetedGroups.Should().Contain(RouteHub.WarehouseGroup(_warehouseId));
+        _targetedGroups.Should().Contain(RouteHub.RouteGroup(routeId));
     }
 
     [Fact]
