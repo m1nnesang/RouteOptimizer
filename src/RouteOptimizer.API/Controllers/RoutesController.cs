@@ -19,6 +19,7 @@ using RouteOptimizer.Application.Routes.Optimize;
 using RouteOptimizer.Application.Routes.PushDriverLocation;
 using RouteOptimizer.Application.Routes.Stops.ResumeStop;
 using RouteOptimizer.Application.Routes.Stops.SkipStop;
+using RouteOptimizer.Application.Routes.Stops.StartStop;
 using RouteOptimizer.Domain.Common;
 using RouteOptimizer.Domain.Enums;
 
@@ -42,6 +43,16 @@ public class RoutesController : ControllerBase
         return Ok(result);
     }
 
+
+    [Authorize(Roles = "Driver")]
+    [HttpPost("{routeId}/stops/{stopId}/start")]
+    public async Task<IActionResult> StartStop([FromRoute] Guid routeId, [FromRoute] Guid stopId, CancellationToken ct)
+    {
+        var command = new StartStopCommand(routeId, stopId);
+        var result = await _mediator.Send(command, ct);
+
+        return ToResponse(result);
+    }
 
     [Authorize(Roles = "Driver")]
     [HttpPost("{routeId}/stops/{stopId}/complete")]
