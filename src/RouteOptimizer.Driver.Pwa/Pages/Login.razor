@@ -53,12 +53,12 @@
         _busy = true;
         _error = null;
 
-        var success = await AuthService.LoginAsync(_model.Email, _model.Password);
+        var outcome = await AuthService.LoginAsync(_model.Email, _model.Password);
         _busy = false;
 
-        if (!success)
+        if (outcome != LoginOutcome.Success)
         {
-            _error = "Неверная почта или пароль";
+            _error = ErrorFor(outcome);
             return;
         }
 
@@ -67,6 +67,14 @@
         var target = string.IsNullOrEmpty(ReturnUrl) ? string.Empty : Uri.UnescapeDataString(ReturnUrl);
         Navigation.NavigateTo(target);
     }
+
+    private static string ErrorFor(LoginOutcome outcome) => outcome switch
+    {
+        LoginOutcome.RateLimited => "Слишком много попыток. Попробуйте позже.",
+        LoginOutcome.NetworkError => "Нет связи с сервером. Проверьте подключение.",
+        LoginOutcome.ServerError => "Ошибка сервера. Попробуйте позже.",
+        _ => "Неверная почта или пароль"
+    };
 
     private sealed class LoginModel
     {
