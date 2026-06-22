@@ -4,11 +4,11 @@ public static class FailureReasons
 {
     public static readonly IReadOnlyList<(string Value, string Label)> All =
     [
-        ("IncorrectAddress", "Неверный адрес"),
-        ("FirmClosed", "Фирма закрыта"),
-        ("CustomerNotAtHome", "Клиента нет дома"),
-        ("CustomerRefuseDelivery", "Клиент отказался"),
-        ("VehicleProblem", "Проблема с машиной"),
-        ("Other", "Другое"),
+        ("IncorrectAddress", "Incorrect address"),
+        ("FirmClosed", "Business closed"),
+        ("CustomerNotAtHome", "Customer not at home"),
+        ("CustomerRefuseDelivery", "Customer refused"),
+        ("VehicleProblem", "Vehicle problem"),
+        ("Other", "Other"),
     ];
 }

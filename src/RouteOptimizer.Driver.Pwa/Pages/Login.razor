@@ -4,26 +4,26 @@
 @inject JwtAuthenticationStateProvider AuthStateProvider
 @inject NavigationManager Navigation
 
-<PageTitle>Вход</PageTitle>
+<PageTitle>Sign in</PageTitle>
 
 <section class="login">
     <header class="login__head">
-        <h1 class="login__title">Маршрут</h1>
-        <p class="login__subtitle">Вход для водителя</p>
+        <h1 class="login__title">Route</h1>
+        <p class="login__subtitle">Driver sign-in</p>
     </header>
 
     <EditForm class="login__form" Model="_model" OnValidSubmit="HandleLoginAsync">
         <DataAnnotationsValidator />
 
         <div class="field">
-            <label class="field__label" for="email">Эл. почта</label>
+            <label class="field__label" for="email">Email</label>
             <InputText id="email" class="field__input" @bind-Value="_model.Email"
                        autocomplete="username" inputmode="email" />
             <ValidationMessage For="() => _model.Email" />
         </div>
 
         <div class="field">
-            <label class="field__label" for="password">Пароль</label>
+            <label class="field__label" for="password">Password</label>
             <InputText id="password" type="password" class="field__input" @bind-Value="_model.Password"
                        autocomplete="current-password" />
             <ValidationMessage For="() => _model.Password" />
@@ -35,9 +35,13 @@
         }
 
         <button type="submit" class="btn btn--primary" disabled="@_busy">
-            @(_busy ? "Вход…" : "Войти")
+            @(_busy ? "Signing in…" : "Sign in")
         </button>
     </EditForm>
+
+    <p class="login__links">
+        <a href="forgot-password">Forgot password?</a>
+    </p>
 </section>
 
 @code {
@@ -70,19 +74,19 @@
 
     private static string ErrorFor(LoginOutcome outcome) => outcome switch
     {
-        LoginOutcome.RateLimited => "Слишком много попыток. Попробуйте позже.",
-        LoginOutcome.NetworkError => "Нет связи с сервером. Проверьте подключение.",
-        LoginOutcome.ServerError => "Ошибка сервера. Попробуйте позже.",
-        _ => "Неверная почта или пароль"
+        LoginOutcome.RateLimited => "Too many attempts. Try again later.",
+        LoginOutcome.NetworkError => "No server connection. Check your network.",
+        LoginOutcome.ServerError => "Server error. Try again later.",
+        _ => "Invalid email or password"
     };
 
     private sealed class LoginModel
     {
-        [Required(ErrorMessage = "Укажите почту")]
-        [EmailAddress(ErrorMessage = "Некорректная почта")]
+        [Required(ErrorMessage = "Email is required")]
+        [EmailAddress(ErrorMessage = "Invalid email")]
         public string Email { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Укажите пароль")]
+        [Required(ErrorMessage = "Password is required")]
         public string Password { get; set; } = string.Empty;
     }
 }

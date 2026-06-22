@@ -8,20 +8,20 @@
 @inject IOutboxFlusher Outbox
 @inject IRouteHubClient Hub
 
-<PageTitle>Маршрут</PageTitle>
+<PageTitle>Route</PageTitle>
 
 @if (_loading)
 {
     <section class="screen">
-        <p class="screen__hint">Загрузка…</p>
+        <p class="screen__hint">Loading…</p>
     </section>
 }
 else if (_error || _route is null)
 {
     <section class="screen">
-        <a class="back-link" href="">← Маршруты</a>
-        <p class="screen__hint">Не удалось загрузить маршрут.</p>
-        <button class="btn btn--secondary" @onclick="LoadAsync">Повторить</button>
+        <a class="back-link" href="">← Routes</a>
+        <p class="screen__hint">Failed to load route.</p>
+        <button class="btn btn--secondary" @onclick="LoadAsync">Retry</button>
     </section>
 }
 else
@@ -29,10 +29,33 @@ else
     <div class="nav-screen">
         <RouteMap @ref="_map" Stops="_route.Stops" CurrentStopId="_currentStopId" />
 
-        <div class="topbar">
-            <a class="topbar__btn" href="">←</a>
-            <span class="badge @StatusLabels.Css(_route.Status)">@StatusLabels.Route(_route.Status)</span>
-            <button class="topbar__btn" @onclick="OpenList">Список</button>
+        <div class="nav-top">
+            <div class="pill-group">
+                <a class="pill pill--back" href="" aria-label="Back">←</a>
+                <span class="pill pill--accent">@RemainingText</span>
+                @if (RemainingDistanceText is not null)
+                {
+                    <span class="pill">@RemainingDistanceText</span>
+                }
+            </div>
+            @if (_route.Stops.Count > 0)
+            {
+                <button class="allstops-btn" @onclick="OpenList">
+                    <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+                        <g stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+                            <line x1="5" y1="3.5" x2="14" y2="3.5" />
+                            <line x1="5" y1="8" x2="14" y2="8" />
+                            <line x1="5" y1="12.5" x2="14" y2="12.5" />
+                        </g>
+                        <g fill="currentColor">
+                            <circle cx="1.8" cy="3.5" r="1.4" />
+                            <circle cx="1.8" cy="8" r="1.4" />
+                            <circle cx="1.8" cy="12.5" r="1.4" />
+                        </g>
+                    </svg>
+                    <span>All stops</span>
+                </button>
+            }
         </div>
 
         @if (!_isOnline || _pendingCount > 0)
@@ -40,11 +63,11 @@ else
             <div class="net-banner @(_isOnline ? "net-banner--sync" : "net-banner--offline")">
                 @if (!_isOnline)
                 {
-                    <span>Нет сети — работаем офлайн</span>
+                    <span>No network — working offline</span>
                 }
                 @if (_pendingCount > 0)
                 {
-                    <span>· @_pendingCount в очереди</span>
+                    <span>· @_pendingCount queued</span>
                 }
             </div>
         }
@@ -54,14 +77,16 @@ else
             <p class="action-error nav-screen__error">@_actionError</p>
         }
 
-        <div class="nav-screen__bottom">
+        <div class="sheet">
+            <div class="sheet__handle"></div>
+
             @if (_route.Status == "Assigned")
             {
-                <button class="btn btn--primary" disabled="@_busy" @onclick="StartRouteAsync">Начать маршрут</button>
+                <button class="btn btn--primary sheet__start" disabled="@_busy" @onclick="StartRouteAsync">Start route</button>
             }
             else if (_route.Stops.Count == 0)
             {
-                <p class="screen__hint nav-screen__empty">В этом маршруте нет остановок.</p>
+                <p class="sheet__empty">This route has no stops.</p>
             }
             else
             {
@@ -70,6 +95,8 @@ else
                     {
                         <div class="stop-slide" data-stop-id="@stop.Id">
                             <StopCard Stop="stop" RouteId="RouteId"
+                                      TotalStops="_route.Stops.Count"
+                                      IsCurrent="@(stop.Id == _currentStopId)"
                                       RouteInProgress="@(_route.Status == "InProgress")"
                                       OnChanged="ReloadAsync" />
                         </div>
@@ -78,8 +105,8 @@ else
 
                 @if (_route.Status == "InProgress" && AllStopsClosed)
                 {
-                    <button class="btn btn--secondary nav-screen__finish" disabled="@_busy" @onclick="CompleteRouteAsync">
-                        Завершить маршрут
+                    <button class="btn btn--secondary sheet__finish" disabled="@_busy" @onclick="CompleteRouteAsync">
+                        Finish route
                     </button>
                 }
             }
@@ -116,6 +143,54 @@ else
 
     private bool AllStopsClosed =>
         _route is not null && _route.Stops.All(s => s.Status is not ("Pending" or "InProgress"));
+
+    private IReadOnlyList<RouteStop> RemainingStops =>
+        _route is null
+            ? []
+            : _route.Stops.Where(s => s.Status is "Pending" or "InProgress").OrderBy(s => s.Sequence).ToList();
+
+    private string RemainingText
+    {
+        get
+        {
+            var count = RemainingStops.Count;
+            return count == 1 ? "1 stop left" : $"{count} stops left";
+        }
+    }
+
+    private string? RemainingDistanceText
+    {
+        get
+        {
+            var stops = RemainingStops;
+
+            if (stops.Count < 2)
+                return null;
+
+            double km = 0;
+
+            for (var i = 1; i < stops.Count; i++)
+                km += Haversine(stops[i - 1], stops[i]);
+
+            return km < 0.1 ? null : $"{km:0.0} km";
+        }
+    }
+
+    private static double Haversine(RouteStop a, RouteStop b)
+    {
+        const double earthRadiusKm = 6371.0;
+        var dLat = ToRad(b.Latitude - a.Latitude);
+        var dLon = ToRad(b.Longitude - a.Longitude);
+        var lat1 = ToRad(a.Latitude);
+        var lat2 = ToRad(b.Latitude);
+
+        var h = Math.Sin(dLat / 2) * Math.Sin(dLat / 2)
+                + Math.Sin(dLon / 2) * Math.Sin(dLon / 2) * Math.Cos(lat1) * Math.Cos(lat2);
+
+        return earthRadiusKm * 2 * Math.Asin(Math.Min(1, Math.Sqrt(h)));
+    }
+
+    private static double ToRad(double deg) => deg * Math.PI / 180.0;
 
     protected override void OnInitialized() => _dotNetRef = DotNetObjectReference.Create(this);
 
@@ -154,7 +229,7 @@ else
         }
         catch (HttpRequestException)
         {
-            _actionError = "Нет связи с сервером.";
+            _actionError = "No server connection.";
             return;
         }
 
@@ -287,7 +362,7 @@ else
         }
         catch (HttpRequestException)
         {
-            _actionError = "Нет связи с сервером.";
+            _actionError = "No server connection.";
         }
         finally
         {

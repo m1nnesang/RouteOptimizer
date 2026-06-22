@@ -49,9 +49,9 @@ public sealed record FailDeliveryRequest(
 
 public sealed record DeliveryPhotoUpload(string PhotoKey, string UploadUrl);
 
-public sealed record ApiResult(bool Success, string? Error)
+public sealed record ApiResult(bool Success, string? Error, int? StatusCode = null)
 {
-    public static readonly ApiResult Ok = new(true, null);
+    public static readonly ApiResult Ok = new(true, null, 200);
 
-    public static ApiResult Fail(string? error) => new(false, error);
+    public static ApiResult Fail(string? error, int? statusCode = null) => new(false, error, statusCode);
 }

@@ -150,6 +150,33 @@ public class OfflineRouteApiTests
         _store.Outbox.Should().BeEmpty();
     }
 
+    [Fact]
+    public async Task FlushAsync_Online_ServerError_StopsAndKeepsItem()
+    {
+        await _store.EnqueueAsync(LocationItem());
+        var sut = CreateSut(StubHttpMessageHandler.Status(HttpStatusCode.InternalServerError), _store, new FakeConnectivity(true));
+
+        var pending = await sut.FlushAsync();
+
+        pending.Should().Be(1);
+        _store.Outbox.Should().HaveCount(1);
+    }
+
+    [Fact]
+    public async Task FlushAsync_SendsIdempotencyKeyMatchingOutboxItemId()
+    {
+        await _store.EnqueueAsync(LocationItem());
+        var item = _store.Outbox.Single();
+        var handler = StubHttpMessageHandler.Status(HttpStatusCode.OK);
+        var sut = CreateSut(handler, _store, new FakeConnectivity(true));
+
+        await sut.FlushAsync();
+
+        var request = handler.Requests.Single();
+        request.Headers.TryGetValues("X-Idempotency-Key", out var values).Should().BeTrue();
+        values!.Single().Should().Be(item.Id.ToString());
+    }
+
     private static OutboxItem LocationItem() =>
         new(Guid.NewGuid(), OutboxKind.Location, Guid.NewGuid(), null, null, 1.0, 2.0, null, null, null, DateTime.UtcNow);
 

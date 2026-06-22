@@ -53,14 +53,14 @@ public sealed class OfflineRouteApi : IRouteApi, IOutboxFlusher
         }
     }
 
-    public Task<ApiResult> StartRouteAsync(Guid routeId, CancellationToken ct = default) =>
-        ExecuteAsync(() => _inner.StartRouteAsync(routeId, ct),
-            NewItem(OutboxKind.StartRoute, routeId),
+    public Task<ApiResult> StartRouteAsync(Guid routeId, string? idempotencyKey = null, CancellationToken ct = default) =>
+        ExecuteAsync(NewItem(OutboxKind.StartRoute, routeId),
+            key => _inner.StartRouteAsync(routeId, key, ct),
             route => OfflineRouteMutator.StartRoute(route));
 
-    public Task<ApiResult> CompleteRouteAsync(Guid routeId, CancellationToken ct = default) =>
-        ExecuteAsync(() => _inner.CompleteRouteAsync(routeId, ct),
-            NewItem(OutboxKind.CompleteRoute, routeId),
+    public Task<ApiResult> CompleteRouteAsync(Guid routeId, string? idempotencyKey = null, CancellationToken ct = default) =>
+        ExecuteAsync(NewItem(OutboxKind.CompleteRoute, routeId),
+            key => _inner.CompleteRouteAsync(routeId, key, ct),
             route => OfflineRouteMutator.CompleteRoute(route));
 
     public Task<ApiResult> StartStopAsync(Guid routeId, Guid stopId, CancellationToken ct = default) =>
@@ -69,26 +69,26 @@ public sealed class OfflineRouteApi : IRouteApi, IOutboxFlusher
     public Task<ApiResult> CompleteStopAsync(Guid routeId, Guid stopId, bool isPartial, CancellationToken ct = default) =>
         _inner.CompleteStopAsync(routeId, stopId, isPartial, ct);
 
-    public Task<ApiResult> SkipStopAsync(Guid routeId, Guid stopId, CancellationToken ct = default) =>
-        ExecuteAsync(() => _inner.SkipStopAsync(routeId, stopId, ct),
-            NewItem(OutboxKind.SkipStop, routeId, stopId),
+    public Task<ApiResult> SkipStopAsync(Guid routeId, Guid stopId, string? idempotencyKey = null, CancellationToken ct = default) =>
+        ExecuteAsync(NewItem(OutboxKind.SkipStop, routeId, stopId),
+            key => _inner.SkipStopAsync(routeId, stopId, key, ct),
             route => OfflineRouteMutator.SkipStop(route, stopId));
 
-    public Task<ApiResult> ResumeStopAsync(Guid routeId, Guid stopId, CancellationToken ct = default) =>
-        ExecuteAsync(() => _inner.ResumeStopAsync(routeId, stopId, ct),
-            NewItem(OutboxKind.ResumeStop, routeId, stopId),
+    public Task<ApiResult> ResumeStopAsync(Guid routeId, Guid stopId, string? idempotencyKey = null, CancellationToken ct = default) =>
+        ExecuteAsync(NewItem(OutboxKind.ResumeStop, routeId, stopId),
+            key => _inner.ResumeStopAsync(routeId, stopId, key, ct),
             route => OfflineRouteMutator.ResumeStop(route, stopId));
 
     public Task<ApiResult> FailDeliveryAsync(Guid routeId, Guid stopId, FailDeliveryRequest request, CancellationToken ct = default) =>
         _inner.FailDeliveryAsync(routeId, stopId, request, ct);
 
-    public Task<ApiResult> DeliverOrderAsync(Guid routeId, Guid stopId, Guid orderId, CancellationToken ct = default) =>
-        ExecuteAsync(() => _inner.DeliverOrderAsync(routeId, stopId, orderId, ct),
-            NewItem(OutboxKind.DeliverOrder, routeId, stopId, orderId),
+    public Task<ApiResult> DeliverOrderAsync(Guid routeId, Guid stopId, Guid orderId, string? idempotencyKey = null, CancellationToken ct = default) =>
+        ExecuteAsync(NewItem(OutboxKind.DeliverOrder, routeId, stopId, orderId),
+            key => _inner.DeliverOrderAsync(routeId, stopId, orderId, key, ct),
             route => OfflineRouteMutator.DeliverOrder(route, stopId, orderId));
 
-    public Task<ApiResult> FailOrderAsync(Guid routeId, Guid stopId, Guid orderId, FailDeliveryRequest request, CancellationToken ct = default) =>
-        ExecuteAsync(() => _inner.FailOrderAsync(routeId, stopId, orderId, request, ct),
+    public Task<ApiResult> FailOrderAsync(Guid routeId, Guid stopId, Guid orderId, FailDeliveryRequest request, string? idempotencyKey = null, CancellationToken ct = default) =>
+        ExecuteAsync(
             NewItem(OutboxKind.FailOrder, routeId, stopId, orderId) with
             {
                 Latitude = request.Latitude,
@@ -97,26 +97,29 @@ public sealed class OfflineRouteApi : IRouteApi, IOutboxFlusher
                 Notes = request.Notes,
                 PhotoKey = request.PhotoKey
             },
+            key => _inner.FailOrderAsync(routeId, stopId, orderId, request, key, ct),
             route => OfflineRouteMutator.FailOrder(route, stopId, orderId));
 
-    public async Task<ApiResult> PushLocationAsync(Guid routeId, double latitude, double longitude, CancellationToken ct = default)
+    public async Task<ApiResult> PushLocationAsync(Guid routeId, double latitude, double longitude, string? idempotencyKey = null, CancellationToken ct = default)
     {
+        var item = NewItem(OutboxKind.Location, routeId) with
+        {
+            Latitude = latitude,
+            Longitude = longitude
+        };
+
         if (_connectivity.IsOnline)
         {
             try
             {
-                return await _inner.PushLocationAsync(routeId, latitude, longitude, ct);
+                return await _inner.PushLocationAsync(routeId, latitude, longitude, item.Id.ToString(), ct);
             }
             catch (HttpRequestException)
             {
             }
         }
 
-        await _store.EnqueueAsync(NewItem(OutboxKind.Location, routeId) with
-        {
-            Latitude = latitude,
-            Longitude = longitude
-        });
+        await _store.EnqueueAsync(item);
 
         return ApiResult.Ok;
     }
@@ -154,28 +157,34 @@ public sealed class OfflineRouteApi : IRouteApi, IOutboxFlusher
         return await _store.CountAsync();
     }
 
-    private Task<ApiResult> SendAsync(OutboxItem item, CancellationToken ct) => item.Kind switch
+    private Task<ApiResult> SendAsync(OutboxItem item, CancellationToken ct)
     {
-        OutboxKind.DeliverOrder => _inner.DeliverOrderAsync(item.RouteId, item.StopId!.Value, item.OrderId!.Value, ct),
-        OutboxKind.FailOrder => _inner.FailOrderAsync(item.RouteId, item.StopId!.Value, item.OrderId!.Value,
-            new FailDeliveryRequest(item.Latitude ?? 0, item.Longitude ?? 0, item.FailureReason ?? "Other", item.Notes, item.PhotoKey), ct),
-        OutboxKind.SkipStop => _inner.SkipStopAsync(item.RouteId, item.StopId!.Value, ct),
-        OutboxKind.ResumeStop => _inner.ResumeStopAsync(item.RouteId, item.StopId!.Value, ct),
-        OutboxKind.StartRoute => _inner.StartRouteAsync(item.RouteId, ct),
-        OutboxKind.CompleteRoute => _inner.CompleteRouteAsync(item.RouteId, ct),
-        OutboxKind.Location => _inner.PushLocationAsync(item.RouteId, item.Latitude ?? 0, item.Longitude ?? 0, ct),
-        _ => Task.FromResult(ApiResult.Ok)
-    };
+        var key = item.Id.ToString();
 
-    private static bool IsPermanentRejection(ApiResult result) => !result.Success;
+        return item.Kind switch
+        {
+            OutboxKind.DeliverOrder => _inner.DeliverOrderAsync(item.RouteId, item.StopId!.Value, item.OrderId!.Value, key, ct),
+            OutboxKind.FailOrder => _inner.FailOrderAsync(item.RouteId, item.StopId!.Value, item.OrderId!.Value,
+                new FailDeliveryRequest(item.Latitude ?? 0, item.Longitude ?? 0, item.FailureReason ?? "Other", item.Notes, item.PhotoKey), key, ct),
+            OutboxKind.SkipStop => _inner.SkipStopAsync(item.RouteId, item.StopId!.Value, key, ct),
+            OutboxKind.ResumeStop => _inner.ResumeStopAsync(item.RouteId, item.StopId!.Value, key, ct),
+            OutboxKind.StartRoute => _inner.StartRouteAsync(item.RouteId, key, ct),
+            OutboxKind.CompleteRoute => _inner.CompleteRouteAsync(item.RouteId, key, ct),
+            OutboxKind.Location => _inner.PushLocationAsync(item.RouteId, item.Latitude ?? 0, item.Longitude ?? 0, key, ct),
+            _ => Task.FromResult(ApiResult.Ok)
+        };
+    }
 
-    private async Task<ApiResult> ExecuteAsync(Func<Task<ApiResult>> online, OutboxItem item, Func<RouteDetail, RouteDetail> mutate)
+    private static bool IsPermanentRejection(ApiResult result) =>
+        result.StatusCode is >= 400 and < 500 and not 408 and not 429;
+
+    private async Task<ApiResult> ExecuteAsync(OutboxItem item, Func<string, Task<ApiResult>> online, Func<RouteDetail, RouteDetail> mutate)
     {
         if (_connectivity.IsOnline)
         {
             try
             {
-                return await online();
+                return await online(item.Id.ToString());
             }
             catch (HttpRequestException)
             {

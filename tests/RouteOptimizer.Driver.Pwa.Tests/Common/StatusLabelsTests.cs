@@ -6,25 +6,25 @@ namespace RouteOptimizer.Driver.Pwa.Tests.Common;
 public class StatusLabelsTests
 {
     [Theory]
-    [InlineData("Draft", "Черновик")]
-    [InlineData("InProgress", "В пути")]
-    [InlineData("Completed", "Завершён")]
-    [InlineData("Cancelled", "Отменён")]
-    public void Route_KnownStatus_ReturnsRussianLabel(string status, string expected) =>
+    [InlineData("Draft", "Draft")]
+    [InlineData("InProgress", "In transit")]
+    [InlineData("Completed", "Completed")]
+    [InlineData("Cancelled", "Cancelled")]
+    public void Route_KnownStatus_ReturnsLabel(string status, string expected) =>
         StatusLabels.Route(status).Should().Be(expected);
 
     [Theory]
-    [InlineData("Pending", "Ожидает")]
-    [InlineData("PartiallyCompleted", "Частично")]
-    [InlineData("Failed", "Неудача")]
-    public void Stop_KnownStatus_ReturnsRussianLabel(string status, string expected) =>
+    [InlineData("Pending", "Pending")]
+    [InlineData("PartiallyCompleted", "Partial")]
+    [InlineData("Failed", "Failed")]
+    public void Stop_KnownStatus_ReturnsLabel(string status, string expected) =>
         StatusLabels.Stop(status).Should().Be(expected);
 
     [Theory]
-    [InlineData("InTransit", "В пути")]
-    [InlineData("Delivered", "Доставлен")]
-    [InlineData("Failed", "Не доставлен")]
-    public void Order_KnownStatus_ReturnsRussianLabel(string status, string expected) =>
+    [InlineData("InTransit", "In transit")]
+    [InlineData("Delivered", "Delivered")]
+    [InlineData("Failed", "Not delivered")]
+    public void Order_KnownStatus_ReturnsLabel(string status, string expected) =>
         StatusLabels.Order(status).Should().Be(expected);
 
     [Theory]

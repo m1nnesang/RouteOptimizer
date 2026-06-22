@@ -4,35 +4,35 @@ public static class StatusLabels
 {
     public static string Route(string status) => status switch
     {
-        "Draft" => "Черновик",
-        "Optimized" => "Оптимизирован",
-        "Assigned" => "Назначен",
-        "InProgress" => "В пути",
-        "Completed" => "Завершён",
-        "Interrupted" => "Прерван",
-        "Cancelled" => "Отменён",
+        "Draft" => "Draft",
+        "Optimized" => "Optimized",
+        "Assigned" => "Assigned",
+        "InProgress" => "In transit",
+        "Completed" => "Completed",
+        "Interrupted" => "Interrupted",
+        "Cancelled" => "Cancelled",
         _ => status
     };
 
     public static string Stop(string status) => status switch
     {
-        "Pending" => "Ожидает",
-        "InProgress" => "В процессе",
-        "Completed" => "Доставлено",
-        "PartiallyCompleted" => "Частично",
-        "Skipped" => "Пропущено",
-        "Failed" => "Неудача",
+        "Pending" => "Pending",
+        "InProgress" => "In progress",
+        "Completed" => "Delivered",
+        "PartiallyCompleted" => "Partial",
+        "Skipped" => "Skipped",
+        "Failed" => "Failed",
         _ => status
     };
 
     public static string Order(string status) => status switch
     {
-        "Created" => "Создан",
-        "AssignedToRoute" => "Назначен",
-        "InTransit" => "В пути",
-        "Delivered" => "Доставлен",
-        "Failed" => "Не доставлен",
-        "Cancelled" => "Отменён",
+        "Created" => "Created",
+        "AssignedToRoute" => "Assigned",
+        "InTransit" => "In transit",
+        "Delivered" => "Delivered",
+        "Failed" => "Not delivered",
+        "Cancelled" => "Cancelled",
         _ => status
     };
 
@@ -52,5 +52,15 @@ public static class StatusLabels
         "Skipped" => "is-skipped",
         "PartiallyCompleted" => "is-partial",
         _ => "is-pending"
+    };
+
+    public static string PinCss(string status) => status switch
+    {
+        "Completed" => "pin-done",
+        "InProgress" => "pin-current",
+        "Failed" => "pin-failed",
+        "Skipped" => "pin-skipped",
+        "PartiallyCompleted" => "pin-skipped",
+        _ => "pin-upcoming"
     };
 }

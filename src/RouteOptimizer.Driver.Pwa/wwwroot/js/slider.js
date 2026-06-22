@@ -25,7 +25,7 @@ window.driverSlider = {
         if (!container) return;
 
         const child = container.querySelector('[data-stop-id="' + stopId + '"]');
-        if (child) child.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+        if (child) child.scrollIntoView({ behavior: "instant", inline: "center", block: "nearest" });
     },
 
     dispose: function (elementId) {

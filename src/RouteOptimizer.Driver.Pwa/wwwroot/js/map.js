@@ -2,25 +2,29 @@ window.driverMap = (function () {
     let map = null;
     let stopLayer = null;
     let routeLine = null;
+    let routeLineUpcoming = null;
     let driverMarker = null;
+    let driverHalo = null;
 
     function statusColor(status, isCurrent) {
-        if (isCurrent) return "#ffb300";
+        if (isCurrent) return { fill: "#4c84ff", text: "#fff" };
         switch (status) {
-            case "Completed": return "#15803d";
-            case "PartiallyCompleted": return "#b45309";
-            case "Failed": return "#b91c1c";
-            case "Skipped": return "#6b7280";
-            default: return "#1d4ed8";
+            case "Completed": return { fill: "#25b366", text: "#fff" };
+            case "PartiallyCompleted": return { fill: "#d99a2b", text: "#1a1206" };
+            case "Failed": return { fill: "#f0564b", text: "#fff" };
+            case "Skipped": return { fill: "#d99a2b", text: "#1a1206" };
+            default: return { fill: "#1e2740", text: "#8893ad" };
         }
     }
 
     function stopIcon(label, color, isCurrent) {
-        const size = isCurrent ? 38 : 30;
+        const size = isCurrent ? 40 : 30;
+        const isUpcoming = color.fill === "#1e2740";
+        const border = isUpcoming ? "1.5px solid #313c5c" : "2.5px solid #0f1626";
         const html =
-            '<div style="width:' + size + 'px;height:' + size + 'px;border-radius:50%;background:' + color +
-            ';color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;' +
-            'border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.5);font-size:' + (isCurrent ? 15 : 13) + 'px;">' +
+            '<div style="width:' + size + 'px;height:' + size + 'px;border-radius:50%;background:' + color.fill +
+            ';color:' + color.text + ';display:flex;align-items:center;justify-content:center;font-weight:700;' +
+            'border:' + border + ';box-shadow:0 2px 8px rgba(0,0,0,.45);font-size:' + (isCurrent ? 15 : 13) + 'px;">' +
             label + '</div>';
         return L.divIcon({
             html: html,
@@ -40,8 +44,9 @@ window.driverMap = (function () {
             map = L.map(elementId, { zoomControl: false, attributionControl: false })
                 .setView([52.2297, 21.0122], 12);
 
-            L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-                maxZoom: 19
+            L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+                maxZoom: 19,
+                subdomains: "abcd"
             }).addTo(map);
 
             stopLayer = L.layerGroup().addTo(map);
@@ -58,14 +63,20 @@ window.driverMap = (function () {
                 map.removeLayer(routeLine);
                 routeLine = null;
             }
+            if (routeLineUpcoming) {
+                map.removeLayer(routeLineUpcoming);
+                routeLineUpcoming = null;
+            }
 
             if (!stops || stops.length === 0) return;
 
             const ordered = stops.slice().sort(function (a, b) { return a.sequence - b.sequence; });
             const latlngs = [];
+            let currentIndex = -1;
 
-            ordered.forEach(function (s) {
+            ordered.forEach(function (s, i) {
                 const isCurrent = s.id === currentStopId;
+                if (isCurrent) currentIndex = i;
                 const color = statusColor(s.status, isCurrent);
                 const marker = L.marker([s.latitude, s.longitude], {
                     icon: stopIcon(s.sequence + 1, color, isCurrent)
@@ -75,7 +86,16 @@ window.driverMap = (function () {
             });
 
             if (latlngs.length > 1) {
-                routeLine = L.polyline(latlngs, { color: "#a9bce0", weight: 3, opacity: 0.6, dashArray: "6 8" }).addTo(map);
+                const split = currentIndex >= 0 ? currentIndex : latlngs.length - 1;
+                const traveled = latlngs.slice(0, split + 1);
+                const upcoming = latlngs.slice(split);
+
+                if (traveled.length > 1) {
+                    routeLine = L.polyline(traveled, { color: "#5b8cff", weight: 6, opacity: 1, lineCap: "round", lineJoin: "round" }).addTo(map);
+                }
+                if (upcoming.length > 1) {
+                    routeLineUpcoming = L.polyline(upcoming, { color: "#3a456a", weight: 6, opacity: 1, dashArray: "2 14", lineCap: "round" }).addTo(map);
+                }
             }
         },
 
@@ -93,11 +113,15 @@ window.driverMap = (function () {
         setDriver: function (lat, lng) {
             if (!map) return;
             if (!driverMarker) {
+                driverHalo = L.circleMarker([lat, lng], {
+                    radius: 16, stroke: false, fillColor: "#4c84ff", fillOpacity: 0.22
+                }).addTo(map);
                 driverMarker = L.circleMarker([lat, lng], {
-                    radius: 8, color: "#fff", weight: 2, fillColor: "#2563eb", fillOpacity: 1
+                    radius: 7, color: "#0f1626", weight: 2.5, fillColor: "#4c84ff", fillOpacity: 1
                 }).addTo(map);
             } else {
                 driverMarker.setLatLng([lat, lng]);
+                if (driverHalo) driverHalo.setLatLng([lat, lng]);
             }
         },
 
@@ -108,7 +132,9 @@ window.driverMap = (function () {
             }
             stopLayer = null;
             routeLine = null;
+            routeLineUpcoming = null;
             driverMarker = null;
+            driverHalo = null;
         }
     };
 })();

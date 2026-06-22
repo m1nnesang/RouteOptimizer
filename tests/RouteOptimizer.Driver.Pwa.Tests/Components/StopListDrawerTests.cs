@@ -17,8 +17,8 @@ public class StopListDrawerTests : Bunit.TestContext
             .Add(c => c.Open, true)
             .Add(c => c.Stops, new[] { second, first }));
 
-        var addresses = cut.FindAll(".drawer__stop-address").Select(e => e.TextContent.Trim()).ToList();
-        addresses.Should().ContainInOrder("Alpha St, City", "Beta St, City");
+        var addresses = cut.FindAll(".allstops__row-address").Select(e => e.TextContent.Trim()).ToList();
+        addresses.Should().ContainInOrder("Alpha St", "Beta St");
     }
 
     [Fact]
@@ -28,11 +28,11 @@ public class StopListDrawerTests : Bunit.TestContext
             .Add(c => c.Open, false)
             .Add(c => c.Stops, new[] { Stop(0, "Alpha St", "Pending", "Anna") }));
 
-        cut.Find(".drawer").ClassList.Should().NotContain("drawer--open");
+        cut.Find(".allstops").ClassList.Should().NotContain("allstops--open");
 
         cut.SetParametersAndRender(p => p.Add(c => c.Open, true));
 
-        cut.Find(".drawer").ClassList.Should().Contain("drawer--open");
+        cut.Find(".allstops").ClassList.Should().Contain("allstops--open");
     }
 
     [Fact]
@@ -46,7 +46,7 @@ public class StopListDrawerTests : Bunit.TestContext
             .Add(c => c.Stops, new[] { current, other })
             .Add(c => c.CurrentStopId, current.Id));
 
-        cut.FindAll(".drawer__stop--current").Should().HaveCount(1);
+        cut.FindAll(".allstops__row--current").Should().HaveCount(1);
     }
 
     [Fact]
@@ -60,7 +60,7 @@ public class StopListDrawerTests : Bunit.TestContext
             .Add(c => c.Stops, new[] { Stop(0, "Alpha St", "InProgress", "Anna"), target })
             .Add(c => c.OnSelect, (RouteStop s) => selected = s));
 
-        cut.FindAll(".drawer__stop")[1].Click();
+        cut.FindAll(".allstops__row")[1].Click();
 
         selected.Should().NotBeNull();
         selected!.Id.Should().Be(target.Id);
@@ -76,7 +76,7 @@ public class StopListDrawerTests : Bunit.TestContext
             .Add(c => c.Stops, new[] { Stop(0, "Alpha St", "InProgress", "Anna") })
             .Add(c => c.OnClose, () => closed = true));
 
-        cut.Find(".drawer__close").Click();
+        cut.Find(".allstops__close").Click();
 
         closed.Should().BeTrue();
     }

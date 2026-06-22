@@ -2,7 +2,7 @@ window.driverGeolocation = {
     getCurrentPosition: function (timeoutMs) {
         return new Promise(function (resolve, reject) {
             if (!navigator.geolocation) {
-                reject("Геолокация не поддерживается этим устройством.");
+                reject("Geolocation is not supported on this device.");
                 return;
             }
 
@@ -14,7 +14,7 @@ window.driverGeolocation = {
                     });
                 },
                 function (error) {
-                    reject(error && error.message ? error.message : "Не удалось определить координаты.");
+                    reject(error && error.message ? error.message : "Could not determine your location.");
                 },
                 {
                     enableHighAccuracy: true,

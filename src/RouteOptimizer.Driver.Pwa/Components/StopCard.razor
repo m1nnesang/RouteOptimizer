@@ -4,19 +4,25 @@
 
 <div class="stop-card">
     <div class="stop-card__head">
-        <div class="stop-card__seq">@(Stop.Sequence + 1)</div>
-        <div class="stop-card__title">
-            <span class="stop-card__address">@Stop.Street</span>
-            <span class="stop-card__city">@Stop.City</span>
+        <div class="stop-card__head-left">
+            <div class="pin stop-card__seq @PinClass">@(Stop.Sequence + 1)</div>
+            <div>
+                <div class="stop-card__eyebrow @(IsCurrent ? "" : "stop-card__eyebrow--muted")">@Eyebrow</div>
+                <div class="stop-card__counter">Stop @(Stop.Sequence + 1) of @TotalStops</div>
+            </div>
         </div>
-        <span class="badge @StatusLabels.Css(Stop.Status)">@StatusLabels.Stop(Stop.Status)</span>
+        <a class="navigate-btn"
+           href="https://www.google.com/maps/dir/?api=1&destination=@Stop.Latitude,@Stop.Longitude"
+           target="_blank" rel="noopener">
+            <svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true">
+                <path d="M8 1.5l5.5 12-5.5-3-5.5 3z" fill="currentColor" />
+            </svg>
+            Navigate
+        </a>
     </div>
 
-    <a class="btn btn--secondary btn--sm stop-card__nav"
-       href="https://www.google.com/maps/dir/?api=1&destination=@Stop.Latitude,@Stop.Longitude"
-       target="_blank" rel="noopener">
-        🧭 Навигация
-    </a>
+    <div class="stop-card__address">@Stop.Street</div>
+    <div class="stop-card__city">@Stop.City</div>
 
     @if (_error is not null)
     {
@@ -28,37 +34,46 @@
         {
             <li class="order-row @OrderRowCss(order.Status)">
                 <div class="order-row__main">
-                    <span class="order-row__recipient">
-                        @order.Recipient
-                        @if (!string.IsNullOrWhiteSpace(order.Apartment))
+                    <div class="order-row__avatar">@Initials(order.Recipient)</div>
+                    <div class="order-row__info">
+                        <span class="order-row__recipient">
+                            @order.Recipient
+                            @if (!string.IsNullOrWhiteSpace(order.Apartment))
+                            {
+                                <span class="order-row__apartment">apt. @order.Apartment</span>
+                            }
+                        </span>
+                        @if (!string.IsNullOrWhiteSpace(order.Phone))
                         {
-                            <span class="order-row__apartment">кв. @order.Apartment</span>
+                            <a class="order-row__phone" href="tel:@order.Phone">@order.Phone</a>
                         }
-                    </span>
-                    @if (!string.IsNullOrWhiteSpace(order.Phone))
+                    </div>
+
+                    @if (IsOrderClosed(order.Status))
                     {
-                        <a class="order-row__phone" href="tel:@order.Phone">@order.Phone</a>
+                        <span class="badge @StatusLabels.OrderCss(order.Status)">@StatusLabels.Order(order.Status)</span>
                     }
                 </div>
 
-                @if (IsOrderClosed(order.Status))
-                {
-                    <span class="badge @StatusLabels.OrderCss(order.Status)">@StatusLabels.Order(order.Status)</span>
-                }
-                else if (CanAct && _failOrderId != order.OrderId)
+                @if (!IsOrderClosed(order.Status) && CanAct && _failOrderId != order.OrderId)
                 {
                     <div class="order-row__actions">
-                        <button class="btn btn--sm btn--success" disabled="@_busy"
-                                @onclick="() => DeliverAsync(order.OrderId)">Доставлен</button>
-                        <button class="btn btn--sm btn--danger" disabled="@_busy"
-                                @onclick="() => OpenFailForm(order.OrderId)">Не доставлен</button>
+                        <button class="btn btn--success btn--sm" disabled="@_busy"
+                                @onclick="() => DeliverAsync(order.OrderId)">
+                            <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                <path d="M4 10.5l4 4 8-9" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                            Delivered
+                        </button>
+                        <button class="btn btn--danger btn--sm" disabled="@_busy"
+                                @onclick="() => OpenFailForm(order.OrderId)">Not delivered</button>
                     </div>
                 }
 
                 @if (_failOrderId == order.OrderId)
                 {
                     <div class="fail-form">
-                        <label class="field__label" for="fail-reason-@order.OrderId">Причина</label>
+                        <label class="field__label" for="fail-reason-@order.OrderId">Reason</label>
                         <select id="fail-reason-@order.OrderId" class="field__input" value="@_failReason"
                                 @onchange="OnFailReasonChanged">
                             @foreach (var (value, label) in FailureReasons.All)
@@ -68,13 +83,13 @@
                         </select>
 
                         <textarea class="field__input fail-form__notes" rows="2"
-                                  placeholder="Комментарий (необязательно)" @bind="_failNotes"></textarea>
+                                  placeholder="Comment (optional)" @bind="_failNotes"></textarea>
 
                         <InputFile class="fail-form__file" accept="image/*" capture="environment"
                                    OnChange="OnPhotoSelected" />
                         @if (_failFile is not null)
                         {
-                            <p class="fail-form__filename">Фото: @_failFile.Name</p>
+                            <p class="fail-form__filename">Photo: @_failFile.Name</p>
                         }
 
                         @if (_failError is not null)
@@ -85,10 +100,10 @@
                         <div class="order-row__actions">
                             <button class="btn btn--sm btn--danger" disabled="@_busy"
                                     @onclick="() => SubmitFailAsync(order.OrderId)">
-                                @(_busy ? "Отправка…" : "Отправить")
+                                @(_busy ? "Sending…" : "Send")
                             </button>
                             <button class="btn btn--sm btn--ghost" disabled="@_busy" @onclick="CloseFailForm">
-                                Отмена
+                                Cancel
                             </button>
                         </div>
                     </div>
@@ -99,14 +114,14 @@
 
     @if (CanAct)
     {
-        <button class="btn btn--ghost btn--sm stop-card__skip" disabled="@_busy" @onclick="SkipAsync">
-            Пропустить стоп
+        <button class="btn btn--ghost stop-card__skip" disabled="@_busy" @onclick="SkipAsync">
+            Skip stop
         </button>
     }
     else if (Stop.Status == "Skipped" && RouteInProgress)
     {
-        <button class="btn btn--primary btn--sm stop-card__skip" disabled="@_busy" @onclick="ResumeAsync">
-            Вернуться к стопу
+        <button class="btn btn--primary stop-card__skip" disabled="@_busy" @onclick="ResumeAsync">
+            Return to stop
         </button>
     }
 </div>
@@ -125,10 +140,49 @@
     public bool RouteInProgress { get; set; }
 
     [Parameter]
+    public int TotalStops { get; set; }
+
+    [Parameter]
+    public bool IsCurrent { get; set; }
+
+    [Parameter]
     public EventCallback OnChanged { get; set; }
 
     private bool _busy;
     private string? _error;
+
+    private string PinClass => IsCurrent ? "pin-current" : StatusLabels.PinCss(Stop.Status);
+
+    private string Eyebrow
+    {
+        get
+        {
+            if (IsCurrent)
+                return "Current stop";
+
+            return Stop.Status switch
+            {
+                "Completed" => "Delivered",
+                "Failed" => "Not delivered",
+                "Skipped" => "Skipped",
+                "PartiallyCompleted" => "Partial",
+                _ => "Upcoming stop"
+            };
+        }
+    }
+
+    private static string Initials(string? name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            return "?";
+
+        var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+        if (parts.Length == 1)
+            return parts[0][..1].ToUpperInvariant();
+
+        return (parts[0][..1] + parts[^1][..1]).ToUpperInvariant();
+    }
 
     private Guid? _failOrderId;
     private string _failReason = FailureReasons.All[0].Value;
@@ -188,7 +242,7 @@
         }
         catch (HttpRequestException)
         {
-            _error = "Нет связи с сервером.";
+            _error = "No server connection.";
         }
         finally
         {
@@ -203,7 +257,7 @@
 
         if (_failFile is not null && !Connectivity.IsOnline)
         {
-            _failError = "Фото-провал доступен только онлайн. Отправьте без фото или подключитесь к сети.";
+            _failError = "Photo on failure is available online only. Submit without a photo or connect to the network.";
             return;
         }
 
@@ -220,7 +274,7 @@
 
                 if (photoKey is null)
                 {
-                    _failError = "Не удалось загрузить фото.";
+                    _failError = "Failed to upload the photo.";
                     return;
                 }
             }
@@ -248,7 +302,7 @@
         }
         catch (HttpRequestException)
         {
-            _failError = "Нет связи с сервером.";
+            _failError = "No server connection.";
         }
         finally
         {
@@ -296,7 +350,7 @@
         }
         catch (HttpRequestException)
         {
-            _error = "Нет связи с сервером.";
+            _error = "No server connection.";
         }
         finally
         {

@@ -4,13 +4,13 @@
 @inject JwtAuthenticationStateProvider AuthStateProvider
 @inject NavigationManager Navigation
 
-<PageTitle>Профиль</PageTitle>
+<PageTitle>Profile</PageTitle>
 
 <AuthorizeView>
     <section class="screen">
-        <h1 class="screen__title">Профиль</h1>
+        <h1 class="screen__title">Profile</h1>
         <p class="profile__email">@context.User.Identity?.Name</p>
-        <button class="btn btn--secondary" @onclick="LogoutAsync">Выйти</button>
+        <button class="btn btn--secondary" @onclick="LogoutAsync">Sign out</button>
     </section>
 </AuthorizeView>
 

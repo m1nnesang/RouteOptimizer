@@ -1,30 +1,25 @@
-<div class="drawer @(Open ? "drawer--open" : "")">
-    <div class="drawer__backdrop" @onclick="Close"></div>
-    <div class="drawer__panel">
-        <div class="drawer__head">
-            <h2 class="drawer__title">Все остановки</h2>
-            <button class="drawer__close" @onclick="Close" aria-label="Закрыть">✕</button>
+<div class="allstops @(Open ? "allstops--open" : "")">
+    <div class="allstops__panel">
+        <div class="allstops__head">
+            <div>
+                <h2 class="allstops__title">All stops</h2>
+                <div class="allstops__summary">@Summary</div>
+            </div>
+            <button class="allstops__close" @onclick="Close" aria-label="Close">✕</button>
         </div>
 
-        <ul class="drawer__list">
+        <ul class="allstops__list">
             @foreach (var stop in Stops.OrderBy(s => s.Sequence))
             {
                 <li>
-                    <button class="drawer__stop @(stop.Id == CurrentStopId ? "drawer__stop--current" : "")"
+                    <button class="allstops__row @(stop.Id == CurrentStopId ? "allstops__row--current" : "")"
                             @onclick="() => Select(stop)">
-                        <div class="drawer__stop-head">
-                            <span class="drawer__stop-seq">@(stop.Sequence + 1)</span>
-                            <span class="drawer__stop-address">@stop.Street, @stop.City</span>
-                            <span class="badge @StatusLabels.Css(stop.Status)">@StatusLabels.Stop(stop.Status)</span>
+                        <div class="pin @PinClass(stop)">@(stop.Sequence + 1)</div>
+                        <div class="allstops__row-info">
+                            <div class="allstops__row-address">@stop.Street</div>
+                            <div class="allstops__row-meta">@Customer(stop) · @Packages(stop)</div>
                         </div>
-                        <div class="drawer__stop-orders">
-                            @foreach (var order in stop.Orders)
-                            {
-                                <span class="drawer__order @StatusLabels.OrderCss(order.Status)">
-                                    @order.Recipient
-                                </span>
-                            }
-                        </div>
+                        <span class="badge @StatusLabels.Css(stop.Status)">@StatusLabels.Stop(stop.Status)</span>
                     </button>
                 </li>
             }
@@ -47,6 +42,28 @@
 
     [Parameter]
     public EventCallback OnClose { get; set; }
+
+    private string Summary
+    {
+        get
+        {
+            var done = Stops.Count(s => s.Status is "Completed" or "Failed" or "Skipped" or "PartiallyCompleted");
+            var remaining = Stops.Count - done;
+            return $"{done} done · {remaining} remaining";
+        }
+    }
+
+    private string PinClass(RouteStop stop) =>
+        stop.Id == CurrentStopId ? "pin-current" : StatusLabels.PinCss(stop.Status);
+
+    private static string Customer(RouteStop stop) =>
+        stop.Orders.FirstOrDefault()?.Recipient ?? "—";
+
+    private static string Packages(RouteStop stop)
+    {
+        var count = stop.Orders.Count;
+        return count == 1 ? "1 package" : $"{count} packages";
+    }
 
     private Task Select(RouteStop stop) => OnSelect.InvokeAsync(stop);
 

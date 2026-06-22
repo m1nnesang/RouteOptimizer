@@ -3,23 +3,23 @@
 @inject IRouteApi RouteApi
 @inject NavigationManager Navigation
 
-<PageTitle>Маршрут</PageTitle>
+<PageTitle>Route</PageTitle>
 
 <section class="screen">
-    <h1 class="screen__title">Маршрут на сегодня</h1>
+    <h1 class="screen__title">Today's route</h1>
 
     @if (_loading)
     {
-        <p class="screen__hint">Загрузка…</p>
+        <p class="screen__hint">Loading…</p>
     }
     else if (_error)
     {
-        <p class="screen__hint">Не удалось загрузить маршрут.</p>
-        <button class="btn btn--secondary" @onclick="LoadAsync">Повторить</button>
+        <p class="screen__hint">Failed to load route.</p>
+        <button class="btn btn--secondary" @onclick="LoadAsync">Retry</button>
     }
     else if (_routes.Count == 0)
     {
-        <p class="screen__hint">На сегодня маршрутов нет. Начните смену у диспетчера.</p>
+        <p class="screen__hint">No routes for today. Start your shift with the dispatcher.</p>
     }
     else
     {
@@ -32,7 +32,7 @@
                         <span class="badge @StatusLabels.Css(route.Status)">@StatusLabels.Route(route.Status)</span>
                     </div>
                     <div class="route-card__meta">
-                        <span>Остановок: @route.StopsCount</span>
+                        <span>Stops: @route.StopsCount</span>
                         @if (route.Date is { } date)
                         {
                             <span>@date.ToString("dd.MM.yyyy")</span>

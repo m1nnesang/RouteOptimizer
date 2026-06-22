@@ -46,7 +46,7 @@ public class StopCardTests : Bunit.TestContext
         var cut = RenderCard(Stop("InProgress", "Delivered"), routeInProgress: true);
 
         cut.FindAll("button.btn--success").Should().BeEmpty();
-        cut.Find(".order-row .badge").TextContent.Should().Be("Доставлен");
+        cut.Find(".order-row .badge").TextContent.Should().Be("Delivered");
     }
 
     [Fact]
@@ -54,14 +54,14 @@ public class StopCardTests : Bunit.TestContext
     {
         var stop = Stop("InProgress", "InTransit");
         var order = stop.Orders[0];
-        _routeApi.Setup(a => a.DeliverOrderAsync(It.IsAny<Guid>(), stop.Id, order.OrderId, It.IsAny<CancellationToken>()))
+        _routeApi.Setup(a => a.DeliverOrderAsync(It.IsAny<Guid>(), stop.Id, order.OrderId, It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(ApiResult.Ok);
         var changed = false;
 
         var cut = RenderCard(stop, routeInProgress: true, () => changed = true);
         cut.Find("button.btn--success").Click();
 
-        _routeApi.Verify(a => a.DeliverOrderAsync(It.IsAny<Guid>(), stop.Id, order.OrderId, It.IsAny<CancellationToken>()), Times.Once);
+        _routeApi.Verify(a => a.DeliverOrderAsync(It.IsAny<Guid>(), stop.Id, order.OrderId, It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
         changed.Should().BeTrue();
     }
 
@@ -69,14 +69,14 @@ public class StopCardTests : Bunit.TestContext
     public void DeliverFails_ShowsErrorAndDoesNotRaiseOnChanged()
     {
         var stop = Stop("InProgress", "InTransit");
-        _routeApi.Setup(a => a.DeliverOrderAsync(It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(ApiResult.Fail("Маршрут завершён"));
+        _routeApi.Setup(a => a.DeliverOrderAsync(It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(ApiResult.Fail("Route is done"));
         var changed = false;
 
         var cut = RenderCard(stop, routeInProgress: true, () => changed = true);
         cut.Find("button.btn--success").Click();
 
-        cut.Find(".action-error").TextContent.Should().Be("Маршрут завершён");
+        cut.Find(".action-error").TextContent.Should().Be("Route is done");
         changed.Should().BeFalse();
     }
 
@@ -84,16 +84,16 @@ public class StopCardTests : Bunit.TestContext
     public void SkippedStop_ShowsResumeButton_ThatCallsApi()
     {
         var stop = Stop("Skipped", "InTransit");
-        _routeApi.Setup(a => a.ResumeStopAsync(It.IsAny<Guid>(), stop.Id, It.IsAny<CancellationToken>()))
+        _routeApi.Setup(a => a.ResumeStopAsync(It.IsAny<Guid>(), stop.Id, It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(ApiResult.Ok);
 
         var cut = RenderCard(stop, routeInProgress: true);
         var resume = cut.Find("button.stop-card__skip");
-        resume.TextContent.Trim().Should().Be("Вернуться к стопу");
+        resume.TextContent.Trim().Should().Be("Return to stop");
 
         resume.Click();
 
-        _routeApi.Verify(a => a.ResumeStopAsync(It.IsAny<Guid>(), stop.Id, It.IsAny<CancellationToken>()), Times.Once);
+        _routeApi.Verify(a => a.ResumeStopAsync(It.IsAny<Guid>(), stop.Id, It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     private IRenderedComponent<StopCard> RenderCard(RouteStop stop, bool routeInProgress, Action? onChanged = null) =>
