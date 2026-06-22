@@ -12,7 +12,7 @@ public class Route : AggregateRoot<Guid>
 
     private Route() : base(default)
     {
-    } // EF Core
+    }
 
     private Route(Guid id, Guid warehouseId, DateOnly date) : base(id)
     {
@@ -72,8 +72,8 @@ public class Route : AggregateRoot<Guid>
 
     public void Start()
     {
-        if (Status is not (RouteStatus.Assigned or RouteStatus.Optimized))
-            throw new InvalidOperationException("Route is not assigned/optimized");
+        if (Status is not RouteStatus.Assigned)
+            throw new InvalidOperationException("Route is not assigned");
 
         if (AssignedShiftId is null)
             throw new InvalidOperationException("Shift is not assigned");
