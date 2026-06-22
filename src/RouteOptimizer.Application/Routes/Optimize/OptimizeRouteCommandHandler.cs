@@ -67,7 +67,7 @@ public class OptimizeRouteCommandHandler : IRequestHandler<OptimizeRouteCommand,
         var best = results.MinBy(r => r.TotalDurationSeconds)!;
 
         var comparisons = results
-            .Select(r => new AlgorithmComparison(r.AlgorithmName, r.TotalDurationSeconds))
+            .Select(r => new AlgorithmComparison(r.AlgorithmName, r.TotalDurationSeconds, r.ComputationTimeMs))
             .ToList();
 
         route.ApplyOptimizedOrders(best.OrderedStopIds);

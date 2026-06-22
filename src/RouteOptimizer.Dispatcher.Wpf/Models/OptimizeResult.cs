@@ -11,4 +11,5 @@ public class AlgorithmComparison
 {
     public string AlgorithmName { get; set; } = string.Empty;
     public double TotalDurationSeconds { get; set; }
+    public double ComputationTimeMs { get; set; }
 }

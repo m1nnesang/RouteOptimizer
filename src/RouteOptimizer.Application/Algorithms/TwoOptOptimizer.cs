@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using RouteOptimizer.Application.Abstractions;
 using RouteOptimizer.Application.Models;
 
@@ -22,6 +23,8 @@ public sealed class TwoOptOptimizer : IRouteOptimizer
         if (input.Matrix.Size != input.Stops.Count + 1)
             throw new InvalidOperationException("Matrix size does not match number of stops");
 
+        var stopwatch = Stopwatch.StartNew();
+
         var tour = BuildNearestNeighborTour(input.Matrix, input.Stops.Count);
 
         ImproveWithTwoOpt(tour, input.Matrix, ct);
@@ -31,11 +34,16 @@ public sealed class TwoOptOptimizer : IRouteOptimizer
             .Select(matrixIndex => input.Stops[matrixIndex - 1].StopId)
             .ToList();
 
+        var totalDuration = TourDuration(tour, input.Matrix);
+
+        stopwatch.Stop();
+
         return Task.FromResult(new RouteOptimizerOutput
         {
             OrderedStopIds = orderedStopIds,
-            TotalDurationSeconds = TourDuration(tour, input.Matrix),
-            AlgorithmName = Name
+            TotalDurationSeconds = totalDuration,
+            AlgorithmName = Name,
+            ComputationTimeMs = stopwatch.Elapsed.TotalMilliseconds
         });
     }
 

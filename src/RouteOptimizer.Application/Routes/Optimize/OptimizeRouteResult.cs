@@ -6,4 +6,4 @@ public record OptimizeRouteResult(
     IReadOnlyList<AlgorithmComparison> Comparisons
 );
 
-public record AlgorithmComparison(string AlgorithmName, double TotalDurationSeconds);
+public record AlgorithmComparison(string AlgorithmName, double TotalDurationSeconds, double ComputationTimeMs);

@@ -1,4 +1,5 @@
-﻿using RouteOptimizer.Application.Abstractions;
+﻿using System.Diagnostics;
+using RouteOptimizer.Application.Abstractions;
 using RouteOptimizer.Application.Models;
 
 namespace RouteOptimizer.Application.Algorithms;
@@ -19,6 +20,8 @@ public sealed class NearestNeighborOptimizer : IRouteOptimizer
 
         if (input.Matrix.Size != input.Stops.Count + 1)
             throw new InvalidOperationException("Matrix size does not match number of stops");
+
+        var stopwatch = Stopwatch.StartNew();
 
         List<Guid> orderedStopIds = [];
         double totalDurationSeconds = 0;
@@ -57,11 +60,14 @@ public sealed class NearestNeighborOptimizer : IRouteOptimizer
 
         totalDurationSeconds += input.Matrix.GetDuration(currentIndex, 0);
 
+        stopwatch.Stop();
+
         var output = new RouteOptimizerOutput
         {
             OrderedStopIds = orderedStopIds,
             TotalDurationSeconds = totalDurationSeconds,
-            AlgorithmName = Name
+            AlgorithmName = Name,
+            ComputationTimeMs = stopwatch.Elapsed.TotalMilliseconds
         };
 
         return Task.FromResult(output);
