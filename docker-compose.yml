@@ -124,6 +124,8 @@ services:
       - Jwt__Audience=RouteOptimizer
       - Jwt__AccessTokenExpirationMinutes=60
       - Jwt__RefreshTokenExpirationHours=12
+      - Cors__AllowedOrigins__0=http://localhost:5080
+      - Cors__AllowedOrigins__1=https://localhost:7080
       - Smtp__From=noreply@routeoptimizer.local
       - Smtp__UseSsl=false
 
