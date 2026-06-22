@@ -1,16 +1,17 @@
+using System.Globalization;
 using System.Net.Http;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Microsoft.Extensions.Options;
 using RouteOptimizer.Application.Abstractions;
 using RouteOptimizer.Application.Geocoding;
+using RouteOptimizer.Infrastructure.Settings;
 
 namespace RouteOptimizer.Infrastructure.Services;
 
 public class PhotonAddressAutocompleteService : IAddressAutocompleteService
 {
     private const int MinQueryLength = 3;
-    private const double PolandCenterLat = 52.0;
-    private const double PolandCenterLon = 19.0;
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -18,10 +19,12 @@ public class PhotonAddressAutocompleteService : IAddressAutocompleteService
     };
 
     private readonly HttpClient _client;
+    private readonly GeocodingSettings _settings;
 
-    public PhotonAddressAutocompleteService(IHttpClientFactory factory)
+    public PhotonAddressAutocompleteService(IHttpClientFactory factory, IOptions<GeocodingSettings> settings)
     {
         _client = factory.CreateClient("Photon");
+        _settings = settings.Value;
     }
 
     public async Task<IReadOnlyList<AddressSuggestion>> SuggestAsync(string query, CancellationToken ct)
@@ -30,8 +33,8 @@ public class PhotonAddressAutocompleteService : IAddressAutocompleteService
             return [];
 
         var url = $"api?q={Uri.EscapeDataString(query.Trim())}&limit=6&lang=en" +
-                  $"&lat={PolandCenterLat.ToString(System.Globalization.CultureInfo.InvariantCulture)}" +
-                  $"&lon={PolandCenterLon.ToString(System.Globalization.CultureInfo.InvariantCulture)}";
+                  $"&lat={_settings.BiasLatitude.ToString(CultureInfo.InvariantCulture)}" +
+                  $"&lon={_settings.BiasLongitude.ToString(CultureInfo.InvariantCulture)}";
 
         var response = await _client.GetAsync(url, ct);
         response.EnsureSuccessStatusCode();

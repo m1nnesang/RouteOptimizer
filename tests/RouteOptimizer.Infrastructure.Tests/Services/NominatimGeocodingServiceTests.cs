@@ -1,8 +1,10 @@
 using System.Net;
 using FluentAssertions;
+using Microsoft.Extensions.Options;
 using Moq;
 using RouteOptimizer.Domain.ValueObjects;
 using RouteOptimizer.Infrastructure.Services;
+using RouteOptimizer.Infrastructure.Settings;
 
 namespace RouteOptimizer.Infrastructure.Tests.Services;
 
@@ -14,7 +16,7 @@ public class NominatimGeocodingServiceTests
         var client = new HttpClient(handler) { BaseAddress = new Uri("https://nominatim.openstreetmap.org/") };
         var factory = new Mock<IHttpClientFactory>();
         factory.Setup(f => f.CreateClient("Nominatim")).Returns(client);
-        return new NominatimGeocodingService(factory.Object);
+        return new NominatimGeocodingService(factory.Object, Options.Create(new GeocodingSettings()));
     }
 
     private static Address TestAddress() =>

@@ -1,4 +1,5 @@
-﻿using System.Net.Http.Json;
+﻿using System.Globalization;
+using System.Net.Http.Json;
 using System.Text.Json.Serialization;
 using RouteOptimizer.Application.Abstractions;
 using RouteOptimizer.Application.Models;
@@ -16,11 +17,11 @@ public sealed class OsrmDistanceMatrixProvider : IDistanceMatrixProvider
         CancellationToken ct = default)
     {
         var coords = new List<string>();
-        coords.Add($"{warehouse.Lon},{warehouse.Lat}");
+        coords.Add(FormatCoord(warehouse.Lon, warehouse.Lat));
 
         foreach (var stopCoords in input )
         {
-            coords.Add($"{stopCoords.Lon},{stopCoords.Lat}");
+            coords.Add(FormatCoord(stopCoords.Lon, stopCoords.Lat));
         }
 
         var coordsString = string.Join(";", coords);
@@ -47,6 +48,9 @@ public sealed class OsrmDistanceMatrixProvider : IDistanceMatrixProvider
 
        return new DistanceMatrix(matrix);
     }
+
+    private static string FormatCoord(double lon, double lat) =>
+        $"{lon.ToString(CultureInfo.InvariantCulture)},{lat.ToString(CultureInfo.InvariantCulture)}";
 
     private sealed record OsrmTableResponse(
         [property: JsonPropertyName("durations")] double[][] Durations
