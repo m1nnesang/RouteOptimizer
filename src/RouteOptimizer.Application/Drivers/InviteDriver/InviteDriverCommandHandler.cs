@@ -13,14 +13,17 @@ public class InviteDriverCommandHandler : IRequestHandler<InviteDriverCommand,Re
     private readonly IUnitOfWork _unitOfWork;
     private readonly IUserInvitationRepository _invitationRepository;
     private readonly IMailService _mailService;
+    private readonly IClientUrlBuilder _clientUrlBuilder;
 
     public InviteDriverCommandHandler(IUserRepository userRepository, IUnitOfWork unitOfWork,
-        IUserInvitationRepository userInvitationRepository, IMailService mailService)
+        IUserInvitationRepository userInvitationRepository, IMailService mailService,
+        IClientUrlBuilder clientUrlBuilder)
     {
         _userRepository = userRepository;
         _unitOfWork = unitOfWork;
         _invitationRepository = userInvitationRepository;
         _mailService = mailService;
+        _clientUrlBuilder = clientUrlBuilder;
     }
 
     public async Task<Result> Handle(InviteDriverCommand request, CancellationToken ct)
@@ -56,7 +59,7 @@ public class InviteDriverCommandHandler : IRequestHandler<InviteDriverCommand,Re
         var message = new MailMessage(
             request.Email,
             "Invitation to Route Optimizer",
-            $"Registration link: https://app/accept-invitation?token={invitation.Token}"
+            $"Registration link: {_clientUrlBuilder.AcceptInvitation(invitation.Token)}"
         );
 
         var mailResult = await _mailService.SendAsync(message, ct);

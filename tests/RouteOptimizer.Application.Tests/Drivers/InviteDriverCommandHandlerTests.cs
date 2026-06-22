@@ -15,6 +15,7 @@ public class InviteDriverCommandHandlerTests
     private readonly Mock<IUserInvitationRepository> _invitationRepo = new();
     private readonly Mock<IMailService> _mailService = new();
     private readonly Mock<IUnitOfWork> _unitOfWork = new();
+    private readonly Mock<IClientUrlBuilder> _clientUrlBuilder = new();
     private readonly InviteDriverCommandHandler _handler;
 
     public InviteDriverCommandHandlerTests()
@@ -23,7 +24,8 @@ public class InviteDriverCommandHandlerTests
             _userRepo.Object,
             _unitOfWork.Object,
             _invitationRepo.Object,
-            _mailService.Object);
+            _mailService.Object,
+            _clientUrlBuilder.Object);
     }
 
     #region Failure Cases

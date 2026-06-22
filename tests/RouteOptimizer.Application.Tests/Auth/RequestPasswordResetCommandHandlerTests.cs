@@ -14,15 +14,18 @@ public class RequestPasswordResetCommandHandlerTests
     private readonly Mock<IPasswordResetTokenRepository> _tokenRepo = new();
     private readonly Mock<IUnitOfWork> _unitOfWork = new();
     private readonly Mock<IMailService> _mailService = new();
+    private readonly Mock<IClientUrlBuilder> _clientUrlBuilder = new();
     private readonly RequestPasswordResetCommandHandler _handler;
 
     public RequestPasswordResetCommandHandlerTests()
     {
         _mailService.Setup(x => x.SendAsync(It.IsAny<MailMessage>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Domain.Common.Result.Success());
+        _clientUrlBuilder.Setup(x => x.ResetPassword(It.IsAny<string>()))
+            .Returns((string t) => $"http://localhost:5080/reset-password?token={t}");
 
         _handler = new RequestPasswordResetCommandHandler(
-            _userRepo.Object, _tokenRepo.Object, _unitOfWork.Object, _mailService.Object);
+            _userRepo.Object, _tokenRepo.Object, _unitOfWork.Object, _mailService.Object, _clientUrlBuilder.Object);
     }
 
     private static User ActiveUser() =>

@@ -13,14 +13,16 @@ public class RequestPasswordResetCommandHandler : IRequestHandler<RequestPasswor
     private readonly IPasswordResetTokenRepository _tokenRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMailService _mailService;
+    private readonly IClientUrlBuilder _clientUrlBuilder;
 
     public RequestPasswordResetCommandHandler(
         IUserRepository userRepository,
         IPasswordResetTokenRepository tokenRepository,
         IUnitOfWork unitOfWork,
-        IMailService mailService) =>
-        (_userRepository, _tokenRepository, _unitOfWork, _mailService) =
-        (userRepository, tokenRepository, unitOfWork, mailService);
+        IMailService mailService,
+        IClientUrlBuilder clientUrlBuilder) =>
+        (_userRepository, _tokenRepository, _unitOfWork, _mailService, _clientUrlBuilder) =
+        (userRepository, tokenRepository, unitOfWork, mailService, clientUrlBuilder);
 
     public async Task<Result> Handle(RequestPasswordResetCommand request, CancellationToken ct)
     {
@@ -36,7 +38,7 @@ public class RequestPasswordResetCommandHandler : IRequestHandler<RequestPasswor
         var message = new MailMessage(
             user.Email,
             "Password reset for Route Optimizer",
-            $"Reset link: https://app/reset-password?token={resetToken.Token}"
+            $"Reset link: {_clientUrlBuilder.ResetPassword(resetToken.Token)}"
         );
 
         await _mailService.SendAsync(message, ct);

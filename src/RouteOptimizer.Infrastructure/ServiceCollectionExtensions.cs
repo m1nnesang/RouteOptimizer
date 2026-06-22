@@ -36,6 +36,8 @@ public static class ServiceCollectionExtensions
         });
 
         services.Configure<GeocodingSettings>(configuration.GetSection("Geocoding"));
+        services.Configure<ClientAppSettings>(configuration.GetSection("ClientApp"));
+        services.AddSingleton<IClientUrlBuilder, ClientUrlBuilder>();
 
         var photonBaseUrl = configuration["Photon:BaseUrl"] ?? "https://photon.komoot.io/";
         services.AddHttpClient("Photon", client =>
