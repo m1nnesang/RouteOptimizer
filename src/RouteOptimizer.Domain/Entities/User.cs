@@ -26,7 +26,7 @@ public class User : AggregateRoot<Guid>
         LastName = null!;
         PasswordHash = null!;
         PhoneNumber = null!;
-    } // EF Core
+    }
 
     private User(Guid id, string email, string firstName, string lastName, string passwordHash, PhoneNumber phoneNumber,
         UserRole role, Guid? warehouseId, DriverProfile? driverProfile) : base(id)

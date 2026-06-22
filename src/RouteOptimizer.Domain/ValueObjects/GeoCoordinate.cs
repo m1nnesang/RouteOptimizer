@@ -6,7 +6,7 @@ public class GeoCoordinate : ValueObject
 {
     private GeoCoordinate()
     {
-    } // EF Core
+    }
 
     private GeoCoordinate(double latitude, double longitude)
     {

@@ -14,7 +14,7 @@ public abstract class Order : AggregateRoot<Guid>
         Weight = null!;
         Volume = null!;
         Number = null!;
-    } // EF Core
+    }
 
     protected Order(Guid id, Guid warehouseId, Address address, GeoCoordinate location, Weight weight, Volume volume,
         DeliveryWindow? deliveryWindow, PhoneNumber number, CargoType cargoType, string? notes) : base(id)

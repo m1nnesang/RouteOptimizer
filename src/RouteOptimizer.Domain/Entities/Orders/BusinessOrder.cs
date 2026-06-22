@@ -10,7 +10,7 @@ public class BusinessOrder : Order
     private BusinessOrder()
     {
         CompanyName = null!;
-    } // EF Core
+    }
 
     private BusinessOrder(Guid id, Guid warehouseId, Address address, GeoCoordinate location,
         Weight weight, Volume volume, DeliveryWindow deliveryWindow, PhoneNumber number, CargoType cargoType,

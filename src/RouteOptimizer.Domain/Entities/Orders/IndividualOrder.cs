@@ -10,7 +10,7 @@ public class IndividualOrder : Order
     private IndividualOrder()
     {
         CustomerName = null!;
-    } // EF Core
+    }
 
     private IndividualOrder(Guid id, Guid warehouseId, Address address, GeoCoordinate location,
         Weight weight, Volume volume, DeliveryWindow? deliveryWindow, PhoneNumber number, CargoType cargoType,

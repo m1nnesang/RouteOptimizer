@@ -10,7 +10,7 @@ public class Address : ValueObject
         City = null!;
         PostalCode = null!;
         Country = null!;
-    } // EF Core
+    }
 
     private Address(string street, string city, string postalCode, string country, string? apartment)
     {

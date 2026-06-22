@@ -7,7 +7,7 @@ public class DeliveryWindow : ValueObject
 {
     private DeliveryWindow()
     {
-    } // EF Core
+    }
 
     private DeliveryWindow(TimeOnly? start, TimeOnly? end, WindowStrictness strictness, TimeSpan? tolerance)
     {

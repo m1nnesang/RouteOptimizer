@@ -10,7 +10,7 @@ public class  Warehouse : AggregateRoot<Guid>
         Name = null!;
         Address = null!;
         Location = null!;
-    } // EF Core
+    }
 
     private Warehouse(Guid id, string name, Address address, GeoCoordinate location) : base(id)
     {

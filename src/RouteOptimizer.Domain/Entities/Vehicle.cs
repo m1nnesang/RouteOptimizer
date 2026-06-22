@@ -12,7 +12,7 @@ public class Vehicle : AggregateRoot<Guid>
         MaxWeightKg = null!;
         MaxVolumeM3 = null!;
         AllowedCargoTypes = [];
-    } // EF Core
+    }
 
     private Vehicle(Guid id, Guid warehouseId, string type, Weight maxWeightKg, Volume maxVolumeM3,
         LicenseCategory licenseCategory, IReadOnlyList<CargoType> allowedCargoTypes) : base(id)

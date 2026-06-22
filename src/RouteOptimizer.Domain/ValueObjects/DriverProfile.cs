@@ -7,7 +7,7 @@ public class DriverProfile : ValueObject
 {
     private DriverProfile()
     {
-    } // EF Core
+    }
 
     public DriverProfile(LicenseCategory highestLicenseCategory)
     {

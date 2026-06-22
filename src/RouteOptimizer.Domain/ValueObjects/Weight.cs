@@ -6,7 +6,7 @@ public class Weight : ValueObject
 {
     private Weight()
     {
-    } // EF Core
+    }
 
     private Weight(decimal value)
     {

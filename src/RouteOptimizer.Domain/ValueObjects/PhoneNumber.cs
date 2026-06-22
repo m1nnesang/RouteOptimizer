@@ -8,7 +8,7 @@ public class PhoneNumber : ValueObject
     private PhoneNumber()
     {
         Value = null!;
-    } // EF Core
+    }
 
     private PhoneNumber(string value)
     {

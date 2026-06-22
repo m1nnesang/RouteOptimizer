@@ -32,8 +32,6 @@ public class GetShiftsQueryHandler : IRequestHandler<GetShiftsQuery, PagedResult
         var (shifts, totalCount) = await _shiftRepository.GetAllAsync(
             _currentUser.WarehouseId, request.Date, skip, request.PageSize, ct);
 
-        // Awaited sequentially: the repositories share one scoped AppDbContext,
-        // which does not support concurrent operations.
         var drivers = await _userRepository.GetByIdsAsync(shifts.Select(s => s.DriverId).Distinct(), ct);
         var vehicles = await _vehicleRepository.GetByIdsAsync(shifts.Select(s => s.VehicleId).Distinct(), ct);
         var warehouses = await _warehouseRepository.GetAllAsync(ct);

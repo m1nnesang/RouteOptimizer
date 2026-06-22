@@ -12,7 +12,7 @@ public class Stop : Entity<Guid>
         Address = null!;
         Location = null!;
         Orders = null!;
-    } // EF Core
+    }
 
     private Stop(Guid id, Guid routeId, Address address, GeoCoordinate location, DeliveryWindow? deliveryWindow,
         int sequence, IReadOnlyList<Guid> orders) : base(id)

@@ -6,7 +6,7 @@ public class Volume : ValueObject
 {
     private Volume()
     {
-    } // EF Core
+    }
 
     private Volume(decimal value)
     {

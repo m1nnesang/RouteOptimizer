@@ -12,7 +12,7 @@ public class DriverShift : AggregateRoot<Guid>
         ShiftDate = default;
         StartedAt = null;
         EndedAt = null;
-    } // EF Core
+    }
 
     private DriverShift(Guid id, Guid driverId, Guid vehicleId, Guid warehouseId, DateOnly shiftDate,
         DateTime? startedAt, DateTime? endedAt) : base(id)
