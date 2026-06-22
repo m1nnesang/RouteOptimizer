@@ -53,7 +53,18 @@
                     <DataGridTextColumn Header="Date" Binding="{Binding ShiftDate, StringFormat=dd.MM.yyyy}" Width="100"/>
                     <DataGridTextColumn Header="Started" Binding="{Binding StartedAt, StringFormat=HH:mm}" Width="80"/>
                     <DataGridTextColumn Header="Ended" Binding="{Binding EndedAt, StringFormat=HH:mm}" Width="80"/>
-                    <DataGridTextColumn Header="Status" Binding="{Binding ShiftStatus}" Width="*"/>
+                    <DataGridTemplateColumn Header="Status" Width="*">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Border Style="{StaticResource StatusChipStyle}"
+                                        Background="{Binding ShiftStatus, Converter={StaticResource StatusChipBgConverter}}">
+                                    <TextBlock Text="{Binding ShiftStatus}"
+                                               Style="{StaticResource StatusChipTextStyle}"
+                                               Foreground="{Binding ShiftStatus, Converter={StaticResource StatusChipFgConverter}}"/>
+                                </Border>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
                 </DataGrid.Columns>
             </DataGrid>
                 <TextBlock Text="No shifts for the selected period."

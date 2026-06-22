@@ -69,9 +69,27 @@
                               Background="Transparent">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Date" Binding="{Binding Date, StringFormat=dd.MM.yyyy}" Width="95"/>
-                            <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="100"/>
-                            <DataGridTextColumn Header="Stops" Binding="{Binding StopsCount}" Width="55"/>
-                            <DataGridTextColumn Header="Driver" Binding="{Binding DriverName}" Width="*"/>
+                            <DataGridTemplateColumn Header="Status" Width="110">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Border Style="{StaticResource StatusChipStyle}"
+                                                Background="{Binding Status, Converter={StaticResource StatusChipBgConverter}}">
+                                            <TextBlock Text="{Binding Status}"
+                                                       Style="{StaticResource StatusChipTextStyle}"
+                                                       Foreground="{Binding Status, Converter={StaticResource StatusChipFgConverter}}"/>
+                                        </Border>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTextColumn Header="Stops" Binding="{Binding StopsCount}" Width="48"/>
+                            <DataGridTextColumn Header="Driver" Binding="{Binding DriverName}" Width="*">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Foreground" Value="{StaticResource TextLinkBrush}"/>
+                                        <Setter Property="VerticalAlignment" Value="Center"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
                         </DataGrid.Columns>
                     </DataGrid>
 
@@ -110,7 +128,12 @@
                         <WrapPanel>
                             <StackPanel Orientation="Horizontal" Margin="0,0,28,0">
                                 <TextBlock Text="Status" Style="{StaticResource CaptionTextStyle}" Margin="0,0,6,0"/>
-                                <TextBlock Text="{Binding SelectedRoute.Status}" FontWeight="SemiBold"/>
+                                <Border Style="{StaticResource StatusChipStyle}"
+                                        Background="{Binding SelectedRoute.Status, Converter={StaticResource StatusChipBgConverter}}">
+                                    <TextBlock Text="{Binding SelectedRoute.Status}"
+                                               Style="{StaticResource StatusChipTextStyle}"
+                                               Foreground="{Binding SelectedRoute.Status, Converter={StaticResource StatusChipFgConverter}}"/>
+                                </Border>
                             </StackPanel>
                             <StackPanel Orientation="Horizontal" Margin="0,0,28,0">
                                 <TextBlock Text="Date" Style="{StaticResource CaptionTextStyle}" Margin="0,0,6,0"/>
@@ -136,9 +159,9 @@
                                 Command="{Binding InsertUrgentOrderCommand}" Margin="0,0,8,0"/>
                         <Button Content="Handover" Style="{StaticResource SecondaryButtonStyle}"
                                 Command="{Binding HandoverCommand}" Margin="0,0,8,0"/>
-                        <Button Content="Interrupt" Style="{StaticResource SecondaryButtonStyle}"
+                        <Button Content="Interrupt" Style="{StaticResource AmberButtonStyle}"
                                 Command="{Binding InterruptRouteCommand}" Margin="0,0,8,0"/>
-                        <Button Content="Cancel route" Style="{StaticResource SecondaryButtonStyle}"
+                        <Button Content="Cancel route" Style="{StaticResource DangerButtonStyle}"
                                 Command="{Binding CancelRouteCommand}"/>
                     </StackPanel>
 
@@ -157,16 +180,46 @@
                                       RowDetailsVisibilityMode="VisibleWhenSelected"
                                       PreviewMouseLeftButtonDown="StopsGrid_PreviewMouseLeftButtonDown">
                                 <DataGrid.Columns>
-                                    <DataGridTextColumn Header="#" Binding="{Binding Position}" Width="40"/>
-                                    <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="90"/>
+                                    <DataGridTemplateColumn Header="#" Width="40">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <Border Width="22" Height="22" CornerRadius="6"
+                                                        HorizontalAlignment="Left" VerticalAlignment="Center"
+                                                        Background="{Binding Status, Converter={StaticResource StatusChipBgConverter}}">
+                                                    <TextBlock Text="{Binding Position}" FontSize="11" FontWeight="SemiBold"
+                                                               HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                               Foreground="{Binding Status, Converter={StaticResource StatusChipFgConverter}}"/>
+                                                </Border>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+                                    <DataGridTemplateColumn Header="Status" Width="100">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <Border Style="{StaticResource StatusChipStyle}"
+                                                        Background="{Binding Status, Converter={StaticResource StatusChipBgConverter}}">
+                                                    <TextBlock Text="{Binding Status}"
+                                                               Style="{StaticResource StatusChipTextStyle}"
+                                                               Foreground="{Binding Status, Converter={StaticResource StatusChipFgConverter}}"/>
+                                                </Border>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
                                     <DataGridTextColumn Header="City" Binding="{Binding City}" Width="100"/>
-                                    <DataGridTextColumn Header="Street" Binding="{Binding Street}" Width="*"/>
+                                    <DataGridTextColumn Header="Street" Binding="{Binding Street}" Width="*">
+                                        <DataGridTextColumn.ElementStyle>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Foreground" Value="{StaticResource TextLinkBrush}"/>
+                                                <Setter Property="VerticalAlignment" Value="Center"/>
+                                            </Style>
+                                        </DataGridTextColumn.ElementStyle>
+                                    </DataGridTextColumn>
                                     <DataGridTemplateColumn Header="Orders" Width="70">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
                                                 <StackPanel Orientation="Horizontal">
                                                     <TextBlock Text="{Binding OrdersCount}" VerticalAlignment="Center"/>
-                                                    <TextBlock Text="▾" Margin="6,0,0,0" Foreground="#2563EB"
+                                                    <TextBlock Text="▾" Margin="6,0,0,0" Foreground="{StaticResource TextLinkBrush}"
                                                                VerticalAlignment="Center"
                                                                Visibility="{Binding HasMultipleOrders, Converter={StaticResource BoolToVisibilityConverter}}"/>
                                                 </StackPanel>
@@ -176,7 +229,7 @@
                                 </DataGrid.Columns>
                                 <DataGrid.RowDetailsTemplate>
                                     <DataTemplate>
-                                        <Border Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="0,1,0,0"
+                                        <Border Background="{StaticResource BgRowAltBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0"
                                                 Padding="48,8,12,8">
                                             <ItemsControl ItemsSource="{Binding Orders}">
                                                 <ItemsControl.ItemTemplate>
@@ -189,10 +242,10 @@
                                                                 <ColumnDefinition Width="Auto"/>
                                                                 <ColumnDefinition Width="Auto"/>
                                                             </Grid.ColumnDefinitions>
-                                                            <TextBlock Grid.Column="0" Text="{Binding Type}" Foreground="#64748B"/>
-                                                            <TextBlock Grid.Column="1" Text="{Binding ApartmentDisplay}" Foreground="#64748B"/>
+                                                            <TextBlock Grid.Column="0" Text="{Binding Type}" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                            <TextBlock Grid.Column="1" Text="{Binding ApartmentDisplay}" Foreground="{StaticResource TextSecondaryBrush}"/>
                                                             <TextBlock Grid.Column="2" Text="{Binding Recipient}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
-                                                            <TextBlock Grid.Column="3" Text="{Binding Phone}" Foreground="#64748B" Margin="0,0,8,0"/>
+                                                            <TextBlock Grid.Column="3" Text="{Binding Phone}" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,8,0"/>
                                                             <Button Grid.Column="4" Content="Proof"
                                                                     Padding="8,1" FontSize="11"
                                                                     Style="{StaticResource SecondaryButtonStyle}"
@@ -219,7 +272,7 @@
 
                     <Border Grid.Row="3"
                             Margin="0,12,0,0" Padding="16,12"
-                            Background="#EFF6FF" BorderBrush="#BFDBFE" BorderThickness="1" CornerRadius="12"
+                            Background="{StaticResource AccentSoftBrush}" BorderBrush="{StaticResource BorderCardBrush}" BorderThickness="1" CornerRadius="12"
                             Visibility="{Binding HasOptimizationResult, Converter={StaticResource BoolToVisibilityConverter}}">
                         <Grid>
                             <Grid.RowDefinitions>

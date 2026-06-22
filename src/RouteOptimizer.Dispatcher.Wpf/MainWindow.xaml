@@ -5,8 +5,19 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:RouteOptimizer.Dispatcher.Wpf.ViewModels"
         xmlns:views="clr-namespace:RouteOptimizer.Dispatcher.Wpf.Views"
+        xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
         mc:Ignorable="d"
-        Title="Route Optimizer — Dispatcher" Height="600" Width="1000">
+        Title="Route Optimizer — Dispatcher" Height="680" Width="1180"
+        MinHeight="560" MinWidth="980"
+        WindowStyle="None"
+        Background="{StaticResource WindowBackgroundBrush}"
+        StateChanged="Window_StateChanged">
+    <shell:WindowChrome.WindowChrome>
+        <shell:WindowChrome CaptionHeight="30" ResizeBorderThickness="6"
+                            CornerRadius="0" GlassFrameThickness="0"
+                            UseAeroCaptionButtons="False"/>
+    </shell:WindowChrome.WindowChrome>
+
     <Window.Resources>
         <DataTemplate DataType="{x:Type vm:OrdersViewModel}">
             <views:OrdersView/>
@@ -23,66 +34,116 @@
         <DataTemplate DataType="{x:Type vm:WarehousesViewModel}">
             <views:WarehousesView/>
         </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:DashboardViewModel}">
+            <views:DashboardView/>
+        </DataTemplate>
     </Window.Resources>
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="60" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
 
-        <Border Grid.Row="0" Background="{StaticResource NavBarBrush}">
-            <Grid>
+    <Border x:Name="RootBorder">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="30" />
+                <RowDefinition Height="50" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <!-- Custom titlebar -->
+            <Grid Grid.Row="0" Background="{StaticResource BgDeepBrush}">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <StackPanel Grid.Column="0" Orientation="Horizontal" Margin="20,0">
-                    <Border Width="34" Height="34" CornerRadius="8"
-                            Background="{StaticResource PrimaryBrush}"
-                            VerticalAlignment="Center">
-                        <TextBlock Text="R" Foreground="White" FontSize="18" FontWeight="Bold"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                    </Border>
-                    <TextBlock Text="Route Optimizer" Foreground="White"
-                               FontSize="16" FontWeight="SemiBold"
-                               VerticalAlignment="Center" Margin="12,0,0,0"/>
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Margin="12,0,0,0" VerticalAlignment="Center">
+                    <Border Width="12" Height="12" CornerRadius="3" Background="{StaticResource PrimaryBrush}"/>
+                    <TextBlock Text="Route Optimizer — Dispatcher" FontSize="12"
+                               Foreground="{StaticResource TextSecondaryBrush}"
+                               VerticalAlignment="Center" Margin="9,0,0,0"/>
                 </StackPanel>
 
                 <StackPanel Grid.Column="1" Orientation="Horizontal"
-                            HorizontalAlignment="Right" Margin="0,0,12,0">
-                    <Button Content="Orders" Style="{StaticResource NavButtonStyle}"
-                            Command="{Binding ShowOrdersCommand}" Margin="2,10" />
-                    <Button Content="Routes" Style="{StaticResource NavButtonStyle}"
-                            Command="{Binding ShowRoutesCommand}" Margin="2,10" />
-                    <Button Content="Drivers" Style="{StaticResource NavButtonStyle}"
-                            Command="{Binding ShowDriversCommand}" Margin="2,10" />
-                    <Button Content="Vehicles" Style="{StaticResource NavButtonStyle}"
-                            Command="{Binding ShowVehiclesCommand}" Margin="2,10" />
-                    <Button Content="Warehouses" Style="{StaticResource NavButtonStyle}"
-                            Command="{Binding ShowWarehousesCommand}" Margin="2,10" />
+                            shell:WindowChrome.IsHitTestVisibleInChrome="True">
+                    <Button x:Name="MinimizeButton" Content="&#xE921;"
+                            Style="{StaticResource CaptionButtonStyle}"
+                            Click="MinimizeButton_Click"/>
+                    <Button x:Name="MaximizeButton" Content="&#xE922;"
+                            Style="{StaticResource CaptionButtonStyle}"
+                            Click="MaximizeButton_Click"/>
+                    <Button x:Name="CloseButton" Content="&#xE8BB;"
+                            Style="{StaticResource CloseCaptionButtonStyle}"
+                            Click="CloseButton_Click"/>
                 </StackPanel>
             </Grid>
-        </Border>
 
-        <Border Grid.Row="1" Background="#FEF3C7" BorderBrush="#F59E0B" BorderThickness="0,0,0,1"
-                Padding="20,10"
-                Visibility="{Binding IsSessionExpired, Converter={StaticResource BoolToVisibilityConverter}}">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0" VerticalAlignment="Center"
-                           Foreground="#92400E" TextWrapping="Wrap"
-                           Text="Your session has expired or the connection was lost. Please sign in again."/>
-                <Button Grid.Column="1" Content="Sign in again"
-                        Command="{Binding ReLoginCommand}"/>
-            </Grid>
-        </Border>
+            <!-- Navigation bar -->
+            <Border Grid.Row="1" Background="{StaticResource NavBarBrush}"
+                    BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
 
-        <ContentControl Grid.Row="2"
-                        Content="{Binding CurrentViewModel}" />
-    </Grid>
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" Margin="16,0" VerticalAlignment="Center">
+                        <Border Width="30" Height="30" CornerRadius="9"
+                                Background="{StaticResource PrimaryBrush}" VerticalAlignment="Center">
+                            <TextBlock Text="R" Foreground="White" FontSize="16" FontWeight="Bold"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <TextBlock Text="Route Optimizer" Foreground="{StaticResource TextPrimaryBrush}"
+                                   FontSize="14" FontWeight="SemiBold"
+                                   VerticalAlignment="Center" Margin="10,0,0,0"/>
+                        <Border CornerRadius="6" Background="{StaticResource AccentSoftBrush}"
+                                Padding="8,3" Margin="10,0,0,0" VerticalAlignment="Center">
+                            <TextBlock Text="DISPATCHER" Foreground="{StaticResource TextLinkBrush}"
+                                       FontSize="10" FontWeight="SemiBold"/>
+                        </Border>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1" Orientation="Horizontal"
+                                HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,12,0">
+                        <RadioButton Content="Orders" GroupName="Nav" Style="{StaticResource NavPillStyle}"
+                                     Command="{Binding ShowOrdersCommand}"
+                                     IsChecked="{Binding ActiveTab, Mode=OneWay, Converter={StaticResource EqualsConverter}, ConverterParameter=Orders}"/>
+                        <RadioButton Content="Routes" GroupName="Nav" Style="{StaticResource NavPillStyle}"
+                                     Command="{Binding ShowRoutesCommand}"
+                                     IsChecked="{Binding ActiveTab, Mode=OneWay, Converter={StaticResource EqualsConverter}, ConverterParameter=Routes}"/>
+                        <RadioButton Content="Drivers" GroupName="Nav" Style="{StaticResource NavPillStyle}"
+                                     Command="{Binding ShowDriversCommand}"
+                                     IsChecked="{Binding ActiveTab, Mode=OneWay, Converter={StaticResource EqualsConverter}, ConverterParameter=Drivers}"/>
+                        <RadioButton Content="Vehicles" GroupName="Nav" Style="{StaticResource NavPillStyle}"
+                                     Command="{Binding ShowVehiclesCommand}"
+                                     IsChecked="{Binding ActiveTab, Mode=OneWay, Converter={StaticResource EqualsConverter}, ConverterParameter=Vehicles}"/>
+                        <RadioButton Content="Warehouses" GroupName="Nav" Style="{StaticResource NavPillStyle}"
+                                     Command="{Binding ShowWarehousesCommand}"
+                                     IsChecked="{Binding ActiveTab, Mode=OneWay, Converter={StaticResource EqualsConverter}, ConverterParameter=Warehouses}"/>
+                        <RadioButton Content="Dashboard" GroupName="Nav" Style="{StaticResource NavPillStyle}"
+                                     Command="{Binding ShowDashboardCommand}"
+                                     IsChecked="{Binding ActiveTab, Mode=OneWay, Converter={StaticResource EqualsConverter}, ConverterParameter=Dashboard}"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Session expired banner -->
+            <Border Grid.Row="2" Background="#352A16" BorderBrush="#4A3A1A" BorderThickness="0,0,0,1"
+                    Padding="20,10"
+                    Visibility="{Binding IsSessionExpired, Converter={StaticResource BoolToVisibilityConverter}}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" VerticalAlignment="Center"
+                               Foreground="{StaticResource AmberBrush}" TextWrapping="Wrap"
+                               Text="Your session has expired or the connection was lost. Please sign in again."/>
+                    <Button Grid.Column="1" Content="Sign in again"
+                            Command="{Binding ReLoginCommand}"/>
+                </Grid>
+            </Border>
+
+            <ContentControl Grid.Row="3"
+                            Content="{Binding CurrentViewModel}" />
+        </Grid>
+    </Border>
 </Window>

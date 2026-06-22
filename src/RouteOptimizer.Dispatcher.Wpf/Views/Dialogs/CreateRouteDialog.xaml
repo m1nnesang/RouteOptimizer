@@ -23,8 +23,8 @@
         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,12">
             <TextBlock Text="Select orders for the new route"
                        Style="{StaticResource HeaderTextStyle}" FontSize="18"/>
-            <Border Background="#DBEAFE" CornerRadius="10" Padding="10,3" Margin="16,0,0,0" VerticalAlignment="Center">
-                <TextBlock VerticalAlignment="Center" Foreground="{StaticResource PrimaryDarkBrush}" FontWeight="SemiBold">
+            <Border Background="{StaticResource AccentSoftBrush}" CornerRadius="10" Padding="10,3" Margin="16,0,0,0" VerticalAlignment="Center">
+                <TextBlock VerticalAlignment="Center" Foreground="{StaticResource TextLinkBrush}" FontWeight="SemiBold">
                     <Run Text="{Binding SelectedCount, Mode=OneWay}"/>
                     <Run Text="selected"/>
                 </TextBlock>

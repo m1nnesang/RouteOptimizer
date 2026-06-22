@@ -1,13 +1,17 @@
 ﻿<Application x:Class="RouteOptimizer.Dispatcher.Wpf.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:RouteOptimizer.Dispatcher.Wpf">
+             xmlns:local="clr-namespace:RouteOptimizer.Dispatcher.Wpf"
+             xmlns:conv="clr-namespace:RouteOptimizer.Dispatcher.Wpf.Converters">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="Themes/Theme.xaml"/>
             </ResourceDictionary.MergedDictionaries>
             <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+            <conv:StatusToChipBrushConverter x:Key="StatusChipBgConverter" Foreground="False"/>
+            <conv:StatusToChipBrushConverter x:Key="StatusChipFgConverter" Foreground="True"/>
+            <conv:EqualsConverter x:Key="EqualsConverter"/>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

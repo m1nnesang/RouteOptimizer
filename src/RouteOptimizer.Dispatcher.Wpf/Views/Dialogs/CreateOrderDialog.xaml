@@ -21,7 +21,6 @@
         <TextBlock Grid.Row="0" Text="{Binding Title}"
                    Style="{StaticResource HeaderTextStyle}" FontSize="18" Margin="0,0,0,16"/>
 
-        <!-- Step 1: choose order type -->
         <StackPanel Grid.Row="1" VerticalAlignment="Top"
                     Visibility="{Binding IsTypeNotSelected, Converter={StaticResource BoolToVisibilityConverter}}">
             <TextBlock Text="Choose the order type to continue."
@@ -60,7 +59,6 @@
             </Button>
         </StackPanel>
 
-        <!-- Step 2: order details -->
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto"
                       Visibility="{Binding IsTypeSelected, Converter={StaticResource BoolToVisibilityConverter}}">
             <StackPanel Margin="0,0,8,0">
@@ -69,7 +67,6 @@
                           SelectedItem="{Binding SelectedWarehouse}"
                           DisplayMemberPath="Name" Margin="0,0,0,12"/>
 
-                <!-- Business-only -->
                 <StackPanel Visibility="{Binding IsBusiness, Converter={StaticResource BoolToVisibilityConverter}}">
                     <TextBlock Text="Company name" Style="{StaticResource CaptionTextStyle}" Margin="0,0,0,4"/>
                     <TextBox Text="{Binding CompanyName, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,12"/>
@@ -78,7 +75,6 @@
                     <TextBox Text="{Binding ContactPerson, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,12"/>
                 </StackPanel>
 
-                <!-- Individual-only -->
                 <StackPanel Visibility="{Binding IsIndividual, Converter={StaticResource BoolToVisibilityConverter}}">
                     <TextBlock Text="Customer name" Style="{StaticResource CaptionTextStyle}" Margin="0,0,0,4"/>
                     <TextBox Text="{Binding CustomerName, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,12"/>

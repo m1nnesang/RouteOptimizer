@@ -82,10 +82,28 @@
                           BorderThickness="0"
                           Background="Transparent">
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="150"/>
+                        <DataGridTemplateColumn Header="Status" Width="150">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Border Style="{StaticResource StatusChipStyle}"
+                                            Background="{Binding Status, Converter={StaticResource StatusChipBgConverter}}">
+                                        <TextBlock Text="{Binding Status}"
+                                                   Style="{StaticResource StatusChipTextStyle}"
+                                                   Foreground="{Binding Status, Converter={StaticResource StatusChipFgConverter}}"/>
+                                    </Border>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
                         <DataGridTextColumn Header="Type" Binding="{Binding OrderType}" Width="110"/>
                         <DataGridTextColumn Header="City" Binding="{Binding City}" Width="130"/>
-                        <DataGridTextColumn Header="Street" Binding="{Binding Street}" Width="200"/>
+                        <DataGridTextColumn Header="Street" Binding="{Binding Street}" Width="200">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Foreground" Value="{StaticResource TextLinkBrush}"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
                         <DataGridTextColumn Header="Cargo" Binding="{Binding CargoType}" Width="110"/>
                         <DataGridTextColumn Header="Weight (kg)" Binding="{Binding Weight}" Width="100"/>
                         <DataGridTextColumn Header="Phone" Binding="{Binding PhoneNumber}" Width="140"/>

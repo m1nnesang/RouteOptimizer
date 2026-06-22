@@ -143,23 +143,29 @@ public partial class RouteMapView : UserControl
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
         html, body, #map { height: 100%; margin: 0; padding: 0; }
-        .stop-marker {
-            background: #2980b9; color: #fff; border-radius: 50%;
-            width: 26px; height: 26px; line-height: 26px; text-align: center;
-            font: bold 13px sans-serif; box-shadow: 0 0 3px rgba(0,0,0,0.5);
+        #map { background: #0d1320; }
+        .leaflet-control-zoom a {
+            background: #1e2740; color: #eaeefb; border-color: #2c3550;
         }
-        .stop-marker.done { background: #27ae60; }
-        .stop-marker.failed { background: #c0392b; }
-        .stop-marker.skipped { background: #7f8c8d; }
+        .leaflet-control-zoom a:hover { background: #2c3550; }
+        .stop-marker {
+            background: #4c84ff; color: #fff; border-radius: 50%;
+            width: 26px; height: 26px; line-height: 26px; text-align: center;
+            font: bold 13px sans-serif; box-shadow: 0 0 4px rgba(0,0,0,0.6);
+            border: 2px solid #0f1626;
+        }
+        .stop-marker.done { background: #25b366; }
+        .stop-marker.failed { background: #f0564b; }
+        .stop-marker.skipped { background: #d99a2b; }
         .depot-marker {
-            background: #34495e; color: #fff; border-radius: 4px;
+            background: #352a16; color: #f0c269; border-radius: 6px;
             width: 30px; height: 30px; line-height: 30px; text-align: center;
-            font-size: 18px; box-shadow: 0 0 3px rgba(0,0,0,0.5);
+            font-size: 18px; box-shadow: 0 0 4px rgba(0,0,0,0.6);
         }
         .driver-marker {
-            background: #8e44ad; color: #fff; border-radius: 50%;
+            background: #4c84ff; color: #fff; border-radius: 50%;
             width: 30px; height: 30px; line-height: 30px; text-align: center;
-            font-size: 17px; box-shadow: 0 0 6px rgba(142,68,173,0.9);
+            font-size: 17px; box-shadow: 0 0 8px rgba(76,132,255,0.9);
             border: 2px solid #fff;
         }
     </style>
@@ -168,9 +174,10 @@ public partial class RouteMapView : UserControl
     <div id="map"></div>
     <script>
         const map = L.map('map').setView([52.1, 19.0], 7);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: '&copy; OpenStreetMap'
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            maxZoom: 20,
+            subdomains: 'abcd',
+            attribution: '&copy; OpenStreetMap &copy; CARTO'
         }).addTo(map);
 
         let layer = L.layerGroup().addTo(map);
@@ -264,8 +271,8 @@ public partial class RouteMapView : UserControl
                 }
                 if (token !== renderToken) return;
                 const lineOpts = osrmFailed
-                    ? { color: '#e67e22', weight: 2, opacity: 0.75, dashArray: '10 7' }
-                    : { color: '#2980b9', weight: 4, opacity: 0.8 };
+                    ? { color: '#3a456a', weight: 3, opacity: 0.85, dashArray: '2 12' }
+                    : { color: '#4c84ff', weight: 4, opacity: 0.95 };
                 L.polyline(line, lineOpts).addTo(layer);
                 if (osrmFailed) {
                     L.popup({ closeButton: false, autoClose: false, closeOnClick: false })

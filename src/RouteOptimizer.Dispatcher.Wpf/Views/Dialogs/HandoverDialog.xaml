@@ -113,13 +113,13 @@
             </Grid>
 
             <Border Visibility="{Binding IsReturnToPool, Converter={StaticResource BoolToVisibilityConverter}}"
-                    Background="#FEE2E2" BorderBrush="#FCA5A5" BorderThickness="1"
+                    Background="#1A1622" BorderBrush="#4A2730" BorderThickness="1"
                     CornerRadius="12" Padding="20,16"
                     VerticalAlignment="Top">
                 <StackPanel>
                     <TextBlock Text="Return all remaining stops to the order pool"
-                               FontWeight="SemiBold" FontSize="14" Foreground="#991B1B" Margin="0,0,0,8"/>
-                    <TextBlock TextWrapping="Wrap" LineHeight="20" Foreground="#7F1D1D">
+                               FontWeight="SemiBold" FontSize="14" Foreground="{StaticResource DangerBrush}" Margin="0,0,0,8"/>
+                    <TextBlock TextWrapping="Wrap" LineHeight="20" Foreground="#D89A95">
                         All pending stops will be returned to the order pool and can be
                         reassigned to a future route. The driver completed stops remain
                         recorded in the delivery history.

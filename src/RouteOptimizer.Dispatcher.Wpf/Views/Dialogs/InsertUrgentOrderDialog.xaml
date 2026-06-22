@@ -25,9 +25,9 @@
                    Text="Insert an urgent order into the active route"
                    Style="{StaticResource HeaderTextStyle}" FontSize="18" Margin="0,0,0,10"/>
 
-        <Border Grid.Row="1" Background="#FEF9C3" BorderBrush="#FDE68A" BorderThickness="1"
+        <Border Grid.Row="1" Background="#352A16" BorderBrush="#4A3A1A" BorderThickness="1"
                 CornerRadius="10" Padding="14,10" Margin="0,0,0,12">
-            <TextBlock TextWrapping="Wrap" Foreground="#854D0E">
+            <TextBlock TextWrapping="Wrap" Foreground="{StaticResource AmberBrush}">
                 The order will be inserted at the optimal position in the route.
                 The driver will receive a real-time notification via SignalR.
             </TextBlock>

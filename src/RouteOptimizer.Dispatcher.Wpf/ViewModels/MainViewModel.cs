@@ -18,6 +18,7 @@ public partial class MainViewModel : ObservableObject
     private DriversViewModel? _driversViewModel;
     private VehiclesViewModel? _vehiclesViewModel;
     private WarehousesViewModel? _warehousesViewModel;
+    private DashboardViewModel? _dashboardViewModel;
 
     public MainViewModel(IAuthService authService, IApiHttpClient apiHttpClient,
         IDialogService dialogService, IRouteHubService routeHubService,
@@ -40,6 +41,9 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     public partial bool IsSessionExpired { get; set; }
 
+    [ObservableProperty]
+    public partial string ActiveTab { get; set; } = "Orders";
+
     private void OnSessionExpired() => RunOnUi(() => IsSessionExpired = true);
 
     [RelayCommand]
@@ -61,18 +65,39 @@ public partial class MainViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void ShowOrders() =>
+    private void ShowOrders()
+    {
         CurrentViewModel = _ordersViewModel ??= new OrdersViewModel(_apiHttpClient, _dialogService);
+        ActiveTab = "Orders";
+    }
     [RelayCommand]
-    private void ShowRoutes() =>
+    private void ShowRoutes()
+    {
         CurrentViewModel = _routesViewModel ??= new RoutesViewModel(_apiHttpClient, _dialogService, _routeHubService);
+        ActiveTab = "Routes";
+    }
     [RelayCommand]
-    private void ShowDrivers() =>
+    private void ShowDrivers()
+    {
         CurrentViewModel = _driversViewModel ??= new DriversViewModel(_apiHttpClient);
+        ActiveTab = "Drivers";
+    }
     [RelayCommand]
-    private void ShowVehicles() =>
+    private void ShowVehicles()
+    {
         CurrentViewModel = _vehiclesViewModel ??= new VehiclesViewModel(_apiHttpClient, _dialogService);
+        ActiveTab = "Vehicles";
+    }
     [RelayCommand]
-    private void ShowWarehouses() =>
+    private void ShowWarehouses()
+    {
         CurrentViewModel = _warehousesViewModel ??= new WarehousesViewModel(_apiHttpClient, _dialogService);
+        ActiveTab = "Warehouses";
+    }
+    [RelayCommand]
+    private void ShowDashboard()
+    {
+        CurrentViewModel = _dashboardViewModel ??= new DashboardViewModel(_apiHttpClient);
+        ActiveTab = "Dashboard";
+    }
 }

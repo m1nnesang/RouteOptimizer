@@ -38,7 +38,7 @@
                                     <TextBlock Grid.Column="0" Text="{Binding OutcomeDisplay}" FontWeight="SemiBold">
                                         <TextBlock.Style>
                                             <Style TargetType="TextBlock">
-                                                <Setter Property="Foreground" Value="#16A34A"/>
+                                                <Setter Property="Foreground" Value="#4AD991"/>
                                                 <Style.Triggers>
                                                     <DataTrigger Binding="{Binding IsFailed}" Value="True">
                                                         <Setter Property="Foreground" Value="{StaticResource DangerBrush}"/>
