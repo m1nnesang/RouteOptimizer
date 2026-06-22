@@ -1,0 +1,101 @@
+name: CI
+
+on:
+  push:
+    branches: [master, develop]
+  pull_request:
+    branches: [master, develop]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_VERSION: "10.0.x"
+  DOTNET_NOLOGO: "true"
+  DOTNET_CLI_TELEMETRY_OPTOUT: "true"
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: "true"
+
+jobs:
+  # Cross-platform projects (API, Core, Infrastructure, PWA) + integration tests.
+  # Integration tests spin up PostgreSQL via Testcontainers, which needs the
+  # Docker daemon preinstalled on ubuntu runners.
+  linux-tests:
+    name: Build & test (Linux + integration)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/Directory.Packages.props', '**/*.csproj') }}
+          restore-keys: ${{ runner.os }}-nuget-
+
+      - name: Test
+        shell: bash
+        run: |
+          set -euo pipefail
+          projects=(
+            tests/RouteOptimizer.Domain.Tests
+            tests/RouteOptimizer.Application.Tests
+            tests/RouteOptimizer.Infrastructure.Tests
+            tests/RouteOptimizer.API.Tests
+            tests/RouteOptimizer.Driver.Pwa.Tests
+            tests/RouteOptimizer.Integration.Tests
+          )
+          for proj in "${projects[@]}"; do
+            name=$(basename "$proj")
+            dotnet test "$proj" \
+              --configuration Release \
+              --logger "trx;LogFileName=${name}.trx" \
+              --results-directory TestResults
+          done
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-linux
+          path: TestResults/*.trx
+          if-no-files-found: ignore
+
+  # WPF dispatcher targets net10.0-windows and only builds/tests on Windows.
+  wpf-tests:
+    name: Build & test (WPF)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/Directory.Packages.props', '**/*.csproj') }}
+          restore-keys: ${{ runner.os }}-nuget-
+
+      - name: Test
+        run: >
+          dotnet test tests/RouteOptimizer.Dispatcher.Wpf.Tests/RouteOptimizer.Dispatcher.Wpf.Tests.csproj
+          --configuration Release
+          --logger "trx;LogFileName=RouteOptimizer.Dispatcher.Wpf.Tests.trx"
+          --results-directory TestResults
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-wpf
+          path: TestResults/*.trx
+          if-no-files-found: ignore
