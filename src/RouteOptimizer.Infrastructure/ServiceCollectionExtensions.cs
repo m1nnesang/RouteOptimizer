@@ -25,6 +25,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IDriverShiftRepository, DriverShiftRepository>();
         services.AddScoped<IRouteRepository, RouteRepository>();
         services.AddScoped<IUserInvitationRepository, UserInvitationRepository>();
+        services.AddScoped<IPasswordResetTokenRepository, PasswordResetTokenRepository>();
+        services.AddScoped<IAnalyticsRepository, AnalyticsRepository>();
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<AppDbContext>());
         services.AddScoped<IDeliveryAttemptRepository , DeliveryAttemptRepository>();
         services.AddHttpClient("Nominatim", client =>
@@ -32,6 +34,8 @@ public static class ServiceCollectionExtensions
             client.BaseAddress = new Uri("https://nominatim.openstreetmap.org/");
             client.DefaultRequestHeaders.UserAgent.ParseAdd("RouteOptimizer/1.0");
         });
+
+        services.Configure<GeocodingSettings>(configuration.GetSection("Geocoding"));
 
         var photonBaseUrl = configuration["Photon:BaseUrl"] ?? "https://photon.komoot.io/";
         services.AddHttpClient("Photon", client =>
