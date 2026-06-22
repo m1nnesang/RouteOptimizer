@@ -70,6 +70,38 @@ public class AuthService : IAuthService
         return true;
     }
 
+    public async Task<bool> RequestPasswordResetAsync(string email, CancellationToken ct = default)
+    {
+        var json = JsonSerializer.Serialize(new { Email = email });
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+        try
+        {
+            var response = await _httpClient.PostAsync("api/auth/forgot-password", content, ct);
+            return response.IsSuccessStatusCode;
+        }
+        catch (HttpRequestException)
+        {
+            return false;
+        }
+    }
+
+    public async Task<bool> ResetPasswordAsync(string token, string newPassword, CancellationToken ct = default)
+    {
+        var json = JsonSerializer.Serialize(new { Token = token, NewPassword = newPassword });
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+        try
+        {
+            var response = await _httpClient.PostAsync("api/auth/reset-password", content, ct);
+            return response.IsSuccessStatusCode;
+        }
+        catch (HttpRequestException)
+        {
+            return false;
+        }
+    }
+
     public void Logout()
     {
         _tokenStorage.Clear();

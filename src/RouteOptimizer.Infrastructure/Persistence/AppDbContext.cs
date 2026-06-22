@@ -40,6 +40,7 @@ public class AppDbContext : DbContext, IUnitOfWork
     public DbSet<Warehouse> Warehouses { get; set; } = null!;
     public DbSet<DriverShift> DriverShifts { get; set; } = null!;
     public DbSet<UserInvitation> UserInvitations { get; set; } = null!;
+    public DbSet<PasswordResetToken> PasswordResetTokens { get; set; } = null!;
     public DbSet<Vehicle> Vehicles { get; set; } = null!;
     public DbSet<DeliveryAttempt> DeliveryAttempts { get; set; } = null!;
     public DbSet<RefreshToken> RefreshTokens { get; set; }

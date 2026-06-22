@@ -15,5 +15,9 @@ public interface IAuthService
 
     Task<bool> RefreshAsync(CancellationToken ct = default);
 
+    Task<bool> RequestPasswordResetAsync(string email, CancellationToken ct = default);
+
+    Task<bool> ResetPasswordAsync(string token, string newPassword, CancellationToken ct = default);
+
     Task LogoutAsync();
 }

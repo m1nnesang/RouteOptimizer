@@ -79,5 +79,33 @@ public sealed class AuthService : IAuthService
         return true;
     }
 
+    public async Task<bool> RequestPasswordResetAsync(string email, CancellationToken ct = default)
+    {
+        try
+        {
+            var response = await _http.PostAsJsonAsync("api/auth/forgot-password",
+                new RequestPasswordResetRequest(email), ct);
+            return response.IsSuccessStatusCode;
+        }
+        catch (HttpRequestException)
+        {
+            return false;
+        }
+    }
+
+    public async Task<bool> ResetPasswordAsync(string token, string newPassword, CancellationToken ct = default)
+    {
+        try
+        {
+            var response = await _http.PostAsJsonAsync("api/auth/reset-password",
+                new ResetPasswordRequest(token, newPassword), ct);
+            return response.IsSuccessStatusCode;
+        }
+        catch (HttpRequestException)
+        {
+            return false;
+        }
+    }
+
     public Task LogoutAsync() => _tokenStore.ClearAsync();
 }

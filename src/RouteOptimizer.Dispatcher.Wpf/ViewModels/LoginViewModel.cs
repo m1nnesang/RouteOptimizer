@@ -29,6 +29,73 @@ public partial class LoginViewModel : ObservableObject
 
     public bool IsNotLoading => !IsLoading;
 
+    [ObservableProperty]
+    private bool _isResetMode;
+
+    public bool IsLoginMode => !IsResetMode;
+
+    partial void OnIsResetModeChanged(bool value) => OnPropertyChanged(nameof(IsLoginMode));
+
+    [ObservableProperty]
+    private string _resetEmail = "";
+
+    [ObservableProperty]
+    private string _resetToken = "";
+
+    [ObservableProperty]
+    private string _resetNewPassword = "";
+
+    [ObservableProperty]
+    private string _resetMessage = "";
+
+    [RelayCommand]
+    private void ShowReset()
+    {
+        IsResetMode = true;
+        ErrorMessage = "";
+        ResetMessage = "";
+    }
+
+    [RelayCommand]
+    private void BackToLogin()
+    {
+        IsResetMode = false;
+        ResetMessage = "";
+    }
+
+    [RelayCommand]
+    private async Task RequestResetAsync(CancellationToken ct)
+    {
+        ResetMessage = "";
+        try
+        {
+            await _authService.RequestPasswordResetAsync(ResetEmail, ct);
+            ResetMessage = "If the email exists, a reset link has been sent.";
+        }
+        catch (HttpRequestException)
+        {
+            ResetMessage = "Network error. Please check your connection.";
+        }
+    }
+
+    [RelayCommand]
+    private async Task ResetPasswordAsync(CancellationToken ct)
+    {
+        ResetMessage = "";
+        try
+        {
+            var ok = await _authService.ResetPasswordAsync(ResetToken, ResetNewPassword, ct);
+            ResetMessage = ok
+                ? "Password updated. You can sign in now."
+                : "Invalid or expired reset token.";
+            if (ok) IsResetMode = false;
+        }
+        catch (HttpRequestException)
+        {
+            ResetMessage = "Network error. Please check your connection.";
+        }
+    }
+
     [RelayCommand]
     public async Task LoginAsync(CancellationToken ct)
     {

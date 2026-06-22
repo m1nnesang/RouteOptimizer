@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.RateLimiting;
 using RouteOptimizer.Application.Auth.AcceptInvitation;
 using RouteOptimizer.Application.Auth.Login;
 using RouteOptimizer.Application.Auth.RefreshToken;
+using RouteOptimizer.Application.Auth.RequestPasswordReset;
+using RouteOptimizer.Application.Auth.ResetPassword;
 using RouteOptimizer.Application.Auth.RevokeToken;
 using RouteOptimizer.Domain.Common;
 
@@ -52,6 +54,22 @@ public class AuthController : ControllerBase
     [HttpPost("accept-invitation")]
     [EnableRateLimiting("auth")]
     public async Task<IActionResult> AcceptInvitation([FromBody] AcceptInvitationCommand command, CancellationToken ct)
+    {
+        var result = await _mediator.Send(command, ct);
+        return ToResponse(result);
+    }
+
+    [HttpPost("forgot-password")]
+    [EnableRateLimiting("auth")]
+    public async Task<IActionResult> ForgotPassword([FromBody] RequestPasswordResetCommand command, CancellationToken ct)
+    {
+        var result = await _mediator.Send(command, ct);
+        return ToResponse(result);
+    }
+
+    [HttpPost("reset-password")]
+    [EnableRateLimiting("auth")]
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordCommand command, CancellationToken ct)
     {
         var result = await _mediator.Send(command, ct);
         return ToResponse(result);
