@@ -126,6 +126,20 @@ public class RouteTests
     }
 
     [Fact]
+    public void Start_FutureDatedRoute_ThrowsInvalidOperationException()
+    {
+        var tomorrow = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(1);
+        var route = Route.Create(ValidWarehouseId, tomorrow).Value!;
+        route.Optimize();
+        route.AssignShift(Guid.NewGuid());
+
+        var act = () => route.Start();
+
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage("*future date*");
+    }
+
+    [Fact]
     public void Complete_InProgressRoute_ChangesStatusToCompleted()
     {
         var route = Route.Create(ValidWarehouseId).Value!;

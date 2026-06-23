@@ -78,6 +78,9 @@ public class Route : AggregateRoot<Guid>
         if (AssignedShiftId is null)
             throw new InvalidOperationException("Shift is not assigned");
 
+        if (DateOnly.FromDateTime(DateTime.UtcNow) < Date)
+            throw new InvalidOperationException("Route is scheduled for a future date and cannot be started yet");
+
         Status = RouteStatus.InProgress;
         AddDomainEvent(new RouteStarted(Id, AssignedShiftId.Value));
     }
