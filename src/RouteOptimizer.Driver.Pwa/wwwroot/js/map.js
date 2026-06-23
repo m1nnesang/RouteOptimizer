@@ -56,7 +56,7 @@ window.driverMap = (function () {
             map = L.map(elementId, { zoomControl: false, attributionControl: false })
                 .setView([52.2297, 21.0122], 12);
 
-            L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+            L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
                 maxZoom: 19,
                 subdomains: "abcd"
             }).addTo(map);
