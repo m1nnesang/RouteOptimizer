@@ -129,6 +129,18 @@ services:
       - Smtp__From=noreply@routeoptimizer.local
       - Smtp__UseSsl=false
 
+  pwa:
+    build:
+      context: .
+      dockerfile: src/RouteOptimizer.Driver.Pwa/Dockerfile
+    container_name: route-optimizer-pwa
+    ports:
+      - "5080:80"
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+
 
 volumes:
   postgres_data:
