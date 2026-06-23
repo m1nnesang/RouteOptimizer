@@ -30,13 +30,11 @@ window.driverMap = (function () {
     }
 
     function stopIcon(label, color, isCurrent) {
-        const size = isCurrent ? 40 : 30;
-        const isUpcoming = color.fill === "#1e2740";
-        const border = isUpcoming ? "1.5px solid #313c5c" : "2.5px solid #0f1626";
+        const size = isCurrent ? 28 : 22;
         const html =
             '<div style="width:' + size + 'px;height:' + size + 'px;border-radius:50%;background:' + color.fill +
-            ';color:' + color.text + ';display:flex;align-items:center;justify-content:center;font-weight:700;' +
-            'border:' + border + ';box-shadow:0 2px 8px rgba(0,0,0,.45);font-size:' + (isCurrent ? 15 : 13) + 'px;">' +
+            ';color:' + color.text + ';display:flex;align-items:center;justify-content:center;font-weight:600;' +
+            'border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.3);font-size:' + (isCurrent ? 12 : 11) + 'px;">' +
             label + '</div>';
         return L.divIcon({
             html: html,
