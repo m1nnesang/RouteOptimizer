@@ -367,7 +367,7 @@ h1:focus {
 }
 
 .leaflet-tile-pane {
-    filter: grayscale(0.25) brightness(0.96);
+    filter: grayscale(0.2) brightness(0.8) contrast(1.05);
 }
 
 /* ---------- Top pills ---------- */
