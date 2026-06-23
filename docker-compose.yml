@@ -128,6 +128,7 @@ services:
       - Jwt__RefreshTokenExpirationHours=12
       - Cors__AllowedOrigins__0=http://localhost:5080
       - Cors__AllowedOrigins__1=https://localhost:7080
+      - Cors__AllowedOrigins__2=https://m1nnesang.github.io
       - Smtp__From=noreply@routeoptimizer.local
       - Smtp__UseSsl=false
 
