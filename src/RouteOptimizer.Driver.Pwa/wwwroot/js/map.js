@@ -6,6 +6,18 @@ window.driverMap = (function () {
     let driverMarker = null;
     let driverHalo = null;
 
+    function nearestIndex(path, target) {
+        let best = 0;
+        let bestD = Infinity;
+        for (let i = 0; i < path.length; i++) {
+            const dLat = path[i][0] - target[0];
+            const dLng = path[i][1] - target[1];
+            const d = dLat * dLat + dLng * dLng;
+            if (d < bestD) { bestD = d; best = i; }
+        }
+        return best;
+    }
+
     function statusColor(status, isCurrent) {
         if (isCurrent) return { fill: "#4c84ff", text: "#fff" };
         switch (status) {
@@ -54,7 +66,7 @@ window.driverMap = (function () {
             setTimeout(function () { if (map) map.invalidateSize(); }, 100);
         },
 
-        render: function (stops, currentStopId) {
+        render: function (stops, currentStopId, routeGeometry) {
             if (!map) return;
 
             stopLayer.clearLayers();
@@ -85,10 +97,16 @@ window.driverMap = (function () {
                 latlngs.push([s.latitude, s.longitude]);
             });
 
-            if (latlngs.length > 1) {
-                const split = currentIndex >= 0 ? currentIndex : latlngs.length - 1;
-                const traveled = latlngs.slice(0, split + 1);
-                const upcoming = latlngs.slice(split);
+            const path = (routeGeometry && routeGeometry.length > 1)
+                ? routeGeometry.map(function (p) { return [p.latitude, p.longitude]; })
+                : latlngs;
+
+            if (path.length > 1) {
+                const split = currentIndex >= 0
+                    ? nearestIndex(path, latlngs[currentIndex])
+                    : path.length - 1;
+                const traveled = path.slice(0, split + 1);
+                const upcoming = path.slice(split);
 
                 if (traveled.length > 1) {
                     routeLine = L.polyline(traveled, { color: "#5b8cff", weight: 6, opacity: 1, lineCap: "round", lineJoin: "round" }).addTo(map);

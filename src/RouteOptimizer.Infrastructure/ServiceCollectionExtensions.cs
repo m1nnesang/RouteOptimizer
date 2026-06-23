@@ -87,6 +87,7 @@ public static class ServiceCollectionExtensions
             client.BaseAddress = new Uri(configuration["Osrm:BaseUrl"]!);
         });
         services.AddScoped<IDistanceMatrixProvider, OsrmDistanceMatrixProvider>();
+        services.AddScoped<IRouteGeometryProvider, OsrmRouteGeometryProvider>();
 
         services.AddHostedService<IdempotencyCleanupService>();
         services.AddHostedService<RefreshTokenCleanupService>();

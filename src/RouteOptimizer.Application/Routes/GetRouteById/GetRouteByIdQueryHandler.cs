@@ -12,12 +12,15 @@ public class GetRouteByIdQueryHandler : IRequestHandler<GetRouteByIdQuery, Resul
     private readonly IRouteRepository _routeRepository;
     private readonly IOrderRepository _orderRepository;
     private readonly ICurrentUser _currentUser;
+    private readonly IRouteGeometryProvider _geometryProvider;
 
-    public GetRouteByIdQueryHandler(IRouteRepository routeRepository, IOrderRepository orderRepository, ICurrentUser currentUser)
+    public GetRouteByIdQueryHandler(IRouteRepository routeRepository, IOrderRepository orderRepository,
+        ICurrentUser currentUser, IRouteGeometryProvider geometryProvider)
     {
         _routeRepository = routeRepository;
         _orderRepository = orderRepository;
         _currentUser = currentUser;
+        _geometryProvider = geometryProvider;
     }
 
     public async Task<Result<RouteDto>> Handle(GetRouteByIdQuery request, CancellationToken ct)
@@ -33,16 +36,27 @@ public class GetRouteByIdQueryHandler : IRequestHandler<GetRouteByIdQuery, Resul
         var orderIds = route.Stops.SelectMany(s => s.Orders).Distinct().ToList();
         var ordersById = (await _orderRepository.GetByIdsAsync(orderIds, ct)).ToDictionary(o => o.Id);
 
-        var stops = route.Stops.Select(s => new StopDto(s.Id, s.Sequence, s.Address.City, s.Address.Street,
+        var orderedStops = route.Stops.OrderBy(s => s.Sequence).ToList();
+
+        var stops = orderedStops.Select(s => new StopDto(s.Id, s.Sequence, s.Address.City, s.Address.Street,
             s.Location.Latitude, s.Location.Longitude, s.Status.ToString(), s.Orders,
             s.Orders.Select(id => MapOrder(id, ordersById)).ToList())).ToList();
+
+        var waypoints = orderedStops
+            .Select(s => (s.Location.Latitude, s.Location.Longitude))
+            .ToList();
+
+        var geometry = (await _geometryProvider.GetRouteAsync(waypoints, ct))
+            .Select(p => new RoutePoint(p.Lat, p.Lon))
+            .ToList();
 
         var routeDto = new RouteDto(
             route.Id,
             route.WarehouseId,
             route.AssignedShiftId,
             route.Status.ToString(),
-            stops
+            stops,
+            geometry
         );
 
         return Result<RouteDto>.Success(routeDto);

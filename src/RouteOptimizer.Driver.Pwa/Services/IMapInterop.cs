@@ -6,7 +6,8 @@ public interface IMapInterop
 {
     Task InitAsync(string elementId, CancellationToken ct = default);
 
-    Task RenderAsync(IReadOnlyList<RouteStop> stops, Guid? currentStopId, CancellationToken ct = default);
+    Task RenderAsync(IReadOnlyList<RouteStop> stops, Guid? currentStopId,
+        IReadOnlyList<GeoPoint>? geometry = null, CancellationToken ct = default);
 
     Task FocusAsync(double latitude, double longitude, CancellationToken ct = default);
 

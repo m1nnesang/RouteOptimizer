@@ -13,6 +13,9 @@
     [Parameter]
     public Guid? CurrentStopId { get; set; }
 
+    [Parameter]
+    public IReadOnlyList<GeoPoint>? Geometry { get; set; }
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender)
@@ -34,7 +37,7 @@
         if (!_initialized)
             return;
 
-        await Map.RenderAsync(Stops, CurrentStopId);
+        await Map.RenderAsync(Stops, CurrentStopId, Geometry);
 
         var current = Stops.FirstOrDefault(s => s.Id == CurrentStopId);
 

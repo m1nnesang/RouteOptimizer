@@ -12,10 +12,12 @@ public sealed class MapInterop : IMapInterop
     public Task InitAsync(string elementId, CancellationToken ct = default) =>
         _js.InvokeVoidAsync("driverMap.init", ct, elementId).AsTask();
 
-    public Task RenderAsync(IReadOnlyList<RouteStop> stops, Guid? currentStopId, CancellationToken ct = default)
+    public Task RenderAsync(IReadOnlyList<RouteStop> stops, Guid? currentStopId,
+        IReadOnlyList<GeoPoint>? geometry = null, CancellationToken ct = default)
     {
         var payload = stops.Select(s => new MapStop(s.Id, s.Sequence, s.Latitude, s.Longitude, s.Status)).ToList();
-        return _js.InvokeVoidAsync("driverMap.render", ct, payload, currentStopId).AsTask();
+        var line = (geometry ?? []).Select(p => new MapPoint(p.Latitude, p.Longitude)).ToList();
+        return _js.InvokeVoidAsync("driverMap.render", ct, payload, currentStopId, line).AsTask();
     }
 
     public Task FocusAsync(double latitude, double longitude, CancellationToken ct = default) =>
@@ -34,4 +36,6 @@ public sealed class MapInterop : IMapInterop
         _js.InvokeVoidAsync("driverMap.dispose", ct).AsTask();
 
     private sealed record MapStop(Guid Id, int Sequence, double Latitude, double Longitude, string Status);
+
+    private sealed record MapPoint(double Latitude, double Longitude);
 }
