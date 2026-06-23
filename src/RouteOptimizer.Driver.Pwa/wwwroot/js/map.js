@@ -112,7 +112,7 @@ window.driverMap = (function () {
                     routeLine = L.polyline(traveled, { color: "#5b8cff", weight: 6, opacity: 1, lineCap: "round", lineJoin: "round" }).addTo(map);
                 }
                 if (upcoming.length > 1) {
-                    routeLineUpcoming = L.polyline(upcoming, { color: "#3a456a", weight: 6, opacity: 1, dashArray: "2 14", lineCap: "round" }).addTo(map);
+                    routeLineUpcoming = L.polyline(upcoming, { color: "#5b8cff", weight: 6, opacity: 1, lineCap: "round", lineJoin: "round" }).addTo(map);
                 }
             }
         },
