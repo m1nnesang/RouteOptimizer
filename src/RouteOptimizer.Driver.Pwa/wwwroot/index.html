@@ -19,6 +19,15 @@
     <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png" />
     <link rel="apple-touch-icon" sizes="192x192" href="icon-192.png" />
     <script type="importmap"></script>
+    <script>
+        window.getApiBase = function () {
+            try {
+                var q = new URLSearchParams(location.search).get('api');
+                if (q) localStorage.setItem('apiBase', q);
+                return localStorage.getItem('apiBase') || '';
+            } catch { return ''; }
+        };
+    </script>
 </head>
 
 <body>

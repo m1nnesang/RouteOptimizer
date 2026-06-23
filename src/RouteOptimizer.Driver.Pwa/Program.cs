@@ -2,6 +2,7 @@ using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using Microsoft.JSInterop;
 using RouteOptimizer.Driver.Pwa;
 using RouteOptimizer.Driver.Pwa.Auth;
 using RouteOptimizer.Driver.Pwa.Services;
@@ -48,4 +49,17 @@ builder.Services.AddTransient<IRouteHubClient>(sp => new RouteHubClient(
 builder.Services.AddScoped<IGeolocation, GeolocationService>();
 builder.Services.AddScoped<IMapInterop, MapInterop>();
 
-await builder.Build().RunAsync();
+var host = builder.Build();
+
+try
+{
+    var js = (IJSInProcessRuntime)host.Services.GetRequiredService<IJSRuntime>();
+    var apiOverride = js.Invoke<string>("getApiBase");
+    if (!string.IsNullOrWhiteSpace(apiOverride))
+        apiBaseUrl = apiOverride;
+}
+catch
+{
+}
+
+await host.RunAsync();
