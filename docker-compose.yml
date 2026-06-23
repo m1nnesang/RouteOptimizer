@@ -85,12 +85,14 @@ services:
     volumes:
       - osrm_data:/data
     command: osrm-routed --algorithm mld /data/map.osrm --max-table-size 10000
+    restart: unless-stopped
 
   api:
     build:
       context: .
       dockerfile: src/RouteOptimizer.API/Dockerfile
     container_name: route-optimizer-api
+    restart: unless-stopped
     ports:
       - "8080:8080"
     depends_on:
