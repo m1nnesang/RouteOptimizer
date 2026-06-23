@@ -1,6 +1,7 @@
 using MediatR;
 using RouteOptimizer.Application.Abstractions;
 using RouteOptimizer.Application.Routes.GetRoutes;
+using RouteOptimizer.Domain.Enums;
 
 namespace RouteOptimizer.Application.Routes.GetMyRoutes;
 
@@ -33,7 +34,11 @@ public class GetMyRoutesQueryHandler : IRequestHandler<GetMyRoutesQuery, IReadOn
         if (shift is null)
             return [];
 
-        var routes = await _routeRepository.GetByAssignedShiftIdAsync(shift.Id, ct);
+        var allRoutes = await _routeRepository.GetByAssignedShiftIdAsync(shift.Id, ct);
+
+        var routes = allRoutes
+            .Where(r => r.Status is not (RouteStatus.Completed or RouteStatus.Cancelled or RouteStatus.Interrupted))
+            .ToList();
 
         if (routes.Count == 0)
             return [];

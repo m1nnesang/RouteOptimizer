@@ -94,6 +94,36 @@ public class GetMyRoutesQueryHandlerTests
             Times.Once);
     }
 
+    [Fact]
+    public async Task Handle_ExcludesTerminalRoutes()
+    {
+        var shift = CreateActiveShift();
+        _shiftRepository
+            .Setup(x => x.GetActiveShiftByDriverIdAsync(_driverId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(shift);
+
+        var active = CreateRouteWithStop();
+        var completed = CreateCompletedRoute();
+        _routeRepository
+            .Setup(x => x.GetByAssignedShiftIdAsync(shift.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<Route> { active, completed });
+
+        var result = await _handler.Handle(new GetMyRoutesQuery(), default);
+
+        result.Should().ContainSingle();
+        result[0].Id.Should().Be(active.Id);
+    }
+
+    private Route CreateCompletedRoute()
+    {
+        var route = Route.Create(_warehouseId).Value!;
+        route.Optimize();
+        route.AssignShift(Guid.NewGuid());
+        route.Start();
+        route.Complete();
+        return route;
+    }
+
     private DriverShift CreateActiveShift()
     {
         var shift = DriverShift.Create(
