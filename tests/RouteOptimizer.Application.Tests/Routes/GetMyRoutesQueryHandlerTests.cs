@@ -114,6 +114,24 @@ public class GetMyRoutesQueryHandlerTests
         result[0].Id.Should().Be(active.Id);
     }
 
+    [Fact]
+    public async Task Handle_WithDate_ReturnsHistoryIncludingFinishedWithoutActiveShift()
+    {
+        var date = new DateOnly(2026, 6, 21);
+        var completed = CreateCompletedRoute();
+        _routeRepository
+            .Setup(x => x.GetByDriverIdAndDateAsync(_driverId, date, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<Route> { completed });
+
+        var result = await _handler.Handle(new GetMyRoutesQuery(date), default);
+
+        result.Should().ContainSingle();
+        result[0].Id.Should().Be(completed.Id);
+        _shiftRepository.Verify(
+            x => x.GetActiveShiftByDriverIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
     private Route CreateCompletedRoute()
     {
         var route = Route.Create(_warehouseId).Value!;

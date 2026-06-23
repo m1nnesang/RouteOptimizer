@@ -46,6 +46,19 @@ public class RouteRepository : IRouteRepository
             .ToListAsync(ct);
     }
 
+    public async Task<IReadOnlyList<Route>> GetByDriverIdAndDateAsync(Guid driverId, DateOnly date, CancellationToken ct)
+    {
+        var shiftIds = _db.DriverShifts
+            .Where(s => s.DriverId == driverId)
+            .Select(s => s.Id);
+
+        return await _db.Routes
+            .Include(r => r.Stops.OrderBy(s => s.Sequence))
+            .Where(r => r.Date == date && r.AssignedShiftId != null && shiftIds.Contains(r.AssignedShiftId.Value))
+            .OrderBy(r => r.Id)
+            .ToListAsync(ct);
+    }
+
     public async Task<(IReadOnlyList<Route> Items, int TotalCount)> GetAllAsync(Guid? warehouseId, RouteStatus? status,
         DateOnly? date, int skip, int take, CancellationToken ct)
     {

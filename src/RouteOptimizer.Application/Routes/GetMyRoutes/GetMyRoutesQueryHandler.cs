@@ -1,6 +1,7 @@
 using MediatR;
 using RouteOptimizer.Application.Abstractions;
 using RouteOptimizer.Application.Routes.GetRoutes;
+using RouteOptimizer.Domain.Entities.Route;
 using RouteOptimizer.Domain.Enums;
 
 namespace RouteOptimizer.Application.Routes.GetMyRoutes;
@@ -29,16 +30,23 @@ public class GetMyRoutesQueryHandler : IRequestHandler<GetMyRoutesQuery, IReadOn
 
     public async Task<IReadOnlyList<RouteListItemDto>> Handle(GetMyRoutesQuery request, CancellationToken ct)
     {
-        var shift = await _shiftRepository.GetActiveShiftByDriverIdAsync(_currentUser.UserId, ct);
+        List<Route> routes;
 
-        if (shift is null)
-            return [];
+        if (request.Date is { } date)
+        {
+            routes = (await _routeRepository.GetByDriverIdAndDateAsync(_currentUser.UserId, date, ct)).ToList();
+        }
+        else
+        {
+            var shift = await _shiftRepository.GetActiveShiftByDriverIdAsync(_currentUser.UserId, ct);
 
-        var allRoutes = await _routeRepository.GetByAssignedShiftIdAsync(shift.Id, ct);
+            if (shift is null)
+                return [];
 
-        var routes = allRoutes
-            .Where(r => r.Status is not (RouteStatus.Completed or RouteStatus.Cancelled or RouteStatus.Interrupted))
-            .ToList();
+            routes = (await _routeRepository.GetByAssignedShiftIdAsync(shift.Id, ct))
+                .Where(r => r.Status is not (RouteStatus.Completed or RouteStatus.Cancelled or RouteStatus.Interrupted))
+                .ToList();
+        }
 
         if (routes.Count == 0)
             return [];

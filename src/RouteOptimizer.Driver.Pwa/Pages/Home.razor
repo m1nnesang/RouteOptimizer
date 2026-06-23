@@ -6,7 +6,11 @@
 <PageTitle>Route</PageTitle>
 
 <section class="screen">
-    <h1 class="screen__title">Today's route</h1>
+    <div class="screen__head">
+        <h1 class="screen__title">@(_isToday ? "Today's route" : _selectedDate.ToString("dd.MM.yyyy"))</h1>
+        <input class="screen__date" type="date" max="@_today.ToString("yyyy-MM-dd")"
+               value="@_selectedDate.ToString("yyyy-MM-dd")" @onchange="OnDateChanged" />
+    </div>
 
     @if (_loading)
     {
@@ -19,7 +23,7 @@
     }
     else if (_routes.Count == 0)
     {
-        <p class="screen__hint">No routes for today. Start your shift with the dispatcher.</p>
+        <p class="screen__hint">@(_isToday ? "No routes for today. Start your shift with the dispatcher." : "No routes for this date.")</p>
     }
     else
     {
@@ -49,7 +53,21 @@
     private bool _loading = true;
     private bool _error;
 
+    private readonly DateOnly _today = DateOnly.FromDateTime(DateTime.Now);
+    private DateOnly _selectedDate = DateOnly.FromDateTime(DateTime.Now);
+
+    private bool _isToday => _selectedDate == _today;
+
     protected override Task OnInitializedAsync() => LoadAsync();
+
+    private async Task OnDateChanged(ChangeEventArgs e)
+    {
+        if (DateOnly.TryParse(e.Value?.ToString(), out var picked))
+        {
+            _selectedDate = picked;
+            await LoadAsync();
+        }
+    }
 
     private async Task LoadAsync()
     {
@@ -58,7 +76,7 @@
 
         try
         {
-            _routes = await RouteApi.GetMyRoutesAsync();
+            _routes = await RouteApi.GetMyRoutesAsync(_isToday ? null : _selectedDate);
         }
         catch (HttpRequestException)
         {

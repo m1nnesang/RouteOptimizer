@@ -144,9 +144,9 @@ public class RoutesController : ControllerBase
 
     [Authorize(Roles = "Driver")]
     [HttpGet("mine")]
-    public async Task<IActionResult> GetMyRoutes(CancellationToken ct)
+    public async Task<IActionResult> GetMyRoutes([FromQuery] DateOnly? date, CancellationToken ct)
     {
-        var result = await _mediator.Send(new GetMyRoutesQuery(), ct);
+        var result = await _mediator.Send(new GetMyRoutesQuery(date), ct);
 
         return Ok(result);
     }

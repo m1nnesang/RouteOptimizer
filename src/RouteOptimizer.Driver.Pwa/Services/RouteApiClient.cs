@@ -17,8 +17,11 @@ public sealed class RouteApiClient : IRouteApi
         _httpClientFactory = httpClientFactory;
     }
 
-    public async Task<IReadOnlyList<RouteListItem>> GetMyRoutesAsync(CancellationToken ct = default) =>
-        await _http.GetFromJsonAsync<IReadOnlyList<RouteListItem>>("api/routes/mine", ct) ?? [];
+    public async Task<IReadOnlyList<RouteListItem>> GetMyRoutesAsync(DateOnly? date = null, CancellationToken ct = default)
+    {
+        var url = date is { } d ? $"api/routes/mine?date={d:yyyy-MM-dd}" : "api/routes/mine";
+        return await _http.GetFromJsonAsync<IReadOnlyList<RouteListItem>>(url, ct) ?? [];
+    }
 
     public Task<RouteDetail?> GetRouteAsync(Guid id, CancellationToken ct = default) =>
         _http.GetFromJsonAsync<RouteDetail>($"api/routes/{id}", ct);

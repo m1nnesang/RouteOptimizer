@@ -16,15 +16,18 @@ public sealed class OfflineRouteApi : IRouteApi, IOutboxFlusher
         _connectivity = connectivity;
     }
 
-    public async Task<IReadOnlyList<RouteListItem>> GetMyRoutesAsync(CancellationToken ct = default)
+    public async Task<IReadOnlyList<RouteListItem>> GetMyRoutesAsync(DateOnly? date = null, CancellationToken ct = default)
     {
         if (!_connectivity.IsOnline)
             return await _store.GetRoutesAsync();
 
         try
         {
-            var routes = await _inner.GetMyRoutesAsync(ct);
-            await _store.SaveRoutesAsync(routes);
+            var routes = await _inner.GetMyRoutesAsync(date, ct);
+
+            if (date is null)
+                await _store.SaveRoutesAsync(routes);
+
             return routes;
         }
         catch (HttpRequestException)
