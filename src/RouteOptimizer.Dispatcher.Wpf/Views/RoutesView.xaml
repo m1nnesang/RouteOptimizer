@@ -28,12 +28,13 @@
                 <TextBox Width="180" VerticalAlignment="Center"
                          Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged, Delay=200}"
                          ToolTip="Search by status, driver, warehouse, date..."/>
-                <TextBlock Text="Status" Style="{StaticResource CaptionTextStyle}" Margin="16,0,8,0"/>
+                <TextBlock Text="Status" Style="{StaticResource CaptionTextStyle}" VerticalAlignment="Center" Margin="16,0,8,0"/>
                 <ComboBox ItemsSource="{Binding StatusFilters}"
                           SelectedItem="{Binding SelectedStatusFilter}"
+                          VerticalAlignment="Center"
                           Width="150"/>
-                <TextBlock Text="Date" Style="{StaticResource CaptionTextStyle}" Margin="24,0,8,0"/>
-                <DatePicker SelectedDate="{Binding SelectedDate}" Width="140"/>
+                <TextBlock Text="Date" Style="{StaticResource CaptionTextStyle}" VerticalAlignment="Center" Margin="24,0,8,0"/>
+                <DatePicker SelectedDate="{Binding SelectedDate}" VerticalAlignment="Center" Width="140"/>
                 <TextBlock Text="Loading..." Margin="16,0,0,0"
                            Foreground="{StaticResource TextSecondaryBrush}"
                            VerticalAlignment="Center"

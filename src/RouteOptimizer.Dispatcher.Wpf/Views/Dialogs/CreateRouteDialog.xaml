@@ -40,7 +40,8 @@
                     Command="{Binding LoadOrdersCommand}"/>
             <TextBlock Text="Route date" Style="{StaticResource CaptionTextStyle}"
                        VerticalAlignment="Center" Margin="24,0,8,0"/>
-            <DatePicker SelectedDate="{Binding SelectedDate}" Width="140"/>
+            <DatePicker SelectedDate="{Binding SelectedDate}" Width="140"
+                        DisplayDateStart="{Binding MinDate}"/>
         </StackPanel>
 
         <Border Grid.Row="2" Style="{StaticResource CardBorderStyle}" Padding="1">

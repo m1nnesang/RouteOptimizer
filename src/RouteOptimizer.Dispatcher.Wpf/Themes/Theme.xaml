@@ -789,6 +789,15 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type CalendarItem}">
+                    <ControlTemplate.Resources>
+                        <DataTemplate x:Key="DayTitleTemplate">
+                            <TextBlock Text="{Binding}"
+                                       Foreground="{StaticResource TextPrimaryBrush}"
+                                       FontWeight="SemiBold" FontSize="11"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                                       Margin="0,2,0,4"/>
+                        </DataTemplate>
+                    </ControlTemplate.Resources>
                     <Border Background="{StaticResource BgCardBrush}"
                             BorderBrush="{StaticResource BorderCardBrush}"
                             BorderThickness="1" CornerRadius="10" Padding="8">
