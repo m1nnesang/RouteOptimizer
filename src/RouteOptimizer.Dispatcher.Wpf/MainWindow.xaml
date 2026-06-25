@@ -64,15 +64,27 @@
 
                 <StackPanel Grid.Column="1" Orientation="Horizontal"
                             shell:WindowChrome.IsHitTestVisibleInChrome="True">
-                    <Button x:Name="MinimizeButton" Content="&#xE921;"
+                    <Button x:Name="MinimizeButton"
                             Style="{StaticResource CaptionButtonStyle}"
-                            Click="MinimizeButton_Click"/>
-                    <Button x:Name="MaximizeButton" Content="&#xE922;"
+                            Click="MinimizeButton_Click">
+                        <Path Data="M0,5 H10" SnapsToDevicePixels="True"
+                              Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                              StrokeThickness="1"/>
+                    </Button>
+                    <Button x:Name="MaximizeButton"
                             Style="{StaticResource CaptionButtonStyle}"
-                            Click="MaximizeButton_Click"/>
-                    <Button x:Name="CloseButton" Content="&#xE8BB;"
+                            Click="MaximizeButton_Click">
+                        <Path x:Name="MaxIcon" Data="M0.5,0.5 H9.5 V9.5 H0.5 Z" SnapsToDevicePixels="True"
+                              Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                              StrokeThickness="1" Fill="Transparent"/>
+                    </Button>
+                    <Button x:Name="CloseButton"
                             Style="{StaticResource CloseCaptionButtonStyle}"
-                            Click="CloseButton_Click"/>
+                            Click="CloseButton_Click">
+                        <Path Data="M0,0 L10,10 M0,10 L10,0" SnapsToDevicePixels="True"
+                              Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                              StrokeThickness="1"/>
+                    </Button>
                 </StackPanel>
             </Grid>
 

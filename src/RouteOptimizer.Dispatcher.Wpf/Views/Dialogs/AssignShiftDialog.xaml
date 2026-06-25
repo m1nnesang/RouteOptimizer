@@ -5,6 +5,7 @@
         Width="720" Height="500"
         MinWidth="560" MinHeight="360"
         WindowStartupLocation="CenterOwner"
+        Background="{StaticResource WindowBackgroundBrush}"
         ResizeMode="CanResizeWithGrip"
         Loaded="Window_Loaded">
     <Window.Resources>

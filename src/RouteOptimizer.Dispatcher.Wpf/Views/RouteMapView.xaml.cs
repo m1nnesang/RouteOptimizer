@@ -143,7 +143,8 @@ public partial class RouteMapView : UserControl
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
         html, body, #map { height: 100%; margin: 0; padding: 0; }
-        #map { background: #0d1320; }
+        #map { background: #ddd; }
+        .leaflet-tile-pane { filter: grayscale(0.2) brightness(0.8) contrast(1.05); }
         .leaflet-control-zoom a {
             background: #1e2740; color: #eaeefb; border-color: #2c3550;
         }
@@ -174,9 +175,8 @@ public partial class RouteMapView : UserControl
     <div id="map"></div>
     <script>
         const map = L.map('map').setView([52.1, 19.0], 7);
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        L.tileLayer('http://localhost:8081/light_all/{z}/{x}/{y}{r}.png', {
             maxZoom: 20,
-            subdomains: 'abcd',
             attribution: '&copy; OpenStreetMap &copy; CARTO'
         }).addTo(map);
 

@@ -34,11 +34,6 @@
                           Width="150"/>
                 <TextBlock Text="Date" Style="{StaticResource CaptionTextStyle}" Margin="24,0,8,0"/>
                 <DatePicker SelectedDate="{Binding SelectedDate}" Width="140"/>
-                <Button Content="✕" Width="28" Margin="4,0,0,0"
-                        Style="{StaticResource SecondaryButtonStyle}"
-                        ToolTip="Show all days"
-                        Command="{Binding ClearDateFilterCommand}"
-                        Visibility="{Binding HasDateFilter, Converter={StaticResource BoolToVisibilityConverter}}"/>
                 <TextBlock Text="Loading..." Margin="16,0,0,0"
                            Foreground="{StaticResource TextSecondaryBrush}"
                            VerticalAlignment="Center"
@@ -93,7 +88,7 @@
                         </DataGrid.Columns>
                     </DataGrid>
 
-                    <TextBlock Text="No routes yet. Create a route to get started."
+                    <TextBlock Text="{Binding EmptyMessage}"
                                HorizontalAlignment="Center" VerticalAlignment="Center"
                                TextWrapping="Wrap" TextAlignment="Center" Margin="16"
                                Foreground="{StaticResource TextSecondaryBrush}"
@@ -126,7 +121,7 @@
                             BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
                             CornerRadius="12" Padding="16,12" Margin="0,0,0,12">
                         <WrapPanel>
-                            <StackPanel Orientation="Horizontal" Margin="0,0,28,0">
+                            <StackPanel Orientation="Horizontal" Height="26" VerticalAlignment="Center" Margin="0,0,28,0">
                                 <TextBlock Text="Status" Style="{StaticResource CaptionTextStyle}" Margin="0,0,6,0"/>
                                 <Border Style="{StaticResource StatusChipStyle}"
                                         Background="{Binding SelectedRoute.Status, Converter={StaticResource StatusChipBgConverter}}">
@@ -135,15 +130,15 @@
                                                Foreground="{Binding SelectedRoute.Status, Converter={StaticResource StatusChipFgConverter}}"/>
                                 </Border>
                             </StackPanel>
-                            <StackPanel Orientation="Horizontal" Margin="0,0,28,0">
+                            <StackPanel Orientation="Horizontal" Height="26" VerticalAlignment="Center" Margin="0,0,28,0">
                                 <TextBlock Text="Date" Style="{StaticResource CaptionTextStyle}" Margin="0,0,6,0"/>
                                 <TextBlock Text="{Binding SelectedRoute.Date, StringFormat=dd.MM.yyyy}" FontWeight="SemiBold"/>
                             </StackPanel>
-                            <StackPanel Orientation="Horizontal" Margin="0,0,28,0">
+                            <StackPanel Orientation="Horizontal" Height="26" VerticalAlignment="Center" Margin="0,0,28,0">
                                 <TextBlock Text="Driver" Style="{StaticResource CaptionTextStyle}" Margin="0,0,6,0"/>
                                 <TextBlock Text="{Binding SelectedRoute.DriverName}" FontWeight="SemiBold"/>
                             </StackPanel>
-                            <StackPanel Orientation="Horizontal">
+                            <StackPanel Orientation="Horizontal" Height="26" VerticalAlignment="Center">
                                 <TextBlock Text="Warehouse" Style="{StaticResource CaptionTextStyle}" Margin="0,0,6,0"/>
                                 <TextBlock Text="{Binding SelectedRoute.WarehouseName}" FontWeight="SemiBold"/>
                             </StackPanel>

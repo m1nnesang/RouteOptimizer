@@ -5,6 +5,7 @@
         Width="500" Height="660"
         MinWidth="460" MinHeight="480"
         WindowStartupLocation="CenterOwner"
+        Background="{StaticResource WindowBackgroundBrush}"
         ResizeMode="CanResizeWithGrip">
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
@@ -32,6 +33,7 @@
                     Command="{Binding SelectBusinessCommand}">
                 <StackPanel Orientation="Horizontal">
                     <TextBlock Text="&#x1F3E2;" FontFamily="Segoe UI Emoji" FontSize="28"
+                               Foreground="{StaticResource PrimaryLightBrush}"
                                Width="36" TextAlignment="Center"
                                VerticalAlignment="Center" Margin="0,0,12,0"/>
                     <StackPanel VerticalAlignment="Center">
@@ -48,6 +50,7 @@
                     Command="{Binding SelectIndividualCommand}">
                 <StackPanel Orientation="Horizontal">
                     <TextBlock Text="&#x1F464;" FontFamily="Segoe UI Emoji" FontSize="28"
+                               Foreground="{StaticResource PrimaryLightBrush}"
                                Width="36" TextAlignment="Center"
                                VerticalAlignment="Center" Margin="0,0,12,0"/>
                     <StackPanel VerticalAlignment="Center">
@@ -64,8 +67,13 @@
             <StackPanel Margin="0,0,8,0">
                 <TextBlock Text="Warehouse" Style="{StaticResource CaptionTextStyle}" Margin="0,0,0,4"/>
                 <ComboBox ItemsSource="{Binding Warehouses}"
-                          SelectedItem="{Binding SelectedWarehouse}"
-                          DisplayMemberPath="Name" Margin="0,0,0,12"/>
+                          SelectedItem="{Binding SelectedWarehouse}" Margin="0,0,0,12">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Name}"/>
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
 
                 <StackPanel Visibility="{Binding IsBusiness, Converter={StaticResource BoolToVisibilityConverter}}">
                     <TextBlock Text="Company name" Style="{StaticResource CaptionTextStyle}" Margin="0,0,0,4"/>

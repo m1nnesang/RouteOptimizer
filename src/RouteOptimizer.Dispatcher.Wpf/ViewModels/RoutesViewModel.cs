@@ -83,10 +83,8 @@ public partial class RoutesViewModel : ObservableObject, IDisposable
     public partial string SearchText { get; set; } = string.Empty;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasDateFilter))]
-    public partial DateTime? SelectedDate { get; set; }
-
-    public bool HasDateFilter => SelectedDate is not null;
+    [NotifyPropertyChangedFor(nameof(EmptyMessage))]
+    public partial DateTime? SelectedDate { get; set; } = DateTime.Today;
 
     [ObservableProperty]
     public partial ObservableCollection<AlgorithmComparison> OptimizationComparisons { get; set; } = [];
@@ -107,6 +105,12 @@ public partial class RoutesViewModel : ObservableObject, IDisposable
     public bool HasError => !string.IsNullOrEmpty(ErrorMessage);
 
     public bool IsEmpty => !IsLoading && !HasError && Routes.Count == 0;
+
+    public string EmptyMessage => SelectedDate is { } date
+        ? date.Date == DateTime.Today
+            ? "No routes for today."
+            : $"No routes for {date:dd.MM.yyyy}."
+        : "No routes yet. Create a route to get started.";
 
     public bool HasSelectedRoute => SelectedRoute is not null;
 
@@ -158,9 +162,6 @@ public partial class RoutesViewModel : ObservableObject, IDisposable
         if (previousId is { } id)
             SelectedRoute = Routes.FirstOrDefault(r => r.Id == id);
     }
-
-    [RelayCommand]
-    private void ClearDateFilter() => SelectedDate = null;
 
     [RelayCommand]
     private async Task LoadRoutesAsync()
