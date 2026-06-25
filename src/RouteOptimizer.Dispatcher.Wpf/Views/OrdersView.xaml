@@ -80,7 +80,8 @@
                           SelectedItem="{Binding SelectedOrder}"
                           IsReadOnly="True"
                           BorderThickness="0"
-                          Background="Transparent">
+                          Background="Transparent"
+                          ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                     <DataGrid.Columns>
                         <DataGridTemplateColumn Header="Status" Width="150">
                             <DataGridTemplateColumn.CellTemplate>

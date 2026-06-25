@@ -579,12 +579,20 @@ public class RoutesViewModelTests
     }
 
     [Fact]
-    public async Task ClearDateFilter_ResetsDate()
+    public void SelectedDate_DefaultsToToday()
+    {
+        var vm = CreateViewModel();
+        vm.SelectedDate.Should().Be(DateTime.Today);
+    }
+
+    [Fact]
+    public void EmptyMessage_ReflectsTodayFilter()
     {
         var vm = CreateViewModel();
         vm.SelectedDate = DateTime.Today;
-        vm.ClearDateFilterCommand.Execute(null);
-        vm.SelectedDate.Should().BeNull();
-        vm.HasDateFilter.Should().BeFalse();
+        vm.EmptyMessage.Should().Be("No routes for today.");
+
+        vm.SelectedDate = new DateTime(2025, 6, 1);
+        vm.EmptyMessage.Should().Be("No routes for 01.06.2025.");
     }
 }

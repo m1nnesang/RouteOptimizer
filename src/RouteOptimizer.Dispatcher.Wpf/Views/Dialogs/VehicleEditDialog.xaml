@@ -4,6 +4,7 @@
         Title="{Binding Title}"
         Width="440" SizeToContent="Height"
         WindowStartupLocation="CenterOwner"
+        Background="{StaticResource WindowBackgroundBrush}"
         ResizeMode="NoResize">
     <Grid Margin="24">
         <Grid.RowDefinitions>

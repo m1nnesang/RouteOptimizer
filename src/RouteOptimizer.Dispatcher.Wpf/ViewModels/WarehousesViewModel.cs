@@ -66,7 +66,7 @@ public partial class WarehousesViewModel : ObservableObject
     [RelayCommand]
     private async Task CreateWarehouseAsync()
     {
-        var dialogViewModel = new WarehouseEditDialogViewModel();
+        var dialogViewModel = new WarehouseEditDialogViewModel(apiHttpClient: _apiHttpClient);
         if (_dialogService.ShowWarehouseEditDialog(dialogViewModel) != true)
             return;
 
@@ -88,7 +88,7 @@ public partial class WarehousesViewModel : ObservableObject
         if (SelectedWarehouse is null)
             return;
 
-        var dialogViewModel = new WarehouseEditDialogViewModel(SelectedWarehouse);
+        var dialogViewModel = new WarehouseEditDialogViewModel(SelectedWarehouse, _apiHttpClient);
         if (_dialogService.ShowWarehouseEditDialog(dialogViewModel) != true)
             return;
 

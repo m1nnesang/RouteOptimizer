@@ -4,6 +4,7 @@
         Title="{Binding Title}"
         Width="440" SizeToContent="Height"
         WindowStartupLocation="CenterOwner"
+        Background="{StaticResource WindowBackgroundBrush}"
         ResizeMode="NoResize">
     <Grid Margin="24">
         <Grid.RowDefinitions>
@@ -23,7 +24,12 @@
             <TextBox Text="{Binding City, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,12"/>
 
             <TextBlock Text="Street" Style="{StaticResource CaptionTextStyle}" Margin="0,0,0,4"/>
-            <TextBox Text="{Binding Street, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,12"/>
+            <TextBox Text="{Binding Street, UpdateSourceTrigger=PropertyChanged}"/>
+            <ListBox ItemsSource="{Binding AddressSuggestions}"
+                     SelectedItem="{Binding SelectedSuggestion, Mode=TwoWay}"
+                     DisplayMemberPath="Label"
+                     MaxHeight="160" Margin="0,2,0,12"
+                     Visibility="{Binding IsSuggestionsOpen, Converter={StaticResource BoolToVisibilityConverter}}"/>
 
             <TextBlock Text="Postal code" Style="{StaticResource CaptionTextStyle}" Margin="0,0,0,4"/>
             <TextBox Text="{Binding PostalCode, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,12"/>

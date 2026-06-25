@@ -20,6 +20,8 @@ public partial class CreateRouteDialogViewModel : ObservableObject
     [ObservableProperty]
     public partial DateTime SelectedDate { get; set; } = DateTime.Today;
 
+    public DateTime MinDate { get; } = DateTime.Today;
+
     public DateOnly RouteDate => DateOnly.FromDateTime(SelectedDate);
 
     [ObservableProperty]

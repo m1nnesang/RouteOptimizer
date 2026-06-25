@@ -71,6 +71,10 @@ services:
       - osrm_data:/data
     command: >
       sh -c "
+        if [ -f /data/map.osrm.mldgr ]; then
+          echo 'Map already processed (map.osrm.mldgr exists). Skipping init to avoid corrupting live data. Delete the osrm_data volume to force a rebuild.';
+          exit 0;
+        fi;
         osrm-extract -p /opt/car.lua /data/map.osm.pbf &&
         osrm-partition /data/map.osrm &&
         osrm-customize /data/map.osrm
@@ -144,6 +148,16 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
+  tiles:
+    image: nginx:alpine
+    container_name: route-optimizer-tiles
+    ports:
+      - "8081:80"
+    volumes:
+      - ./infra/nginx/tiles.conf:/etc/nginx/nginx.conf:ro
+      - tiles_cache:/var/cache/nginx/tiles
+    restart: unless-stopped
+
 
 volumes:
   postgres_data:
@@ -152,3 +166,4 @@ volumes:
     external: true
     name: routeoptimizer_osrm_data
   redis-data:
+  tiles_cache:
