@@ -12,11 +12,12 @@ public class AssignRouteCommandHandlerTests
 {
     private readonly Mock<IRouteRepository> _routeRepository = new();
     private readonly Mock<IDriverShiftRepository> _driverShiftRepository = new();
+    private readonly Mock<ICurrentUser> _currentUser = new();
     private readonly AssignRouteCommandHandler _handler;
 
     public AssignRouteCommandHandlerTests()
     {
-        _handler = new AssignRouteCommandHandler(_routeRepository.Object, _driverShiftRepository.Object);
+        _handler = new AssignRouteCommandHandler(_routeRepository.Object, _driverShiftRepository.Object, _currentUser.Object);
     }
 
     [Fact]

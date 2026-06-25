@@ -23,4 +23,9 @@ public class DeliveryAttemptRepository : IDeliveryAttemptRepository
             .Where(a => a.OrderId == orderId)
             .OrderByDescending(a => a.AttemptedAt)
             .ToListAsync(ct);
+
+    public async Task<DeliveryAttempt?> GetByPhotoKeyAsync(string photoKey, CancellationToken ct) =>
+        await _db.DeliveryAttempts
+            .AsNoTracking()
+            .FirstOrDefaultAsync(a => a.PhotoKey == photoKey, ct);
 }

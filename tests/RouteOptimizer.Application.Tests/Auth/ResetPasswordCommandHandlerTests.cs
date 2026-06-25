@@ -45,7 +45,7 @@ public class ResetPasswordCommandHandlerTests
     [Fact]
     public async Task Handle_TokenUsed_ReturnsFailure()
     {
-        var token = PasswordResetToken.Create(Guid.NewGuid(), TimeSpan.FromHours(1));
+        var (token, _) = PasswordResetToken.Create(Guid.NewGuid(), TimeSpan.FromHours(1));
         token.Use();
         _tokenRepo.Setup(x => x.GetByTokenAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(token);
@@ -58,7 +58,7 @@ public class ResetPasswordCommandHandlerTests
     [Fact]
     public async Task Handle_TokenExpired_ReturnsFailure()
     {
-        var token = PasswordResetToken.Create(Guid.NewGuid(), TimeSpan.FromSeconds(-1));
+        var (token, _) = PasswordResetToken.Create(Guid.NewGuid(), TimeSpan.FromSeconds(-1));
         _tokenRepo.Setup(x => x.GetByTokenAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(token);
 
@@ -71,7 +71,7 @@ public class ResetPasswordCommandHandlerTests
     public async Task Handle_ValidToken_SetsPasswordUsesTokenAndRevokesRefreshTokens()
     {
         var user = ActiveUser();
-        var token = PasswordResetToken.Create(user.Id, TimeSpan.FromHours(1));
+        var (token, _) = PasswordResetToken.Create(user.Id, TimeSpan.FromHours(1));
         var refreshToken = RefreshToken.Create(user.Id, "refresh-hash", TimeSpan.FromHours(12));
 
         _tokenRepo.Setup(x => x.GetByTokenAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))

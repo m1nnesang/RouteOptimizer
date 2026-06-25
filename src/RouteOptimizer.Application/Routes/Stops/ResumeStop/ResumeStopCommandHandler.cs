@@ -9,11 +9,13 @@ namespace RouteOptimizer.Application.Routes.Stops.ResumeStop;
 public class ResumeStopCommandHandler : IRequestHandler<ResumeStopCommand, Result>
 {
     private readonly IRouteRepository _routeRepository;
+    private readonly IDriverShiftRepository _shiftRepository;
     private readonly ICurrentUser _currentUser;
 
-    public ResumeStopCommandHandler(IRouteRepository routeRepository, ICurrentUser currentUser)
+    public ResumeStopCommandHandler(IRouteRepository routeRepository, IDriverShiftRepository shiftRepository, ICurrentUser currentUser)
     {
         _routeRepository = routeRepository;
+        _shiftRepository = shiftRepository;
         _currentUser = currentUser;
     }
 
@@ -24,7 +26,7 @@ public class ResumeStopCommandHandler : IRequestHandler<ResumeStopCommand, Resul
         if (route is null)
             throw new NotFoundException("Route is not found");
 
-        if (_currentUser.WarehouseId.HasValue && route.WarehouseId != _currentUser.WarehouseId.Value)
+        if (!await DriverRouteAccess.IsAssignedToDriverAsync(_shiftRepository, route, _currentUser.UserId, ct))
             throw new NotFoundException("Route is not found");
 
         if (route.Status != RouteStatus.InProgress)

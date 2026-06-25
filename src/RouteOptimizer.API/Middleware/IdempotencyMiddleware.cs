@@ -4,7 +4,7 @@ using RouteOptimizer.Infrastructure.Persistence;
 
 namespace RouteOptimizer.API.Middleware;
 
-public class IdempotencyMiddleware(RequestDelegate next, IServiceScopeFactory scopeFactory)
+public class IdempotencyMiddleware(RequestDelegate next, IServiceScopeFactory scopeFactory, ILogger<IdempotencyMiddleware> logger)
 {
     public async Task InvokeAsync(HttpContext context)
     {
@@ -51,8 +51,11 @@ public class IdempotencyMiddleware(RequestDelegate next, IServiceScopeFactory sc
                 {
                     await idempotencyDb.SaveChangesAsync();
                 }
-                catch (DbUpdateException)
+                catch (DbUpdateException ex)
                 {
+                    logger.LogWarning(ex,
+                        "Idempotency record for key {Key} could not be persisted (likely a concurrent duplicate request)",
+                        compositeKey);
                 }
             }
 

@@ -1,6 +1,7 @@
 using MediatR;
 using RouteOptimizer.Application.Abstractions;
 using RouteOptimizer.Domain.Common;
+using RouteOptimizer.Domain.Entities;
 
 namespace RouteOptimizer.Application.Auth.AcceptInvitation;
 
@@ -16,7 +17,7 @@ public class AcceptInvitationCommandHandler : IRequestHandler<AcceptInvitationCo
 
     public async Task<Result> Handle(AcceptInvitationCommand request, CancellationToken ct)
     {
-        var invitation = await _userInvitationRepository.GetByTokenAsync(request.InvitationToken, ct);
+        var invitation = await _userInvitationRepository.GetByTokenAsync(UserInvitation.Hash(request.InvitationToken), ct);
 
         if (invitation is null || invitation.IsUsed || invitation.IsExpired)
             return Result.Failure("Invalid or expired invitation");

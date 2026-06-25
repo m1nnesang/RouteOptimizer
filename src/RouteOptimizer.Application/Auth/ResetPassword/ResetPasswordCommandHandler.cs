@@ -1,6 +1,7 @@
 using MediatR;
 using RouteOptimizer.Application.Abstractions;
 using RouteOptimizer.Domain.Common;
+using RouteOptimizer.Domain.Entities;
 
 namespace RouteOptimizer.Application.Auth.ResetPassword;
 
@@ -21,7 +22,7 @@ public class ResetPasswordCommandHandler : IRequestHandler<ResetPasswordCommand,
 
     public async Task<Result> Handle(ResetPasswordCommand request, CancellationToken ct)
     {
-        var resetToken = await _tokenRepository.GetByTokenAsync(request.Token, ct);
+        var resetToken = await _tokenRepository.GetByTokenAsync(PasswordResetToken.Hash(request.Token), ct);
 
         if (resetToken is null || resetToken.IsUsed || resetToken.IsExpired)
             return Result.Failure("Invalid or expired password reset token");

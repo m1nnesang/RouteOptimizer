@@ -10,11 +10,15 @@ public class DeliverOrderHandler : IRequestHandler<DeliverOrderCommand, Result>
 {
     private readonly IRouteRepository _routeRepository;
     private readonly IOrderRepository _orderRepository;
+    private readonly IDriverShiftRepository _shiftRepository;
+    private readonly ICurrentUser _currentUser;
 
-    public DeliverOrderHandler(IRouteRepository routeRepository, IOrderRepository orderRepository)
+    public DeliverOrderHandler(IRouteRepository routeRepository, IOrderRepository orderRepository, IDriverShiftRepository shiftRepository, ICurrentUser currentUser)
     {
         _routeRepository = routeRepository;
         _orderRepository = orderRepository;
+        _shiftRepository = shiftRepository;
+        _currentUser = currentUser;
     }
 
     public async Task<Result> Handle(DeliverOrderCommand request, CancellationToken ct)
@@ -22,6 +26,9 @@ public class DeliverOrderHandler : IRequestHandler<DeliverOrderCommand, Result>
         var route = await _routeRepository.GetByIdAsync(request.RouteId, ct);
 
         if (route is null)
+            throw new NotFoundException("Route not found");
+
+        if (!await DriverRouteAccess.IsAssignedToDriverAsync(_shiftRepository, route, _currentUser.UserId, ct))
             throw new NotFoundException("Route not found");
 
         if (route.Status != RouteStatus.InProgress)

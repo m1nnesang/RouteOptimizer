@@ -9,14 +9,24 @@ namespace RouteOptimizer.Application.Routes.Stops.CompleteStop;
 public class CompleteStopHandler : IRequestHandler<CompleteStopCommand, Result>
 {
     private readonly IRouteRepository _routeRepository;
+    private readonly IDriverShiftRepository _shiftRepository;
+    private readonly ICurrentUser _currentUser;
 
-    public CompleteStopHandler(IRouteRepository routeRepository) => _routeRepository = routeRepository;
+    public CompleteStopHandler(IRouteRepository routeRepository, IDriverShiftRepository shiftRepository, ICurrentUser currentUser)
+    {
+        _routeRepository = routeRepository;
+        _shiftRepository = shiftRepository;
+        _currentUser = currentUser;
+    }
 
     public async Task<Result> Handle(CompleteStopCommand request, CancellationToken ct)
     {
         var route = await _routeRepository.GetByIdAsync(request.RouteId, ct);
 
         if (route is null)
+            throw new NotFoundException("Route not found");
+
+        if (!await DriverRouteAccess.IsAssignedToDriverAsync(_shiftRepository, route, _currentUser.UserId, ct))
             throw new NotFoundException("Route not found");
 
         if (route.Status != RouteStatus.InProgress)

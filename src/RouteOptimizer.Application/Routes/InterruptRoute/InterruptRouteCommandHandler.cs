@@ -8,15 +8,22 @@ namespace RouteOptimizer.Application.Routes.InterruptRoute;
 public class InterruptRouteCommandHandler : IRequestHandler<InterruptRouteCommand, Result>
 {
     private readonly IRouteRepository _routeRepository;
+    private readonly ICurrentUser _currentUser;
 
-    public InterruptRouteCommandHandler(IRouteRepository routeRepository) =>
+    public InterruptRouteCommandHandler(IRouteRepository routeRepository, ICurrentUser currentUser)
+    {
         _routeRepository = routeRepository;
+        _currentUser = currentUser;
+    }
 
     public async Task<Result> Handle(InterruptRouteCommand request, CancellationToken ct)
     {
         var route = await _routeRepository.GetByIdAsync(request.RouteId, ct);
 
         if (route is null)
+            throw new NotFoundException("Route not found");
+
+        if (_currentUser.WarehouseId.HasValue && route.WarehouseId != _currentUser.WarehouseId.Value)
             throw new NotFoundException("Route not found");
 
         try

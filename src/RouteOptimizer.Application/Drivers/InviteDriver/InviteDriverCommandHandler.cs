@@ -51,7 +51,7 @@ public class InviteDriverCommandHandler : IRequestHandler<InviteDriverCommand,Re
         await _userRepository.AddAsync(user.Value!, ct);
 
 
-        var invitation = UserInvitation.Create(user.Value!.Id, TimeSpan.FromDays(7));
+        var (invitation, rawToken) = UserInvitation.Create(user.Value!.Id, TimeSpan.FromDays(7));
         await _invitationRepository.AddAsync(invitation, ct);
 
         await _unitOfWork.SaveChangesAsync(ct);
@@ -59,7 +59,7 @@ public class InviteDriverCommandHandler : IRequestHandler<InviteDriverCommand,Re
         var message = new MailMessage(
             request.Email,
             "Invitation to Route Optimizer",
-            $"Registration link: {_clientUrlBuilder.AcceptInvitation(invitation.Token)}"
+            $"Registration link: {_clientUrlBuilder.AcceptInvitation(rawToken)}"
         );
 
         var mailResult = await _mailService.SendAsync(message, ct);

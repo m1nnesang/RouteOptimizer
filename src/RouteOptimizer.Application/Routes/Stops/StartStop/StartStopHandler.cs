@@ -1,4 +1,5 @@
 using MediatR;
+using Microsoft.Extensions.Logging;
 using RouteOptimizer.Application.Abstractions;
 using RouteOptimizer.Application.Exceptions;
 using RouteOptimizer.Domain.Common;
@@ -10,13 +11,17 @@ public class StartStopHandler : IRequestHandler<StartStopCommand, Result>
 {
     private readonly IRouteRepository _routeRepository;
     private readonly IOrderRepository _orderRepository;
+    private readonly IDriverShiftRepository _shiftRepository;
     private readonly ICurrentUser _currentUser;
+    private readonly ILogger<StartStopHandler> _logger;
 
-    public StartStopHandler(IRouteRepository routeRepository, IOrderRepository orderRepository, ICurrentUser currentUser)
+    public StartStopHandler(IRouteRepository routeRepository, IOrderRepository orderRepository, IDriverShiftRepository shiftRepository, ICurrentUser currentUser, ILogger<StartStopHandler> logger)
     {
         _routeRepository = routeRepository;
         _orderRepository = orderRepository;
+        _shiftRepository = shiftRepository;
         _currentUser = currentUser;
+        _logger = logger;
     }
 
     public async Task<Result> Handle(StartStopCommand request, CancellationToken ct)
@@ -26,7 +31,7 @@ public class StartStopHandler : IRequestHandler<StartStopCommand, Result>
         if (route is null)
             throw new NotFoundException("Route is not found");
 
-        if (_currentUser.WarehouseId.HasValue && route.WarehouseId != _currentUser.WarehouseId.Value)
+        if (!await DriverRouteAccess.IsAssignedToDriverAsync(_shiftRepository, route, _currentUser.UserId, ct))
             throw new NotFoundException("Route is not found");
 
         if (route.Status != RouteStatus.InProgress)
@@ -57,8 +62,11 @@ public class StartStopHandler : IRequestHandler<StartStopCommand, Result>
             {
                 order.MarkAsInTransit();
             }
-            catch (InvalidOperationException)
+            catch (InvalidOperationException ex)
             {
+                _logger.LogWarning(ex,
+                    "Order {OrderId} could not be marked in transit while starting stop {StopId}",
+                    order.Id, stop.Id);
             }
         }
 

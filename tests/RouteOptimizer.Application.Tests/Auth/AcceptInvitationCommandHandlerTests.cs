@@ -43,7 +43,7 @@ public class AcceptInvitationCommandHandlerTests
     [Fact]
     public async Task Handle_InvitationIsUsed_ReturnsFailure()
     {
-        var invitation = UserInvitation.Create(Guid.NewGuid(), TimeSpan.FromDays(7));
+        var (invitation, _) = UserInvitation.Create(Guid.NewGuid(), TimeSpan.FromDays(7));
         invitation.Use();
 
         _invitationRepo.Setup(x => x.GetByTokenAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
@@ -60,7 +60,7 @@ public class AcceptInvitationCommandHandlerTests
     [Fact]
     public async Task Handle_InvitationIsExpired_ReturnsFailure()
     {
-        var invitation = UserInvitation.Create(Guid.NewGuid(), TimeSpan.FromSeconds(-1));
+        var (invitation, _) = UserInvitation.Create(Guid.NewGuid(), TimeSpan.FromSeconds(-1));
 
         _invitationRepo.Setup(x => x.GetByTokenAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((UserInvitation?)invitation);
@@ -76,7 +76,7 @@ public class AcceptInvitationCommandHandlerTests
     [Fact]
     public async Task Handle_UserNotFound_ReturnsFailure()
     {
-        var invitation = UserInvitation.Create(Guid.NewGuid(), TimeSpan.FromDays(7));
+        var (invitation, _) = UserInvitation.Create(Guid.NewGuid(), TimeSpan.FromDays(7));
 
         _invitationRepo.Setup(x => x.GetByTokenAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((UserInvitation?)invitation);
@@ -99,7 +99,7 @@ public class AcceptInvitationCommandHandlerTests
     public async Task Handle_ValidInvitation_SetsPasswordAndReturnsSuccess()
     {
         var user = CreateActiveUser();
-        var invitation = UserInvitation.Create(user.Id, TimeSpan.FromDays(7));
+        var (invitation, _) = UserInvitation.Create(user.Id, TimeSpan.FromDays(7));
 
         _invitationRepo.Setup(x => x.GetByTokenAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((UserInvitation?)invitation);
