@@ -94,6 +94,20 @@ docker compose up -d
 - MinIO console: http://localhost:9001
 - MailHog inbox: http://localhost:8025
 
+## Default accounts (for review)
+
+On first start in Development the API seeds a warehouse, a vehicle, sample orders and
+three users (only if the database has no users yet). All of them share the same password:
+
+| Role       | Email                   | Password       | Where to use |
+|------------|-------------------------|----------------|--------------|
+| Manager    | `manager@route.local`   | `Password123!` | API / admin tasks |
+| Dispatcher | `dispatcher@route.local`| `Password123!` | Dispatcher (WPF) |
+| Driver     | `driver@route.local`    | `Password123!` | Driver PWA (http://localhost:5080) |
+
+Seeding only runs when `ASPNETCORE_ENVIRONMENT=Development` (the default in
+`docker-compose.yml`) and is skipped once any user exists, so it is safe to restart.
+
 ## 4. Run the Dispatcher (WPF)
 
 The desktop app connects to the API, so the backend must be running first.

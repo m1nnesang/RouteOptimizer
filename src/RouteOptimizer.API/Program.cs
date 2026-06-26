@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using RouteOptimizer.API;
 using RouteOptimizer.API.HealthChecks;
 using RouteOptimizer.API.Hubs;
 using RouteOptimizer.API.Middleware;
@@ -117,6 +118,12 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     await db.Database.MigrateAsync();
+
+    if (app.Environment.IsDevelopment())
+    {
+        var passwordHasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
+        await DevDataSeeder.SeedAsync(db, passwordHasher);
+    }
 }
 
 if (app.Environment.IsDevelopment())
