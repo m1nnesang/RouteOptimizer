@@ -36,7 +36,7 @@ public class RoutesController : ControllerBase
     public RoutesController(IMediator mediator) => _mediator = mediator;
 
     #region Stops
-    [Authorize]
+    [Authorize(Roles = "Dispatcher")]
     [HttpPost("{routeId}/optimize")]
     public async Task<ActionResult<OptimizeRouteResult>> Optimize([FromRoute] Guid routeId, [FromBody] OptimizeRouteRequest request, CancellationToken ct)
     {

@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using System.Text;
 using RouteOptimizer.Domain.Common;
 
 namespace RouteOptimizer.Domain.Entities;
@@ -38,12 +39,17 @@ public class PasswordResetToken : AggregateRoot<Guid>
         UsedAt = DateTime.UtcNow;
     }
 
-    public static PasswordResetToken Create(Guid userId, TimeSpan expirationPeriod)
+    public static (PasswordResetToken Token, string RawToken) Create(Guid userId, TimeSpan expirationPeriod)
     {
         var expiresAt = DateTime.UtcNow.Add(expirationPeriod);
         var id = Guid.NewGuid();
-        var token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
+        var rawToken = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
 
-        return new PasswordResetToken(id, userId, token, expiresAt, null);
+        var entity = new PasswordResetToken(id, userId, Hash(rawToken), expiresAt, null);
+
+        return (entity, rawToken);
     }
+
+    public static string Hash(string rawToken) =>
+        Convert.ToBase64String(SHA256.HashData(Encoding.UTF8.GetBytes(rawToken)));
 }

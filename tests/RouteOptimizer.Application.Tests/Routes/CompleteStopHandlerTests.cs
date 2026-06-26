@@ -3,6 +3,7 @@ using Moq;
 using RouteOptimizer.Application.Abstractions;
 using RouteOptimizer.Application.Exceptions;
 using RouteOptimizer.Application.Routes.Stops.CompleteStop;
+using RouteOptimizer.Domain.Entities;
 using RouteOptimizer.Domain.Entities.Route;
 using RouteOptimizer.Domain.Enums;
 using RouteOptimizer.Domain.ValueObjects;
@@ -11,12 +12,21 @@ namespace RouteOptimizer.Application.Tests.Routes;
 
 public class CompleteStopHandlerTests
 {
+    private static readonly Guid DriverId = Guid.NewGuid();
+
     private readonly Mock<IRouteRepository> _routeRepository = new();
+    private readonly Mock<IDriverShiftRepository> _shiftRepository = new();
+    private readonly Mock<ICurrentUser> _currentUser = new();
     private readonly CompleteStopHandler _handler;
 
     public CompleteStopHandlerTests()
     {
-        _handler = new CompleteStopHandler(_routeRepository.Object);
+        _currentUser.SetupGet(x => x.UserId).Returns(DriverId);
+        _shiftRepository
+            .Setup(x => x.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(DriverShift.Create(DriverId, Guid.NewGuid(), Guid.NewGuid(), DateOnly.FromDateTime(DateTime.UtcNow)).Value!);
+
+        _handler = new CompleteStopHandler(_routeRepository.Object, _shiftRepository.Object, _currentUser.Object);
     }
 
     [Fact]
@@ -34,7 +44,7 @@ public class CompleteStopHandlerTests
     [Fact]
     public async Task Handle_RouteNotInProgress_ReturnsFailure()
     {
-        var route = Route.Create(Guid.NewGuid()).Value!;
+        var route = CreateAssignedRoute();
         _routeRepository
             .Setup(x => x.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(route);
@@ -102,11 +112,17 @@ public class CompleteStopHandlerTests
         stop.Status.Should().Be(StopStatus.PartiallyCompleted);
     }
 
-    private static Route CreateInProgressRoute()
+    private static Route CreateAssignedRoute()
     {
         var route = Route.Create(Guid.NewGuid()).Value!;
         route.Optimize();
         route.AssignShift(Guid.NewGuid());
+        return route;
+    }
+
+    private static Route CreateInProgressRoute()
+    {
+        var route = CreateAssignedRoute();
         route.Start();
         return route;
     }

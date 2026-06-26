@@ -3,6 +3,7 @@ using Moq;
 using RouteOptimizer.Application.Abstractions;
 using RouteOptimizer.Application.Exceptions;
 using RouteOptimizer.Application.Routes.Orders.DeliverOrder;
+using RouteOptimizer.Domain.Entities;
 using RouteOptimizer.Domain.Entities.Orders;
 using RouteOptimizer.Domain.Entities.Route;
 using RouteOptimizer.Domain.Enums;
@@ -12,14 +13,26 @@ namespace RouteOptimizer.Application.Tests.Routes;
 
 public class DeliverOrderHandlerTests
 {
+    private static readonly Guid DriverId = Guid.NewGuid();
+
     private readonly Mock<IRouteRepository> _routeRepository = new();
     private readonly Mock<IOrderRepository> _orderRepository = new();
+    private readonly Mock<IDriverShiftRepository> _shiftRepository = new();
+    private readonly Mock<ICurrentUser> _currentUser = new();
     private readonly DeliverOrderHandler _handler;
 
     public DeliverOrderHandlerTests()
     {
-        _handler = new DeliverOrderHandler(_routeRepository.Object, _orderRepository.Object);
+        _currentUser.SetupGet(x => x.UserId).Returns(DriverId);
+        _shiftRepository
+            .Setup(x => x.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CreateOwnedShift());
+
+        _handler = new DeliverOrderHandler(_routeRepository.Object, _orderRepository.Object, _shiftRepository.Object, _currentUser.Object);
     }
+
+    private static DriverShift CreateOwnedShift() =>
+        DriverShift.Create(DriverId, Guid.NewGuid(), Guid.NewGuid(), DateOnly.FromDateTime(DateTime.UtcNow)).Value!;
 
     [Fact]
     public async Task Handle_RouteNotFound_ThrowsNotFoundException()
@@ -36,7 +49,7 @@ public class DeliverOrderHandlerTests
     [Fact]
     public async Task Handle_RouteNotInProgress_ReturnsFailure()
     {
-        var route = Route.Create(Guid.NewGuid()).Value!;
+        var route = CreateAssignedRoute();
         _routeRepository
             .Setup(x => x.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(route);
@@ -44,6 +57,22 @@ public class DeliverOrderHandlerTests
         var result = await _handler.Handle(new DeliverOrderCommand(route.Id, Guid.NewGuid(), Guid.NewGuid()), default);
 
         result.IsFailure.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task Handle_RouteNotOwnedByDriver_ThrowsNotFoundException()
+    {
+        var route = CreateInProgressRoute();
+        _routeRepository
+            .Setup(x => x.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(route);
+        _shiftRepository
+            .Setup(x => x.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(DriverShift.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), DateOnly.FromDateTime(DateTime.UtcNow)).Value!);
+
+        var act = () => _handler.Handle(new DeliverOrderCommand(route.Id, Guid.NewGuid(), Guid.NewGuid()), default);
+
+        await act.Should().ThrowAsync<NotFoundException>();
     }
 
     [Fact]
@@ -145,11 +174,17 @@ public class DeliverOrderHandlerTests
         return order;
     }
 
-    private static Route CreateInProgressRoute()
+    private static Route CreateAssignedRoute()
     {
         var route = Route.Create(Guid.NewGuid()).Value!;
         route.Optimize();
         route.AssignShift(Guid.NewGuid());
+        return route;
+    }
+
+    private static Route CreateInProgressRoute()
+    {
+        var route = CreateAssignedRoute();
         route.Start();
         return route;
     }

@@ -31,14 +31,14 @@ public class RequestPasswordResetCommandHandler : IRequestHandler<RequestPasswor
         if (user is null || !user.IsActive)
             return Result.Success();
 
-        var resetToken = PasswordResetToken.Create(user.Id, TokenLifetime);
+        var (resetToken, rawToken) = PasswordResetToken.Create(user.Id, TokenLifetime);
         await _tokenRepository.AddAsync(resetToken, ct);
         await _unitOfWork.SaveChangesAsync(ct);
 
         var message = new MailMessage(
             user.Email,
             "Password reset for Route Optimizer",
-            $"Reset link: {_clientUrlBuilder.ResetPassword(resetToken.Token)}"
+            $"Reset link: {_clientUrlBuilder.ResetPassword(rawToken)}"
         );
 
         await _mailService.SendAsync(message, ct);

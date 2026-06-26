@@ -10,11 +10,12 @@ namespace RouteOptimizer.Application.Tests.Routes;
 public class CancelRouteCommandHandlerTests
 {
     private readonly Mock<IRouteRepository> _routeRepository = new();
+    private readonly Mock<ICurrentUser> _currentUser = new();
     private readonly CancelRouteCommandHandler _handler;
 
     public CancelRouteCommandHandlerTests()
     {
-        _handler = new CancelRouteCommandHandler(_routeRepository.Object);
+        _handler = new CancelRouteCommandHandler(_routeRepository.Object, _currentUser.Object);
     }
 
     [Fact]

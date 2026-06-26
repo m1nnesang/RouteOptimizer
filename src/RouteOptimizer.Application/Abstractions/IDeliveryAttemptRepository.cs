@@ -7,4 +7,6 @@ public interface IDeliveryAttemptRepository
     Task AddAsync(DeliveryAttempt attempt, CancellationToken ct);
 
     Task<IReadOnlyList<DeliveryAttempt>> GetByOrderIdAsync(Guid orderId, CancellationToken ct);
+
+    Task<DeliveryAttempt?> GetByPhotoKeyAsync(string photoKey, CancellationToken ct);
 }

@@ -9,14 +9,24 @@ namespace RouteOptimizer.Application.Routes.Stops.SkipStop;
 public class SkipStopHandler : IRequestHandler<SkipStopCommand, Result>
 {
     private readonly IRouteRepository _routeRepository;
+    private readonly IDriverShiftRepository _shiftRepository;
+    private readonly ICurrentUser _currentUser;
 
-    public SkipStopHandler(IRouteRepository routeRepository) => _routeRepository = routeRepository;
+    public SkipStopHandler(IRouteRepository routeRepository, IDriverShiftRepository shiftRepository, ICurrentUser currentUser)
+    {
+        _routeRepository = routeRepository;
+        _shiftRepository = shiftRepository;
+        _currentUser = currentUser;
+    }
 
     public async Task<Result> Handle(SkipStopCommand request, CancellationToken ct)
     {
         var route = await _routeRepository.GetByIdAsync(request.RouteId, ct);
 
         if (route is null)
+            throw new NotFoundException("Route is not found");
+
+        if (!await DriverRouteAccess.IsAssignedToDriverAsync(_shiftRepository, route, _currentUser.UserId, ct))
             throw new NotFoundException("Route is not found");
 
         if (route.Status != RouteStatus.InProgress)
