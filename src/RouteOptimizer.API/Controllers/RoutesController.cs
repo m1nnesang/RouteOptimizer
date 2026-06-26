@@ -2,6 +2,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using RouteOptimizer.Application.Routes.AssignRoute;
 using RouteOptimizer.Application.Routes.CancelRoute;
 using RouteOptimizer.Application.Routes.CompleteRoute;
@@ -100,7 +101,7 @@ public class RoutesController : ControllerBase
 
     [Authorize(Roles = "Driver")]
     [HttpPost("{routeId}/stops/{stopId}/orders/{orderId}/deliver")]
-    public async Task<IActionResult> DeliverOrder([FromRoute] Guid routeId, [FromRoute] Guid stopId, [FromRoute] Guid orderId, [FromBody] DeliverOrderRequest? request, CancellationToken ct)
+    public async Task<IActionResult> DeliverOrder([FromRoute] Guid routeId, [FromRoute] Guid stopId, [FromRoute] Guid orderId, [FromBody(EmptyBodyBehavior = EmptyBodyBehavior.Allow)] DeliverOrderRequest? request, CancellationToken ct)
     {
         var command = new DeliverOrderCommand(routeId, stopId, orderId,
             request?.Latitude, request?.Longitude, request?.PhotoKey);
