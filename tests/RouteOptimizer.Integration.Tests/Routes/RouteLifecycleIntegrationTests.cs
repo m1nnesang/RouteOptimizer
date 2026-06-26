@@ -79,7 +79,8 @@ public sealed class RouteLifecycleIntegrationTests : IntegrationTestBase
         await AuthenticateAsync(DriverEmail, Password);
         var startResponse = await Client.PostAsync($"/api/routes/{routeId}/start", null);
 
-        startResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        // A route not assigned to the driver is treated as not found (no information leak).
+        startResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
     [Fact]

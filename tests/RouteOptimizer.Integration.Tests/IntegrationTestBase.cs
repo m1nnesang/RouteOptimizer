@@ -139,6 +139,8 @@ public abstract class IntegrationTestBase : IAsyncLifetime
         return (await response.Content.ReadFromJsonAsync<AuthTokenDto>())!;
     }
 
+    protected string? GetLastEmailedToken() => _fixture.GetLastEmailedToken();
+
     protected async Task<string> GetInvitationTokenAsync(Guid userId)
     {
         using var scope = _fixture.Services.CreateScope();

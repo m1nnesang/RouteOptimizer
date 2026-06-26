@@ -34,7 +34,8 @@ public sealed class InvitationIntegrationTests : IntegrationTestBase
 
         var invitedUser = await GetUserByEmailAsync(driverEmail);
         invitedUser.Should().NotBeNull();
-        var token = await GetInvitationTokenAsync(invitedUser!.Id);
+        var token = GetLastEmailedToken();
+        token.Should().NotBeNullOrEmpty();
 
         const string newPassword = "NewPassword123!";
         var acceptResponse = await Client.PostAsJsonAsync("/api/auth/accept-invitation", new
@@ -84,13 +85,14 @@ public sealed class InvitationIntegrationTests : IntegrationTestBase
         });
 
         var invitedUser = await GetUserByEmailAsync(driverEmail);
-        var token = await GetInvitationTokenAsync(invitedUser!.Id);
+        var token = GetLastEmailedToken();
 
-        await Client.PostAsJsonAsync("/api/auth/accept-invitation", new
+        var firstAccept = await Client.PostAsJsonAsync("/api/auth/accept-invitation", new
         {
             InvitationToken = token,
             Password = "FirstPassword123!"
         });
+        firstAccept.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         var secondAccept = await Client.PostAsJsonAsync("/api/auth/accept-invitation", new
         {

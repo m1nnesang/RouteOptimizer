@@ -67,6 +67,7 @@ public sealed class IntegrationTestFixture : IAsyncLifetime
                     services.RemoveAll<IMinioClient>();
                     services.AddSingleton(Mock.Of<IMinioClient>());
 
+                    services.AddSingleton<SentMailCollector>();
                     services.RemoveAll<IMailService>();
                     services.AddScoped<IMailService, FakeMailService>();
 
@@ -101,15 +102,66 @@ public sealed class IntegrationTestFixture : IAsyncLifetime
 
     public async Task ResetDatabaseAsync()
     {
+        _factory.Services.GetRequiredService<SentMailCollector>().Clear();
+
         await using var connection = new NpgsqlConnection(_postgres.GetConnectionString());
         await connection.OpenAsync();
         await _respawner.ResetAsync(connection);
     }
 
+    public string? GetLastEmailedToken()
+    {
+        var body = _factory.Services.GetRequiredService<SentMailCollector>().Last()?.Body;
+        if (body is null)
+            return null;
+
+        const string marker = "token=";
+        var idx = body.IndexOf(marker, StringComparison.Ordinal);
+        if (idx < 0)
+            return null;
+
+        var raw = body[(idx + marker.Length)..];
+        var amp = raw.IndexOf('&');
+        if (amp >= 0)
+            raw = raw[..amp];
+
+        return Uri.UnescapeDataString(raw);
+    }
+
+    public sealed class SentMailCollector
+    {
+        private readonly List<MailMessage> _messages = new();
+
+        public void Add(MailMessage message)
+        {
+            lock (_messages)
+                _messages.Add(message);
+        }
+
+        public void Clear()
+        {
+            lock (_messages)
+                _messages.Clear();
+        }
+
+        public MailMessage? Last()
+        {
+            lock (_messages)
+                return _messages.Count > 0 ? _messages[^1] : null;
+        }
+    }
+
     private sealed class FakeMailService : IMailService
     {
-        public Task<Result> SendAsync(MailMessage message, CancellationToken ct = default) =>
-            Task.FromResult(Result.Success());
+        private readonly SentMailCollector _collector;
+
+        public FakeMailService(SentMailCollector collector) => _collector = collector;
+
+        public Task<Result> SendAsync(MailMessage message, CancellationToken ct = default)
+        {
+            _collector.Add(message);
+            return Task.FromResult(Result.Success());
+        }
     }
 
     private sealed class FakeDistanceMatrixProvider : IDistanceMatrixProvider
