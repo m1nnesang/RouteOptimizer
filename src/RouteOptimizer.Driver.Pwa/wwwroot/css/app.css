@@ -564,7 +564,7 @@ h1:focus {
 .stop-card {
     display: flex;
     flex-direction: column;
-    max-height: 60vh;
+    max-height: 38vh;
     overflow-y: auto;
 }
 
