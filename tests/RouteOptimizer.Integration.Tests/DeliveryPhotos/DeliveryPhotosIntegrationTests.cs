@@ -53,7 +53,9 @@ public sealed class DeliveryPhotosIntegrationTests : IntegrationTestBase
     public async Task Driver_can_get_photo_download_url()
     {
         var warehouseId = await SeedWarehouseAsync();
-        await SeedUserAsync(DriverEmail, Password, UserRole.Driver, warehouseId);
+        var driver = await SeedUserAsync(DriverEmail, Password, UserRole.Driver, warehouseId);
+        var orderId = await SeedIndividualOrderAsync(warehouseId);
+        await SeedDeliveryAttemptAsync(orderId, driver.Id, "abc123.jpg");
         await AuthenticateAsync(DriverEmail, Password);
 
         var response = await Client.GetAsync("/api/delivery-photos/abc123.jpg");
@@ -68,6 +70,9 @@ public sealed class DeliveryPhotosIntegrationTests : IntegrationTestBase
     {
         var warehouseId = await SeedWarehouseAsync();
         await SeedUserAsync(DispatcherEmail, Password, UserRole.Dispatcher, warehouseId);
+        var driver = await SeedUserAsync(DriverEmail, Password, UserRole.Driver, warehouseId);
+        var orderId = await SeedIndividualOrderAsync(warehouseId);
+        await SeedDeliveryAttemptAsync(orderId, driver.Id, "some-photo.jpg");
         await AuthenticateAsync(DispatcherEmail, Password);
 
         var response = await Client.GetAsync("/api/delivery-photos/some-photo.jpg");

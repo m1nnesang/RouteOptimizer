@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using RouteOptimizer.Application.Abstractions;
 using RouteOptimizer.Application.Auth;
 using RouteOptimizer.Domain.Entities;
+using RouteOptimizer.Domain.Entities.Orders;
 using RouteOptimizer.Domain.Enums;
 using RouteOptimizer.Domain.ValueObjects;
 using RouteOptimizer.Infrastructure.Persistence;
@@ -73,6 +74,38 @@ public abstract class IntegrationTestBase : IAsyncLifetime
         await db.SaveChangesAsync();
 
         return shift.Id;
+    }
+
+    protected async Task<Guid> SeedIndividualOrderAsync(Guid warehouseId)
+    {
+        using var scope = _fixture.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+        var address = Address.Create("2 Test Street", "Berlin", "10115", "Germany").Value!;
+        var location = GeoCoordinate.Create(52.5210, 13.4060).Value!;
+        var phone = PhoneNumber.Create("+12025550124").Value!;
+        var window = DeliveryWindow.Between(new TimeOnly(9, 0), new TimeOnly(12, 0), WindowStrictness.Soft);
+        var order = IndividualOrder.Create(warehouseId, address, location,
+            Weight.Create(5m).Value!, Volume.Create(0.1m).Value!, window, phone, CargoType.General,
+            null, "Test Customer", false).Value!;
+
+        db.Orders.Add(order);
+        await db.SaveChangesAsync();
+
+        return order.Id;
+    }
+
+    protected async Task SeedDeliveryAttemptAsync(Guid orderId, Guid driverId, string photoKey)
+    {
+        using var scope = _fixture.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+        var location = GeoCoordinate.Create(52.5200, 13.4050).Value!;
+        var attempt = DeliveryAttempt.Create(orderId, driverId, Guid.NewGuid(), location,
+            DeliveryOutcome.Delivered, null, null, photoKey).Value!;
+
+        db.DeliveryAttempts.Add(attempt);
+        await db.SaveChangesAsync();
     }
 
     protected async Task<Guid> SeedWarehouseAsync()

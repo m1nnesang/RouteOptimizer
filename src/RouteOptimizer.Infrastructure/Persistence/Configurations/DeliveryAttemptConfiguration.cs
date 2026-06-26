@@ -17,6 +17,7 @@ public class DeliveryAttemptConfiguration : IEntityTypeConfiguration<DeliveryAtt
         builder.Property(x => x.Outcome).IsRequired();
         builder.Property(x => x.FailureReason);
         builder.Property(x => x.Notes).HasMaxLength(500);
+        builder.Property(x => x.PhotoKey).HasMaxLength(200);
 
         builder.OwnsOne(x => x.AttemptLocation, loc =>
         {
