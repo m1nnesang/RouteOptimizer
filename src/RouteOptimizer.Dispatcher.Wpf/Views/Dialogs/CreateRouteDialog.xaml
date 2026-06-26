@@ -46,7 +46,13 @@
 
         <Border Grid.Row="2" Style="{StaticResource CardBorderStyle}" Padding="1">
             <DataGrid ItemsSource="{Binding AvailableOrders}"
+                      AutoGenerateColumns="False"
+                      CanUserAddRows="False"
                       CanUserDeleteRows="False"
+                      CanUserReorderColumns="False"
+                      CanUserResizeRows="False"
+                      HeadersVisibility="Column"
+                      GridLinesVisibility="Horizontal"
                       BorderThickness="0"
                       Background="Transparent">
                 <DataGrid.Columns>
@@ -58,7 +64,14 @@
                     <DataGridTextColumn Header="City"        Binding="{Binding City}"                      Width="120" IsReadOnly="True"/>
                     <DataGridTextColumn Header="Street"      Binding="{Binding Street}"                    Width="*"   IsReadOnly="True"/>
                     <DataGridTextColumn Header="Cargo"       Binding="{Binding CargoType}"                 Width="110" IsReadOnly="True"/>
-                    <DataGridTextColumn Header="Weight (kg)" Binding="{Binding Weight, StringFormat=F1}"   Width="100" IsReadOnly="True"/>
+                    <DataGridTextColumn Header="Weight (kg)" Binding="{Binding Weight, StringFormat=F1}"   Width="100" IsReadOnly="True">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="HorizontalAlignment" Value="Right"/>
+                                <Setter Property="Margin" Value="0,0,12,0"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
                 </DataGrid.Columns>
             </DataGrid>
         </Border>

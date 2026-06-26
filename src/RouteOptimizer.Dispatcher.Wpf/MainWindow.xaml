@@ -121,7 +121,7 @@
                         <RadioButton Content="Routes" GroupName="Nav" Style="{StaticResource NavPillStyle}"
                                      Command="{Binding ShowRoutesCommand}"
                                      IsChecked="{Binding ActiveTab, Mode=OneWay, Converter={StaticResource EqualsConverter}, ConverterParameter=Routes}"/>
-                        <RadioButton Content="Drivers" GroupName="Nav" Style="{StaticResource NavPillStyle}"
+                        <RadioButton Content="Shifts" GroupName="Nav" Style="{StaticResource NavPillStyle}"
                                      Command="{Binding ShowDriversCommand}"
                                      IsChecked="{Binding ActiveTab, Mode=OneWay, Converter={StaticResource EqualsConverter}, ConverterParameter=Drivers}"/>
                         <RadioButton Content="Vehicles" GroupName="Nav" Style="{StaticResource NavPillStyle}"
