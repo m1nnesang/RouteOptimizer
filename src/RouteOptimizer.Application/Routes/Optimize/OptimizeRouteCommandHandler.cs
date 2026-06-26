@@ -70,9 +70,28 @@ public class OptimizeRouteCommandHandler : IRequestHandler<OptimizeRouteCommand,
             .Select(r => new AlgorithmComparison(r.AlgorithmName, r.TotalDurationSeconds, r.ComputationTimeMs))
             .ToList();
 
-        route.ApplyOptimizedOrders(best.OrderedStopIds);
+        var orderedStopIds = OrientTowardDepot(best.OrderedStopIds, stops, matrix);
+
+        route.ApplyOptimizedOrders(orderedStopIds);
         route.Optimize();
 
-        return new OptimizeRouteResult(route.Id, best.OrderedStopIds, comparisons);
+        return new OptimizeRouteResult(route.Id, orderedStopIds, comparisons);
+    }
+
+    // The optimizers minimise a round trip, so the visiting direction is arbitrary.
+    // Orient it so the route ends at the stop closest to the warehouse — the driver finishes near the depot.
+    private static IReadOnlyList<Guid> OrientTowardDepot(IReadOnlyList<Guid> ordered, IReadOnlyList<StopInput> stops, DistanceMatrix matrix)
+    {
+        if (ordered.Count < 2)
+            return ordered;
+
+        var matrixIndexById = new Dictionary<Guid, int>(stops.Count);
+        for (var i = 0; i < stops.Count; i++)
+            matrixIndexById[stops[i].StopId] = i + 1;
+
+        var depotToFirst = matrix.GetDuration(0, matrixIndexById[ordered[0]]);
+        var depotToLast = matrix.GetDuration(0, matrixIndexById[ordered[^1]]);
+
+        return depotToFirst < depotToLast ? ordered.Reverse().ToList() : ordered;
     }
 }

@@ -308,7 +308,11 @@ else
         await InvokeAsync(StateHasChanged);
     }
 
-    private async Task OnRouteChangedAsync() => await InvokeAsync(ReloadAsync);
+    private async Task OnRouteChangedAsync() => await InvokeAsync(async () =>
+    {
+        await ReloadAsync();
+        StateHasChanged();
+    });
 
     private async Task FlushAndReloadAsync()
     {
