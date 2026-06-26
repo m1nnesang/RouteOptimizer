@@ -90,6 +90,18 @@ public sealed class OfflineRouteApi : IRouteApi, IOutboxFlusher
             key => _inner.DeliverOrderAsync(routeId, stopId, orderId, key, ct),
             route => OfflineRouteMutator.DeliverOrder(route, stopId, orderId));
 
+    public async Task<ApiResult> DeliverOrderWithPhotoAsync(Guid routeId, Guid stopId, Guid orderId, double latitude, double longitude, string photoKey, CancellationToken ct = default)
+    {
+        try
+        {
+            return await _inner.DeliverOrderWithPhotoAsync(routeId, stopId, orderId, latitude, longitude, photoKey, ct);
+        }
+        catch (HttpRequestException)
+        {
+            return ApiResult.Fail("No server connection.");
+        }
+    }
+
     public Task<ApiResult> FailOrderAsync(Guid routeId, Guid stopId, Guid orderId, FailDeliveryRequest request, string? idempotencyKey = null, CancellationToken ct = default) =>
         ExecuteAsync(
             NewItem(OutboxKind.FailOrder, routeId, stopId, orderId) with

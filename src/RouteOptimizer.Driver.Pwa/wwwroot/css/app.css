@@ -762,6 +762,19 @@ h1:focus {
     word-break: break-all;
 }
 
+.deliver-photo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+}
+
+.deliver-photo__hint {
+    font-weight: 600;
+}
+
 /* ---------- Start route ---------- */
 .sheet__start {
     margin: 0 1.25rem;

@@ -24,6 +24,8 @@ public interface IRouteApi
 
     Task<ApiResult> DeliverOrderAsync(Guid routeId, Guid stopId, Guid orderId, string? idempotencyKey = null, CancellationToken ct = default);
 
+    Task<ApiResult> DeliverOrderWithPhotoAsync(Guid routeId, Guid stopId, Guid orderId, double latitude, double longitude, string photoKey, CancellationToken ct = default);
+
     Task<ApiResult> FailOrderAsync(Guid routeId, Guid stopId, Guid orderId, FailDeliveryRequest request, string? idempotencyKey = null, CancellationToken ct = default);
 
     Task<ApiResult> PushLocationAsync(Guid routeId, double latitude, double longitude, string? idempotencyKey = null, CancellationToken ct = default);

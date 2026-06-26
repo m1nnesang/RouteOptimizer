@@ -18,6 +18,7 @@ public class DeliverOrderHandlerTests
     private readonly Mock<IRouteRepository> _routeRepository = new();
     private readonly Mock<IOrderRepository> _orderRepository = new();
     private readonly Mock<IDriverShiftRepository> _shiftRepository = new();
+    private readonly Mock<IDeliveryAttemptRepository> _deliveryAttemptRepository = new();
     private readonly Mock<ICurrentUser> _currentUser = new();
     private readonly DeliverOrderHandler _handler;
 
@@ -28,7 +29,7 @@ public class DeliverOrderHandlerTests
             .Setup(x => x.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(CreateOwnedShift());
 
-        _handler = new DeliverOrderHandler(_routeRepository.Object, _orderRepository.Object, _shiftRepository.Object, _currentUser.Object);
+        _handler = new DeliverOrderHandler(_routeRepository.Object, _orderRepository.Object, _shiftRepository.Object, _deliveryAttemptRepository.Object, _currentUser.Object);
     }
 
     private static DriverShift CreateOwnedShift() =>

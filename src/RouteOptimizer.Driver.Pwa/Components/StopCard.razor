@@ -68,6 +68,16 @@
                         <button class="btn btn--danger btn--sm" disabled="@_busy"
                                 @onclick="() => OpenFailForm(order.OrderId)">Not delivered</button>
                     </div>
+
+                    <div class="deliver-photo">
+                        <span class="deliver-photo__hint">Delivery photo (optional)</span>
+                        <InputFile accept="image/*" capture="environment"
+                                   OnChange="(e) => OnDeliverPhotoSelected(e, order.OrderId)" />
+                        @if (_deliverFileOrderId == order.OrderId && _deliverFile is not null)
+                        {
+                            <p class="fail-form__filename">Photo: @_deliverFile.Name</p>
+                        }
+                    </div>
                 }
 
                 @if (_failOrderId == order.OrderId)
@@ -151,6 +161,9 @@
     private bool _busy;
     private string? _error;
 
+    private IBrowserFile? _deliverFile;
+    private Guid? _deliverFileOrderId;
+
     private string PinClass => IsCurrent ? "pin-current" : StatusLabels.PinCss(Stop.Status);
 
     private string Eyebrow
@@ -223,22 +236,62 @@
 
     private void OnPhotoSelected(InputFileChangeEventArgs e) => _failFile = e.File;
 
+    private void OnDeliverPhotoSelected(InputFileChangeEventArgs e, Guid orderId)
+    {
+        _deliverFile = e.File;
+        _deliverFileOrderId = orderId;
+    }
+
     private async Task DeliverAsync(Guid orderId)
     {
         if (_busy)
             return;
+
+        var photo = _deliverFileOrderId == orderId ? _deliverFile : null;
+
+        if (photo is not null && !Connectivity.IsOnline)
+        {
+            _error = "Photo on delivery is available online only. Deliver without a photo or connect to the network.";
+            return;
+        }
 
         _busy = true;
         _error = null;
 
         try
         {
-            var result = await RouteApi.DeliverOrderAsync(RouteId, Stop.Id, orderId);
+            ApiResult result;
+
+            if (photo is not null)
+            {
+                var photoKey = await UploadPhotoAsync(photo);
+
+                if (photoKey is null)
+                {
+                    _error = "Failed to upload the photo.";
+                    return;
+                }
+
+                var position = await Geolocation.TryGetCurrentPositionAsync();
+
+                result = await RouteApi.DeliverOrderWithPhotoAsync(RouteId, Stop.Id, orderId,
+                    position?.Latitude ?? 0, position?.Longitude ?? 0, photoKey);
+            }
+            else
+            {
+                result = await RouteApi.DeliverOrderAsync(RouteId, Stop.Id, orderId);
+            }
 
             if (result.Success)
+            {
+                _deliverFile = null;
+                _deliverFileOrderId = null;
                 await OnChanged.InvokeAsync();
+            }
             else
+            {
                 _error = result.Error;
+            }
         }
         catch (HttpRequestException)
         {

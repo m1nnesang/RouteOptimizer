@@ -50,6 +50,10 @@ public sealed class RouteApiClient : IRouteApi
     public Task<ApiResult> DeliverOrderAsync(Guid routeId, Guid stopId, Guid orderId, string? idempotencyKey = null, CancellationToken ct = default) =>
         SendAsync(HttpMethod.Post, $"api/routes/{routeId}/stops/{stopId}/orders/{orderId}/deliver", null, idempotencyKey, ct);
 
+    public Task<ApiResult> DeliverOrderWithPhotoAsync(Guid routeId, Guid stopId, Guid orderId, double latitude, double longitude, string photoKey, CancellationToken ct = default) =>
+        SendAsync(HttpMethod.Post, $"api/routes/{routeId}/stops/{stopId}/orders/{orderId}/deliver",
+            new DeliverOrderRequest(latitude, longitude, photoKey), null, ct);
+
     public Task<ApiResult> FailOrderAsync(Guid routeId, Guid stopId, Guid orderId, FailDeliveryRequest request, string? idempotencyKey = null, CancellationToken ct = default) =>
         SendAsync(HttpMethod.Post, $"api/routes/{routeId}/stops/{stopId}/orders/{orderId}/fail", request, idempotencyKey, ct);
 

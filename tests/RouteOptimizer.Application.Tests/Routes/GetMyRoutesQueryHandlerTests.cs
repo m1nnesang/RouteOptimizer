@@ -95,7 +95,7 @@ public class GetMyRoutesQueryHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ExcludesTerminalRoutes()
+    public async Task Handle_KeepsCompletedRoutesSoDriverCanReviewAddresses()
     {
         var shift = CreateActiveShift();
         _shiftRepository
@@ -107,6 +107,25 @@ public class GetMyRoutesQueryHandlerTests
         _routeRepository
             .Setup(x => x.GetByAssignedShiftIdAsync(shift.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<Route> { active, completed });
+
+        var result = await _handler.Handle(new GetMyRoutesQuery(), default);
+
+        result.Select(r => r.Id).Should().BeEquivalentTo(new[] { active.Id, completed.Id });
+    }
+
+    [Fact]
+    public async Task Handle_ExcludesCancelledRoutes()
+    {
+        var shift = CreateActiveShift();
+        _shiftRepository
+            .Setup(x => x.GetActiveShiftByDriverIdAsync(_driverId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(shift);
+
+        var active = CreateRouteWithStop();
+        var cancelled = CreateCancelledRoute();
+        _routeRepository
+            .Setup(x => x.GetByAssignedShiftIdAsync(shift.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<Route> { active, cancelled });
 
         var result = await _handler.Handle(new GetMyRoutesQuery(), default);
 
@@ -139,6 +158,15 @@ public class GetMyRoutesQueryHandlerTests
         route.AssignShift(Guid.NewGuid());
         route.Start();
         route.Complete();
+        return route;
+    }
+
+    private Route CreateCancelledRoute()
+    {
+        var route = Route.Create(_warehouseId).Value!;
+        route.Optimize();
+        route.AssignShift(Guid.NewGuid());
+        route.Cancel();
         return route;
     }
 

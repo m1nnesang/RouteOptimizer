@@ -100,9 +100,10 @@ public class RoutesController : ControllerBase
 
     [Authorize(Roles = "Driver")]
     [HttpPost("{routeId}/stops/{stopId}/orders/{orderId}/deliver")]
-    public async Task<IActionResult> DeliverOrder([FromRoute] Guid routeId, [FromRoute] Guid stopId, [FromRoute] Guid orderId, CancellationToken ct)
+    public async Task<IActionResult> DeliverOrder([FromRoute] Guid routeId, [FromRoute] Guid stopId, [FromRoute] Guid orderId, [FromBody] DeliverOrderRequest? request, CancellationToken ct)
     {
-        var command = new DeliverOrderCommand(routeId, stopId, orderId);
+        var command = new DeliverOrderCommand(routeId, stopId, orderId,
+            request?.Latitude, request?.Longitude, request?.PhotoKey);
         var result = await _mediator.Send(command, ct);
 
         return ToResponse(result);
@@ -240,6 +241,10 @@ public class RoutesController : ControllerBase
         double Longitude,
         FailureReason FailureReason,
         string? Notes,
+        string? PhotoKey);
+    public record DeliverOrderRequest(
+        double? Latitude,
+        double? Longitude,
         string? PhotoKey);
 
     private IActionResult ToResponse(Result result) =>

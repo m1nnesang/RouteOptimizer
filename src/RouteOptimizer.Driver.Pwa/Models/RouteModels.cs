@@ -42,6 +42,8 @@ public sealed record StopOrder(
 
 public sealed record CompleteStopRequest(bool IsPartial);
 
+public sealed record DeliverOrderRequest(double Latitude, double Longitude, string PhotoKey);
+
 public sealed record PushLocationRequest(double Latitude, double Longitude);
 
 public sealed record FailDeliveryRequest(
