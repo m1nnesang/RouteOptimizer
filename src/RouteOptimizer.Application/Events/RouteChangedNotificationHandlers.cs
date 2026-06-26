@@ -59,14 +59,39 @@ public sealed class RouteInterruptedNotificationHandler
         BroadcastRouteChangedAsync(notification.RouteId, ct);
 }
 
-public sealed class RouteAssignedNotificationHandler
-    : RouteChangedNotifierBase, INotificationHandler<RouteAssignedToDriver>
+public sealed class RouteAssignedNotificationHandler : INotificationHandler<RouteAssignedToDriver>
 {
-    public RouteAssignedNotificationHandler(
-        IRouteRepository routeRepository, IRouteEventsNotifier notifier,
-        ILogger<RouteAssignedNotificationHandler> logger)
-        : base(routeRepository, notifier, logger) { }
+    private readonly IRouteRepository _routeRepository;
+    private readonly IDriverShiftRepository _shiftRepository;
+    private readonly IRouteEventsNotifier _notifier;
+    private readonly ILogger<RouteAssignedNotificationHandler> _logger;
 
-    public Task Handle(RouteAssignedToDriver notification, CancellationToken ct) =>
-        BroadcastRouteChangedAsync(notification.RouteId, ct);
+    public RouteAssignedNotificationHandler(
+        IRouteRepository routeRepository, IDriverShiftRepository shiftRepository,
+        IRouteEventsNotifier notifier, ILogger<RouteAssignedNotificationHandler> logger)
+    {
+        _routeRepository = routeRepository;
+        _shiftRepository = shiftRepository;
+        _notifier = notifier;
+        _logger = logger;
+    }
+
+    public async Task Handle(RouteAssignedToDriver notification, CancellationToken ct)
+    {
+        var route = await _routeRepository.GetByIdAsync(notification.RouteId, ct);
+        if (route is null) return;
+
+        try
+        {
+            await _notifier.RouteChangedAsync(route.WarehouseId, route.Id, ct);
+
+            var shift = await _shiftRepository.GetByIdAsync(notification.ShiftId, ct);
+            if (shift is not null)
+                await _notifier.RouteAssignedToDriverAsync(shift.DriverId, route.Id, ct);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "SignalR broadcast failed for RouteAssigned, route {RouteId}", route.Id);
+        }
+    }
 }

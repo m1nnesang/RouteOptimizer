@@ -8,6 +8,7 @@ public record RouteDto(
     Guid? AssignedShiftId,
     string Status,
     IReadOnlyList<StopDto> Stops,
-    IReadOnlyList<RoutePoint> Geometry);
+    IReadOnlyList<RoutePoint> Geometry,
+    RoutePoint? Warehouse);
 
 public sealed record RoutePoint(double Latitude, double Longitude);

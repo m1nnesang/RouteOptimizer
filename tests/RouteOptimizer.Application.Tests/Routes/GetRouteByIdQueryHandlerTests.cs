@@ -14,6 +14,7 @@ public class GetRouteByIdQueryHandlerTests
     private readonly Mock<IOrderRepository> _orderRepository = new();
     private readonly Mock<ICurrentUser> _currentUser = new();
     private readonly Mock<IRouteGeometryProvider> _geometryProvider = new();
+    private readonly Mock<IWarehouseRepository> _warehouseRepository = new();
     private readonly GetRouteByIdQueryHandler _handler;
 
     public GetRouteByIdQueryHandlerTests()
@@ -25,7 +26,7 @@ public class GetRouteByIdQueryHandlerTests
             .Setup(x => x.GetRouteAsync(It.IsAny<IReadOnlyList<(double, double)>>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync([]);
         _handler = new GetRouteByIdQueryHandler(_routeRepository.Object, _orderRepository.Object,
-            _currentUser.Object, _geometryProvider.Object);
+            _currentUser.Object, _geometryProvider.Object, _warehouseRepository.Object);
     }
 
     [Fact]

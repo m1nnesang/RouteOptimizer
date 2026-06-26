@@ -11,6 +11,7 @@ public class SignalRRouteEventsNotifier : IRouteEventsNotifier
     public const string StopFailedEvent = "StopFailed";
     public const string StopSkippedEvent = "StopSkipped";
     public const string RouteChangedEvent = "RouteChanged";
+    public const string RouteAssignedEvent = "RouteAssigned";
     public const string DriverLocationEvent = "DriverLocation";
 
     private readonly IHubContext<RouteHub> _hubContext;
@@ -37,6 +38,10 @@ public class SignalRRouteEventsNotifier : IRouteEventsNotifier
         _hubContext.Clients
             .Groups(RouteHub.WarehouseGroup(warehouseId), RouteHub.RouteGroup(routeId))
             .SendAsync(RouteChangedEvent, new { routeId }, ct);
+
+    public Task RouteAssignedToDriverAsync(Guid driverId, Guid routeId, CancellationToken ct) =>
+        _hubContext.Clients.Group(RouteHub.DriverGroup(driverId))
+            .SendAsync(RouteAssignedEvent, new { routeId }, ct);
 
     public Task DriverLocationAsync(Guid warehouseId, Guid routeId, Guid driverId,
         double latitude, double longitude, DateTimeOffset timestamp, CancellationToken ct) =>

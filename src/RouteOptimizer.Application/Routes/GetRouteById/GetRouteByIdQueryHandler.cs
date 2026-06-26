@@ -13,14 +13,16 @@ public class GetRouteByIdQueryHandler : IRequestHandler<GetRouteByIdQuery, Resul
     private readonly IOrderRepository _orderRepository;
     private readonly ICurrentUser _currentUser;
     private readonly IRouteGeometryProvider _geometryProvider;
+    private readonly IWarehouseRepository _warehouseRepository;
 
     public GetRouteByIdQueryHandler(IRouteRepository routeRepository, IOrderRepository orderRepository,
-        ICurrentUser currentUser, IRouteGeometryProvider geometryProvider)
+        ICurrentUser currentUser, IRouteGeometryProvider geometryProvider, IWarehouseRepository warehouseRepository)
     {
         _routeRepository = routeRepository;
         _orderRepository = orderRepository;
         _currentUser = currentUser;
         _geometryProvider = geometryProvider;
+        _warehouseRepository = warehouseRepository;
     }
 
     public async Task<Result<RouteDto>> Handle(GetRouteByIdQuery request, CancellationToken ct)
@@ -42,9 +44,17 @@ public class GetRouteByIdQueryHandler : IRequestHandler<GetRouteByIdQuery, Resul
             s.Location.Latitude, s.Location.Longitude, s.Status.ToString(), s.Orders,
             s.Orders.Select(id => MapOrder(id, ordersById)).ToList())).ToList();
 
+        var warehouse = await _warehouseRepository.GetByIdAsync(route.WarehouseId, ct);
+        var warehousePoint = warehouse is not null
+            ? new RoutePoint(warehouse.Location.Latitude, warehouse.Location.Longitude)
+            : null;
+
         var waypoints = orderedStops
             .Select(s => (s.Location.Latitude, s.Location.Longitude))
             .ToList();
+
+        if (warehouse is not null)
+            waypoints.Insert(0, (warehouse.Location.Latitude, warehouse.Location.Longitude));
 
         var geometry = (await _geometryProvider.GetRouteAsync(waypoints, ct))
             .Select(p => new RoutePoint(p.Lat, p.Lon))
@@ -56,7 +66,8 @@ public class GetRouteByIdQueryHandler : IRequestHandler<GetRouteByIdQuery, Resul
             route.AssignedShiftId,
             route.Status.ToString(),
             stops,
-            geometry
+            geometry,
+            warehousePoint
         );
 
         return Result<RouteDto>.Success(routeDto);

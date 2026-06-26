@@ -1,6 +1,8 @@
 @page "/"
 @attribute [Authorize]
+@implements IAsyncDisposable
 @inject IRouteApi RouteApi
+@inject IRouteHubClient Hub
 @inject NavigationManager Navigation
 
 <PageTitle>Route</PageTitle>
@@ -58,7 +60,28 @@
 
     private bool _isToday => _selectedDate == _today;
 
-    protected override Task OnInitializedAsync() => LoadAsync();
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAsync();
+        await Hub.ConnectDriverAsync(OnRouteAssignedAsync);
+    }
+
+    private Task OnRouteAssignedAsync() => InvokeAsync(async () =>
+    {
+        await LoadAsync();
+        StateHasChanged();
+    });
+
+    public async ValueTask DisposeAsync()
+    {
+        try
+        {
+            await Hub.StopAsync();
+        }
+        catch (Exception)
+        {
+        }
+    }
 
     private async Task OnDateChanged(ChangeEventArgs e)
     {

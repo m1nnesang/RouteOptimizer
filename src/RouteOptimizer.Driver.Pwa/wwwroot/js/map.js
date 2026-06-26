@@ -29,6 +29,22 @@ window.driverMap = (function () {
         }
     }
 
+    function warehouseIcon() {
+        const html =
+            '<div style="width:30px;height:30px;border-radius:8px;background:#1a2238;' +
+            'color:#9db2ff;display:flex;align-items:center;justify-content:center;' +
+            'border:2px solid #5b8cff;box-shadow:0 1px 4px rgba(0,0,0,.4);">' +
+            '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
+            'stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+            '<path d="M3 21V9l9-6 9 6v12"/><path d="M9 21v-6h6v6"/></svg></div>';
+        return L.divIcon({
+            html: html,
+            className: "",
+            iconSize: [30, 30],
+            iconAnchor: [15, 15]
+        });
+    }
+
     function stopIcon(label, color, isCurrent) {
         const size = isCurrent ? 28 : 22;
         const html =
@@ -69,7 +85,7 @@ window.driverMap = (function () {
             setTimeout(function () { if (map) map.invalidateSize(); }, 100);
         },
 
-        render: function (stops, currentStopId, routeGeometry) {
+        render: function (stops, currentStopId, routeGeometry, warehouse) {
             if (!map) return;
 
             stopLayer.clearLayers();
@@ -81,6 +97,13 @@ window.driverMap = (function () {
             if (routeLineUpcoming) {
                 map.removeLayer(routeLineUpcoming);
                 routeLineUpcoming = null;
+            }
+
+            if (warehouse) {
+                L.marker([warehouse.latitude, warehouse.longitude], {
+                    icon: warehouseIcon(),
+                    zIndexOffset: -100
+                }).bindTooltip("Warehouse").addTo(stopLayer);
             }
 
             if (!stops || stops.length === 0) return;
@@ -100,9 +123,13 @@ window.driverMap = (function () {
                 latlngs.push([s.latitude, s.longitude]);
             });
 
+            const fallback = warehouse
+                ? [[warehouse.latitude, warehouse.longitude]].concat(latlngs)
+                : latlngs;
+
             const path = (routeGeometry && routeGeometry.length > 1)
                 ? routeGeometry.map(function (p) { return [p.latitude, p.longitude]; })
-                : latlngs;
+                : fallback;
 
             if (path.length > 1) {
                 const split = currentIndex >= 0

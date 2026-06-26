@@ -13,11 +13,12 @@ public sealed class MapInterop : IMapInterop
         _js.InvokeVoidAsync("driverMap.init", ct, elementId).AsTask();
 
     public Task RenderAsync(IReadOnlyList<RouteStop> stops, Guid? currentStopId,
-        IReadOnlyList<GeoPoint>? geometry = null, CancellationToken ct = default)
+        IReadOnlyList<GeoPoint>? geometry = null, GeoPoint? warehouse = null, CancellationToken ct = default)
     {
         var payload = stops.Select(s => new MapStop(s.Id, s.Sequence, s.Latitude, s.Longitude, s.Status)).ToList();
         var line = (geometry ?? []).Select(p => new MapPoint(p.Latitude, p.Longitude)).ToList();
-        return _js.InvokeVoidAsync("driverMap.render", ct, payload, currentStopId, line).AsTask();
+        var depot = warehouse is not null ? new MapPoint(warehouse.Latitude, warehouse.Longitude) : null;
+        return _js.InvokeVoidAsync("driverMap.render", ct, payload, currentStopId, line, depot).AsTask();
     }
 
     public Task FocusAsync(double latitude, double longitude, CancellationToken ct = default) =>

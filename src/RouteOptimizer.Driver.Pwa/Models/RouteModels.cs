@@ -16,7 +16,8 @@ public sealed record RouteDetail(
     Guid? AssignedShiftId,
     string Status,
     IReadOnlyList<RouteStop> Stops,
-    IReadOnlyList<GeoPoint>? Geometry = null);
+    IReadOnlyList<GeoPoint>? Geometry = null,
+    GeoPoint? Warehouse = null);
 
 public sealed record GeoPoint(double Latitude, double Longitude);
 

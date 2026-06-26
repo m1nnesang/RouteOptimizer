@@ -19,6 +19,16 @@ public class RouteHub : Hub
 
     public static string WarehouseGroup(Guid warehouseId) => $"warehouse-{warehouseId}";
     public static string RouteGroup(Guid routeId) => $"route-{routeId}";
+    public static string DriverGroup(Guid driverId) => $"driver-{driverId}";
+
+    [Authorize(Roles = "Driver")]
+    public async Task JoinDriver()
+    {
+        if (!Guid.TryParse(Context.User?.FindFirstValue(ClaimTypes.NameIdentifier), out var driverId))
+            throw new HubException("No driver associated with this account");
+
+        await Groups.AddToGroupAsync(Context.ConnectionId, DriverGroup(driverId));
+    }
 
     [Authorize(Roles = "Dispatcher")]
     public async Task JoinWarehouse()
