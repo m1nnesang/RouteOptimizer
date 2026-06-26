@@ -104,6 +104,7 @@ three users (only if the database has no users yet). All of them share the same 
 | Manager    | `manager@route.local`   | `Password123!` | API / admin tasks |
 | Dispatcher | `dispatcher@route.local`| `Password123!` | Dispatcher (WPF) |
 | Driver     | `driver@route.local`    | `Password123!` | Driver PWA (http://localhost:5080) |
+| Driver     | `driver2@route.local`   | `Password123!` | Driver PWA (http://localhost:5080) |
 
 Seeding only runs when `ASPNETCORE_ENVIRONMENT=Development` (the default in
 `docker-compose.yml`) and is skipped once any user exists, so it is safe to restart.
