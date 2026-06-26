@@ -83,6 +83,15 @@ window.driverMap = (function () {
             stopLayer = L.layerGroup().addTo(map);
 
             setTimeout(function () { if (map) map.invalidateSize(); }, 100);
+
+            if (!window.__driverMapResize) {
+                window.__driverMapResize = true;
+                var resize = function () { if (map) map.invalidateSize(); };
+                window.addEventListener("resize", resize);
+                window.addEventListener("orientationchange", function () {
+                    setTimeout(resize, 200);
+                });
+            }
         },
 
         render: function (stops, currentStopId, routeGeometry, warehouse) {

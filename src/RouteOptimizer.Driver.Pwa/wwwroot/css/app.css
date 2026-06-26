@@ -923,6 +923,55 @@ h1:focus {
     line-height: 1;
 }
 
+/* ---------- Route screen: full-bleed map, hide bottom tab bar ---------- */
+.app-shell:has(.nav-screen) .bottom-nav {
+    display: none;
+}
+
+.app-shell:has(.nav-screen) .nav-screen {
+    bottom: 0;
+}
+
+/* ---------- Landscape: side panel left, map right ---------- */
+@media (orientation: landscape) and (max-height: 600px) {
+    .nav-screen {
+        bottom: 0;
+    }
+
+    .map,
+    #driver-map {
+        left: calc(320px + env(safe-area-inset-left, 0px));
+    }
+
+    .sheet {
+        top: 0;
+        bottom: 0;
+        right: auto;
+        width: calc(320px + env(safe-area-inset-left, 0px));
+        border-top-left-radius: 0;
+        border-top-right-radius: 0;
+        border-right: 1px solid var(--color-border);
+        overflow-y: auto;
+        box-shadow: 8px 0 40px rgba(0, 0, 0, 0.45);
+        padding: calc(env(safe-area-inset-top, 0px) + 0.6rem)
+                 0
+                 calc(env(safe-area-inset-bottom, 0px) + 0.9rem)
+                 env(safe-area-inset-left, 0px);
+    }
+
+    .sheet__handle {
+        display: none;
+    }
+
+    .stop-card {
+        max-height: none;
+    }
+
+    .nav-top {
+        left: calc(320px + env(safe-area-inset-left, 0px) + 0.9rem);
+    }
+}
+
 /* ---------- Blazor error ---------- */
 #blazor-error-ui {
     background: var(--color-danger);
