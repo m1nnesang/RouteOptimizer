@@ -32,6 +32,12 @@ public class WpfDialogService : IDialogService
         return dialog.ShowDialog();
     }
 
+    public bool? ShowCreateShiftDialog(CreateShiftDialogViewModel viewModel)
+    {
+        var dialog = new CreateShiftDialog(viewModel) { Owner = Application.Current.MainWindow };
+        return dialog.ShowDialog();
+    }
+
     public bool? ShowInsertUrgentOrderDialog(InsertUrgentOrderDialogViewModel viewModel)
     {
         var dialog = new InsertUrgentOrderDialog(viewModel) { Owner = Application.Current.MainWindow };

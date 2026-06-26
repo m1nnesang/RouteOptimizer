@@ -4,16 +4,19 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using RouteOptimizer.Dispatcher.Wpf.Models;
 using RouteOptimizer.Dispatcher.Wpf.Services.Interfaces;
+using RouteOptimizer.Dispatcher.Wpf.ViewModels.Dialogs;
 
 namespace RouteOptimizer.Dispatcher.Wpf.ViewModels;
 
 public partial class DriversViewModel : ObservableObject
 {
     private readonly IApiHttpClient _apiHttpClient;
+    private readonly IDialogService _dialogService;
 
-    public DriversViewModel(IApiHttpClient apiHttpClient)
+    public DriversViewModel(IApiHttpClient apiHttpClient, IDialogService dialogService)
     {
         _apiHttpClient = apiHttpClient;
+        _dialogService = dialogService;
         _ = LoadShiftsAsync();
     }
 
@@ -68,4 +71,23 @@ public partial class DriversViewModel : ObservableObject
 
     [RelayCommand]
     private void ClearDateFilter() => FilterDate = null;
+
+    [RelayCommand]
+    private async Task CreateShiftAsync()
+    {
+        var dialogViewModel = new CreateShiftDialogViewModel(_apiHttpClient);
+        if (_dialogService.ShowCreateShiftDialog(dialogViewModel) != true)
+            return;
+
+        try
+        {
+            await _apiHttpClient.PostAsync<CreateShiftRequest, Guid>(
+                "api/drivers/shifts", dialogViewModel.BuildRequest());
+            await LoadShiftsAsync();
+        }
+        catch (HttpRequestException)
+        {
+            ErrorMessage = "Failed to create shift.";
+        }
+    }
 }

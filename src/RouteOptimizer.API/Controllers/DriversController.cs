@@ -2,6 +2,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using RouteOptimizer.Application.Drivers.DriverShifts.CreateShift;
 using RouteOptimizer.Application.Drivers.DriverShifts.EndShift;
 using RouteOptimizer.Application.Drivers.DriverShifts.StartShift;
 using RouteOptimizer.Application.Drivers.GetDrivers;
@@ -60,6 +61,14 @@ public class DriversController : ControllerBase
         var result = await _mediator.Send(new EndShiftCommand(shiftId, driverId), ct);
 
         return result.IsSuccess ? NoContent() : BadRequest(result.Error);
+    }
+
+    [Authorize(Roles = "Dispatcher,Manager")]
+    [HttpPost("shifts")]
+    public async Task<IActionResult> CreateShift([FromBody] CreateShiftCommand command, CancellationToken ct)
+    {
+        var result = await _mediator.Send(command, ct);
+        return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Error);
     }
 
     [Authorize(Roles = "Dispatcher,Manager")]

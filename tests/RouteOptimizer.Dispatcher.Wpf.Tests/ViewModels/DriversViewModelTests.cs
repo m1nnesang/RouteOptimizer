@@ -10,12 +10,13 @@ namespace RouteOptimizer.Dispatcher.Wpf.Tests.ViewModels;
 public class DriversViewModelTests
 {
     private readonly Mock<IApiHttpClient> _api = new();
+    private readonly Mock<IDialogService> _dialog = new();
 
     private DriversViewModel CreateViewModel(List<ShiftListItem>? shifts = null)
     {
         _api.Setup(a => a.GetAsync<PagedResult<ShiftListItem>>(It.IsAny<string>(), default))
             .ReturnsAsync(new PagedResult<ShiftListItem> { Items = shifts ?? [] });
-        return new DriversViewModel(_api.Object);
+        return new DriversViewModel(_api.Object, _dialog.Object);
     }
 
     [Fact]
@@ -31,7 +32,7 @@ public class DriversViewModelTests
     {
         _api.Setup(a => a.GetAsync<PagedResult<ShiftListItem>>(It.IsAny<string>(), default))
             .ThrowsAsync(new HttpRequestException());
-        var vm = new DriversViewModel(_api.Object);
+        var vm = new DriversViewModel(_api.Object, _dialog.Object);
 
         vm.ErrorMessage.Should().Be("Failed to load shifts. Please check your connection.");
         vm.IsLoading.Should().BeFalse();
@@ -44,7 +45,7 @@ public class DriversViewModelTests
         _api.Setup(a => a.GetAsync<PagedResult<ShiftListItem>>(It.IsAny<string>(), default))
             .Callback<string, CancellationToken>((url, _) => capturedUrl = url)
             .ReturnsAsync(new PagedResult<ShiftListItem>());
-        var vm = new DriversViewModel(_api.Object);
+        var vm = new DriversViewModel(_api.Object, _dialog.Object);
         vm.FilterDate = new DateTime(2025, 6, 15);
         await Task.Yield();
 
@@ -58,7 +59,7 @@ public class DriversViewModelTests
         _api.Setup(a => a.GetAsync<PagedResult<ShiftListItem>>(It.IsAny<string>(), default))
             .Callback<string, CancellationToken>((url, _) => capturedUrl = url)
             .ReturnsAsync(new PagedResult<ShiftListItem>());
-        var vm = new DriversViewModel(_api.Object);
+        var vm = new DriversViewModel(_api.Object, _dialog.Object);
         await Task.Yield();
 
         capturedUrl.Should().NotContain("date=");
@@ -86,7 +87,7 @@ public class DriversViewModelTests
     {
         _api.Setup(a => a.GetAsync<PagedResult<ShiftListItem>>(It.IsAny<string>(), default))
             .ReturnsAsync((PagedResult<ShiftListItem>?)null);
-        var vm = new DriversViewModel(_api.Object);
+        var vm = new DriversViewModel(_api.Object, _dialog.Object);
         vm.Shifts.Should().BeEmpty();
         vm.HasError.Should().BeFalse();
     }

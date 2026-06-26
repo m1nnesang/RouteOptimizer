@@ -9,6 +9,7 @@ public interface IDialogService
     bool? ShowCreateOrderDialog(CreateOrderDialogViewModel viewModel);
     bool? ShowCreateRouteDialog(CreateRouteDialogViewModel viewModel);
     bool? ShowAssignShiftDialog(AssignShiftDialogViewModel viewModel);
+    bool? ShowCreateShiftDialog(CreateShiftDialogViewModel viewModel);
     bool? ShowInsertUrgentOrderDialog(InsertUrgentOrderDialogViewModel viewModel);
     bool? ShowHandoverDialog(HandoverDialogViewModel viewModel);
     bool? ShowVehicleEditDialog(VehicleEditDialogViewModel viewModel);

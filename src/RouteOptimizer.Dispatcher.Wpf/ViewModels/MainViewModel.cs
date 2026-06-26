@@ -79,7 +79,7 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     private void ShowDrivers()
     {
-        CurrentViewModel = _driversViewModel ??= new DriversViewModel(_apiHttpClient);
+        CurrentViewModel = _driversViewModel ??= new DriversViewModel(_apiHttpClient, _dialogService);
         ActiveTab = "Drivers";
     }
     [RelayCommand]

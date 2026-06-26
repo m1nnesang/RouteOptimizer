@@ -13,6 +13,8 @@ public record OptimizeRouteRequest(DateOnly RouteDate);
 
 public record AssignRouteRequest(Guid ShiftId);
 
+public record CreateShiftRequest(Guid DriverId, Guid VehicleId, DateOnly ShiftDate);
+
 public record InsertUrgentOrderRequest(Guid OrderId);
 
 public record ShiftStopsAssignment(Guid ShiftId, IReadOnlyList<Guid> StopIds);
