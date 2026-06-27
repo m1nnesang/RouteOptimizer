@@ -11,16 +11,12 @@ public class InterruptRouteCommandHandlerTests
 {
     private readonly Mock<IRouteRepository> _routeRepository = new();
     private readonly Mock<IDriverShiftRepository> _shiftRepository = new();
-    private readonly Mock<IOrderRepository> _orderRepository = new();
     private readonly Mock<ICurrentUser> _currentUser = new();
     private readonly InterruptRouteCommandHandler _handler;
 
     public InterruptRouteCommandHandlerTests()
     {
-        _orderRepository
-            .Setup(x => x.GetByIdsAsync(It.IsAny<IEnumerable<Guid>>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync([]);
-        _handler = new InterruptRouteCommandHandler(_routeRepository.Object, _shiftRepository.Object, _orderRepository.Object, _currentUser.Object);
+        _handler = new InterruptRouteCommandHandler(_routeRepository.Object, _shiftRepository.Object, _currentUser.Object);
     }
 
     [Fact]
