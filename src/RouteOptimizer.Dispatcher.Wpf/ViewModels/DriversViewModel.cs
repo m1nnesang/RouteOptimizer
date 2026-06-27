@@ -85,9 +85,9 @@ public partial class DriversViewModel : ObservableObject
                 "api/drivers/shifts", dialogViewModel.BuildRequest());
             await LoadShiftsAsync();
         }
-        catch (HttpRequestException)
+        catch (HttpRequestException ex)
         {
-            ErrorMessage = "Failed to create shift.";
+            ErrorMessage = string.IsNullOrWhiteSpace(ex.Message) ? "Failed to create shift." : ex.Message;
         }
     }
 }

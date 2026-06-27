@@ -92,8 +92,40 @@ public class ApiHttpClient : IApiHttpClient
             response = await SendOnceAsync(requestFactory, _tokenStorage.AccessToken, ct);
         }
 
-        response.EnsureSuccessStatusCode();
+        if (!response.IsSuccessStatusCode)
+        {
+            var body = await response.Content.ReadAsStringAsync(ct);
+            var status = response.StatusCode;
+            response.Dispose();
+            throw new HttpRequestException(ExtractErrorMessage(body, status));
+        }
+
         return response;
+    }
+
+    private static string ExtractErrorMessage(string body, HttpStatusCode status)
+    {
+        if (string.IsNullOrWhiteSpace(body))
+            return $"Request failed ({(int)status}).";
+
+        body = body.Trim();
+
+        try
+        {
+            if (body.StartsWith('"'))
+                return JsonSerializer.Deserialize<string>(body, JsonOptions) ?? body;
+
+            using var doc = JsonDocument.Parse(body);
+            if (doc.RootElement.TryGetProperty("detail", out var detail) && detail.GetString() is { } d)
+                return d;
+            if (doc.RootElement.TryGetProperty("title", out var title) && title.GetString() is { } t)
+                return t;
+        }
+        catch (JsonException)
+        {
+        }
+
+        return body;
     }
 
     private Task<HttpResponseMessage> SendOnceAsync(
