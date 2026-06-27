@@ -52,13 +52,11 @@ public class DriversController : ControllerBase
         return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Error);
     }
 
-    [Authorize(Roles = "Driver")]
+    [Authorize(Roles = "Dispatcher,Manager")]
     [HttpPost("shifts/{shiftId:guid}/end")]
     public async Task<IActionResult> EndShift([FromRoute] Guid shiftId, CancellationToken ct)
     {
-        var driverId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-
-        var result = await _mediator.Send(new EndShiftCommand(shiftId, driverId), ct);
+        var result = await _mediator.Send(new EndShiftCommand(shiftId), ct);
 
         return result.IsSuccess ? NoContent() : BadRequest(result.Error);
     }

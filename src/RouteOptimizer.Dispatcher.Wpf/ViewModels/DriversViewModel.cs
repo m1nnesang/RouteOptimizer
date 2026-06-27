@@ -25,7 +25,10 @@ public partial class DriversViewModel : ObservableObject
     public partial ObservableCollection<ShiftListItem> Shifts { get; set; } = [];
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanEndShift))]
     public partial ShiftListItem? SelectedShift { get; set; }
+
+    public bool CanEndShift => SelectedShift is { ShiftStatus: not "Ended" };
 
     [ObservableProperty]
     public partial DateTime? FilterDate { get; set; }
@@ -88,6 +91,26 @@ public partial class DriversViewModel : ObservableObject
         catch (HttpRequestException ex)
         {
             ErrorMessage = string.IsNullOrWhiteSpace(ex.Message) ? "Failed to create shift." : ex.Message;
+        }
+    }
+
+    [RelayCommand]
+    private async Task EndShiftAsync()
+    {
+        if (SelectedShift is null)
+            return;
+
+        if (!_dialogService.ShowConfirm($"End shift for \"{SelectedShift.DriverName}\"?", "Confirm end shift"))
+            return;
+
+        try
+        {
+            await _apiHttpClient.PostAsync($"api/drivers/shifts/{SelectedShift.Id}/end");
+            await LoadShiftsAsync();
+        }
+        catch (HttpRequestException ex)
+        {
+            ErrorMessage = string.IsNullOrWhiteSpace(ex.Message) ? "Failed to end shift." : ex.Message;
         }
     }
 }

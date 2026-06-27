@@ -32,6 +32,8 @@
 
         <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,12" VerticalAlignment="Center">
             <Button Content="Assign shift" Command="{Binding CreateShiftCommand}" Margin="0,0,12,0"/>
+            <Button Content="End shift" Style="{StaticResource SecondaryButtonStyle}"
+                    Command="{Binding EndShiftCommand}" IsEnabled="{Binding CanEndShift}" Margin="0,0,12,0"/>
             <Button Content="Refresh" Style="{StaticResource SecondaryButtonStyle}"
                     Command="{Binding LoadShiftsCommand}" Margin="0,0,12,0"/>
             <TextBlock Text="Date" Style="{StaticResource CaptionTextStyle}" Margin="0,0,8,0"/>

@@ -37,10 +37,11 @@ public sealed class DriverShiftIntegrationTests : IntegrationTestBase
     }
 
     [Fact]
-    public async Task Driver_ends_shift_returns_no_content()
+    public async Task Dispatcher_ends_shift_returns_no_content()
     {
         var warehouseId = await SeedWarehouseAsync();
         await SeedUserAsync(DriverEmail, Password, UserRole.Driver, warehouseId);
+        await SeedUserAsync("dispatcher@example.com", Password, UserRole.Dispatcher, warehouseId);
         var vehicleId = await SeedVehicleAsync(warehouseId);
         await AuthenticateAsync(DriverEmail, Password);
 
@@ -52,6 +53,7 @@ public sealed class DriverShiftIntegrationTests : IntegrationTestBase
         });
         var shiftId = await startResponse.Content.ReadFromJsonAsync<Guid>();
 
+        await AuthenticateAsync("dispatcher@example.com", Password);
         var endResponse = await Client.PostAsync($"/api/drivers/shifts/{shiftId}/end", null);
 
         endResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);

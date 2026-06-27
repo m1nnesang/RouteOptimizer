@@ -10,12 +10,12 @@ namespace RouteOptimizer.Application.Tests.Drivers;
 public class EndShiftCommandHandlerTests
 {
     private readonly Mock<IDriverShiftRepository> _shiftRepository = new();
-    private readonly Mock<IUserRepository> _userRepository = new();
+    private readonly Mock<ICurrentUser> _currentUser = new();
     private readonly EndShiftCommandHandler _handler;
 
     public EndShiftCommandHandlerTests()
     {
-        _handler = new EndShiftCommandHandler(_shiftRepository.Object);
+        _handler = new EndShiftCommandHandler(_shiftRepository.Object, _currentUser.Object);
     }
 
     [Fact]
@@ -25,37 +25,38 @@ public class EndShiftCommandHandlerTests
             .Setup(x => x.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((DriverShift?)null);
 
-        var act = () => _handler.Handle(new EndShiftCommand(Guid.NewGuid(), Guid.NewGuid()), default);
+        var act = () => _handler.Handle(new EndShiftCommand(Guid.NewGuid()), default);
 
         await act.Should().ThrowAsync<NotFoundException>();
     }
 
     [Fact]
-    public async Task Handle_ShiftBelongsToDifferentDriver_ReturnsFailure()
+    public async Task Handle_ShiftInDifferentWarehouse_ThrowsNotFoundException()
     {
-        var driverId = Guid.NewGuid();
         var shift = CreateShift(Guid.NewGuid());
+        _currentUser.Setup(x => x.WarehouseId).Returns(Guid.NewGuid());
 
         _shiftRepository
             .Setup(x => x.GetByIdAsync(shift.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(shift);
 
-        var result = await _handler.Handle(new EndShiftCommand(shift.Id, driverId), default);
+        var act = () => _handler.Handle(new EndShiftCommand(shift.Id), default);
 
-        result.IsFailure.Should().BeTrue();
+        await act.Should().ThrowAsync<NotFoundException>();
     }
 
     [Fact]
     public async Task Handle_ShiftNotStarted_ReturnsFailure()
     {
-        var driverId = Guid.NewGuid();
-        var shift = CreateShift(driverId);
+        var warehouseId = Guid.NewGuid();
+        var shift = CreateShift(warehouseId);
+        _currentUser.Setup(x => x.WarehouseId).Returns(warehouseId);
 
         _shiftRepository
             .Setup(x => x.GetByIdAsync(shift.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(shift);
 
-        var result = await _handler.Handle(new EndShiftCommand(shift.Id, driverId), default);
+        var result = await _handler.Handle(new EndShiftCommand(shift.Id), default);
 
         result.IsFailure.Should().BeTrue();
     }
@@ -63,21 +64,22 @@ public class EndShiftCommandHandlerTests
     [Fact]
     public async Task Handle_ActiveShift_EndsShiftAndReturnsSuccess()
     {
-        var driverId = Guid.NewGuid();
-        var shift = CreateShift(driverId);
+        var warehouseId = Guid.NewGuid();
+        var shift = CreateShift(warehouseId);
         shift.Start();
+        _currentUser.Setup(x => x.WarehouseId).Returns(warehouseId);
 
         _shiftRepository
             .Setup(x => x.GetByIdAsync(shift.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(shift);
 
-        var result = await _handler.Handle(new EndShiftCommand(shift.Id, driverId), default);
+        var result = await _handler.Handle(new EndShiftCommand(shift.Id), default);
 
         result.IsSuccess.Should().BeTrue();
         shift.EndedAt.Should().NotBeNull();
     }
 
-    private static DriverShift CreateShift(Guid driverId) =>
-        DriverShift.Create(driverId, Guid.NewGuid(), Guid.NewGuid(),
+    private static DriverShift CreateShift(Guid warehouseId) =>
+        DriverShift.Create(Guid.NewGuid(), Guid.NewGuid(), warehouseId,
             DateOnly.FromDateTime(DateTime.UtcNow)).Value!;
 }
