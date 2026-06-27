@@ -25,7 +25,7 @@ public sealed class OfflineRouteApi : IRouteApi, IOutboxFlusher
         {
             var routes = await _inner.GetMyRoutesAsync(date, ct);
 
-            if (date is null)
+            if (date is null || date == DateOnly.FromDateTime(DateTime.Today))
                 await _store.SaveRoutesAsync(routes);
 
             return routes;

@@ -43,10 +43,10 @@ public class GetMyRoutesQueryHandler : IRequestHandler<GetMyRoutesQuery, IReadOn
             if (shift is null)
                 return [];
 
-            routes = (await _routeRepository.GetByAssignedShiftIdAsync(shift.Id, ct))
-                .Where(r => r.Status is not RouteStatus.Cancelled)
-                .ToList();
+            routes = (await _routeRepository.GetByAssignedShiftIdAsync(shift.Id, ct)).ToList();
         }
+
+        routes = routes.Where(r => r.Status is not RouteStatus.Cancelled).ToList();
 
         if (routes.Count == 0)
             return [];

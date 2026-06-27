@@ -99,7 +99,7 @@
 
         try
         {
-            _routes = await RouteApi.GetMyRoutesAsync(_isToday ? null : _selectedDate);
+            _routes = await RouteApi.GetMyRoutesAsync(_selectedDate);
         }
         catch (HttpRequestException)
         {
