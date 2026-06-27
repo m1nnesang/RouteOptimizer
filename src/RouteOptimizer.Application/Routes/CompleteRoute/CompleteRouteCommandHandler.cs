@@ -9,11 +9,13 @@ namespace RouteOptimizer.Application.Routes.CompleteRoute;
 public class CompleteRouteCommandHandler : IRequestHandler<CompleteRouteCommand, Result>
 {
     private readonly IRouteRepository _routeRepository;
+    private readonly IDriverShiftRepository _shiftRepository;
     private readonly ICurrentUser _currentUser;
 
-    public CompleteRouteCommandHandler(IRouteRepository routeRepository, ICurrentUser currentUser)
+    public CompleteRouteCommandHandler(IRouteRepository routeRepository, IDriverShiftRepository shiftRepository, ICurrentUser currentUser)
     {
         _routeRepository = routeRepository;
+        _shiftRepository = shiftRepository;
         _currentUser = currentUser;
     }
 
@@ -39,6 +41,19 @@ public class CompleteRouteCommandHandler : IRequestHandler<CompleteRouteCommand,
             return Result.Failure(ex.Message);
         }
 
+        await EndAssignedShiftAsync(route.AssignedShiftId, ct);
+
         return Result.Success();
+    }
+
+    private async Task EndAssignedShiftAsync(Guid? shiftId, CancellationToken ct)
+    {
+        if (shiftId is not { } id)
+            return;
+
+        var shift = await _shiftRepository.GetByIdAsync(id, ct);
+
+        if (shift is { StartedAt: not null, EndedAt: null })
+            shift.End();
     }
 }

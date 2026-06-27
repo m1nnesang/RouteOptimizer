@@ -10,12 +10,13 @@ namespace RouteOptimizer.Application.Tests.Routes;
 public class CompleteRouteCommandHandlerTests
 {
     private readonly Mock<IRouteRepository> _routeRepository = new();
+    private readonly Mock<IDriverShiftRepository> _shiftRepository = new();
     private readonly Mock<ICurrentUser> _currentUser = new();
     private readonly CompleteRouteCommandHandler _handler;
 
     public CompleteRouteCommandHandlerTests()
     {
-        _handler = new CompleteRouteCommandHandler(_routeRepository.Object, _currentUser.Object);
+        _handler = new CompleteRouteCommandHandler(_routeRepository.Object, _shiftRepository.Object, _currentUser.Object);
     }
 
     [Fact]
@@ -54,6 +55,27 @@ public class CompleteRouteCommandHandlerTests
         var result = await _handler.Handle(new CompleteRouteCommand(route.Id), default);
 
         result.IsFailure.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task Handle_InProgressRoute_EndsAssignedActiveShift()
+    {
+        var route = CreateInProgressRoute();
+        _routeRepository
+            .Setup(x => x.GetByIdAsync(route.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(route);
+
+        var shift = RouteOptimizer.Domain.Entities.DriverShift.Create(
+            Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), DateOnly.FromDateTime(DateTime.UtcNow)).Value!;
+        shift.Start();
+        _shiftRepository
+            .Setup(x => x.GetByIdAsync(route.AssignedShiftId!.Value, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(shift);
+
+        var result = await _handler.Handle(new CompleteRouteCommand(route.Id), default);
+
+        result.IsSuccess.Should().BeTrue();
+        shift.EndedAt.Should().NotBeNull();
     }
 
     private static Route CreateInProgressRoute()

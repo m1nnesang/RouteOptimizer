@@ -10,12 +10,13 @@ namespace RouteOptimizer.Application.Tests.Routes;
 public class InterruptRouteCommandHandlerTests
 {
     private readonly Mock<IRouteRepository> _routeRepository = new();
+    private readonly Mock<IDriverShiftRepository> _shiftRepository = new();
     private readonly Mock<ICurrentUser> _currentUser = new();
     private readonly InterruptRouteCommandHandler _handler;
 
     public InterruptRouteCommandHandlerTests()
     {
-        _handler = new InterruptRouteCommandHandler(_routeRepository.Object, _currentUser.Object);
+        _handler = new InterruptRouteCommandHandler(_routeRepository.Object, _shiftRepository.Object, _currentUser.Object);
     }
 
     [Fact]
