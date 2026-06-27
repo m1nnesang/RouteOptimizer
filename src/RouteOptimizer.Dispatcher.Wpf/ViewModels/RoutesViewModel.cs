@@ -124,7 +124,7 @@ public partial class RoutesViewModel : ObservableObject, IDisposable
 
     public bool CanInsertUrgentOrder => SelectedRoute?.Status == "InProgress";
 
-    public bool CanHandover => SelectedRoute?.Status == "InProgress";
+    public bool CanHandover => SelectedRoute?.Status is "InProgress" or "Interrupted";
 
     public bool CanCancel => SelectedRoute?.Status is "Draft" or "Optimized" or "Assigned";
 
@@ -179,9 +179,6 @@ public partial class RoutesViewModel : ObservableObject, IDisposable
 
             var result = await _apiHttpClient.GetAsync<PagedResult<RouteListItem>>(url);
             IEnumerable<RouteListItem> items = result?.Items ?? [];
-
-            if (SelectedStatusFilter == AllFilter)
-                items = items.Where(r => r.Status != "Interrupted");
 
             _allRoutes = items.ToList();
             ApplyFilter();

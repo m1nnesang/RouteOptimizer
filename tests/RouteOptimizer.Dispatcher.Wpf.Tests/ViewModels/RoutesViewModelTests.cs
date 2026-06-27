@@ -56,7 +56,7 @@ public class RoutesViewModelTests
     }
 
     [Fact]
-    public async Task LoadRoutes_AllFilter_ExcludesInterrupted()
+    public async Task LoadRoutes_AllFilter_IncludesInterruptedSoTheyCanBeHandedOver()
     {
         var routes = new List<RouteListItem>
         {
@@ -68,8 +68,8 @@ public class RoutesViewModelTests
             .ReturnsAsync(new PagedResult<RouteListItem> { Items = routes });
         var vm = new RoutesViewModel(_api.Object, _dialog.Object);
 
-        vm.Routes.Should().HaveCount(2);
-        vm.Routes.Should().NotContain(r => r.Status == "Interrupted");
+        vm.Routes.Should().HaveCount(3);
+        vm.Routes.Should().Contain(r => r.Status == "Interrupted");
     }
 
     [Fact]
