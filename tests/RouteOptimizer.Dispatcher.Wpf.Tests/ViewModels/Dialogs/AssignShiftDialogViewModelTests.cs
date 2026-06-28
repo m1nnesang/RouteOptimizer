@@ -43,7 +43,11 @@ public class AssignShiftDialogViewModelTests
     [Fact]
     public async Task LoadShifts_PopulatesShifts()
     {
-        var shifts = new List<ShiftListItem> { new() { Id = Guid.NewGuid() }, new() { Id = Guid.NewGuid() } };
+        var shifts = new List<ShiftListItem>
+        {
+            new() { Id = Guid.NewGuid(), StartedAt = DateTime.UtcNow },
+            new() { Id = Guid.NewGuid(), StartedAt = DateTime.UtcNow }
+        };
         _api.Setup(a => a.GetAsync<PagedResult<ShiftListItem>>(It.IsAny<string>(), default))
             .ReturnsAsync(new PagedResult<ShiftListItem> { Items = shifts });
         var vm = new AssignShiftDialogViewModel(_api.Object);
@@ -52,6 +56,25 @@ public class AssignShiftDialogViewModelTests
 
         vm.Shifts.Should().HaveCount(2);
         vm.IsLoading.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task LoadShifts_ShowsOnlyActiveShifts()
+    {
+        var shifts = new List<ShiftListItem>
+        {
+            new() { Id = Guid.NewGuid(), StartedAt = DateTime.UtcNow },
+            new() { Id = Guid.NewGuid() },
+            new() { Id = Guid.NewGuid(), StartedAt = DateTime.UtcNow, EndedAt = DateTime.UtcNow }
+        };
+        _api.Setup(a => a.GetAsync<PagedResult<ShiftListItem>>(It.IsAny<string>(), default))
+            .ReturnsAsync(new PagedResult<ShiftListItem> { Items = shifts });
+        var vm = new AssignShiftDialogViewModel(_api.Object);
+
+        await vm.LoadShiftsCommand.ExecuteAsync(null);
+
+        vm.Shifts.Should().ContainSingle();
+        vm.Shifts[0].ShiftStatus.Should().Be("Active");
     }
 
     [Fact]

@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Net.Http;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -49,7 +50,8 @@ public partial class AssignShiftDialogViewModel : ObservableObject
                 url += $"&date={DateOnly.FromDateTime(date):yyyy-MM-dd}";
 
             var result = await _apiHttpClient.GetAsync<PagedResult<ShiftListItem>>(url);
-            Shifts = new ObservableCollection<ShiftListItem>(result?.Items ?? []);
+            Shifts = new ObservableCollection<ShiftListItem>(
+                (result?.Items ?? []).Where(s => s.ShiftStatus == "Active"));
         }
         catch (HttpRequestException)
         {
