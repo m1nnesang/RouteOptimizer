@@ -18,6 +18,95 @@ It has three parts:
 - **Dispatcher** (`RouteOptimizer.Dispatcher.Wpf`) Windows desktop app for dispatchers: build routes, assign drivers, watch progress on a map.
 - **Driver PWA** (`RouteOptimizer.Driver.Pwa`) Blazor web app for drivers: follow the route, complete or skip stops, mark orders delivered, works offline.
 
+## Architecture
+
+Route Optimizer consists of two client applications connected to a shared .NET backend.
+
+- The **Dispatcher WPF application** is used to create routes, assign drivers and monitor deliveries.
+- The **Driver PWA** allows drivers to view routes, update stop statuses, upload delivery proof and continue working offline.
+- The **ASP.NET Core API** provides REST endpoints, authentication and real-time updates through SignalR.
+- The backend follows **Clean Architecture**, separating business rules, application logic, infrastructure and presentation concerns.
+
+```mermaid
+flowchart TB
+    subgraph Clients["Client Applications"]
+        Dispatcher["Dispatcher WPF<br/>MVVM + WebView2"]
+        Driver["Driver PWA<br/>Blazor WebAssembly"]
+        LocalStorage[("Browser Local Storage<br/>Offline cache and outbox")]
+    end
+
+    subgraph Backend[".NET Backend"]
+        API["ASP.NET Core API<br/>REST + SignalR + JWT"]
+        Application["Application Layer<br/>CQRS, validation and route optimization"]
+        Domain["Domain Layer<br/>Entities and business rules"]
+        Infrastructure["Infrastructure Layer<br/>Persistence and external integrations"]
+    end
+
+    subgraph Services["Infrastructure Services"]
+        PostgreSQL[("PostgreSQL + PostGIS")]
+        Redis[("Redis")]
+        MinIO[("MinIO")]
+        OSRM["OSRM Routing Engine"]
+        SMTP["MailHog / SMTP"]
+        Tiles["Nginx Tile Cache"]
+    end
+
+    Dispatcher -->|"REST requests"| API
+    Dispatcher <-->|"SignalR updates"| API
+
+    Driver -->|"REST requests"| API
+    Driver <-->|"SignalR updates"| API
+    Driver <-->|"Offline synchronization"| LocalStorage
+
+    API --> Application
+    API --> Infrastructure
+    Application --> Domain
+    Infrastructure -.->|"Implements application interfaces"| Application
+    Infrastructure --> Domain
+
+    Infrastructure --> PostgreSQL
+    Infrastructure --> Redis
+    Infrastructure --> MinIO
+    Infrastructure --> OSRM
+    Infrastructure --> SMTP
+
+    Dispatcher -.->|"Map tiles"| Tiles
+    Driver -.->|"Map tiles"| Tiles
+```
+
+### Main data flow
+
+1. A dispatcher selects delivery orders and requests route generation.
+2. The backend obtains road distance and travel-time data from OSRM.
+3. The application layer creates an optimized stop order.
+4. The generated route is stored in PostgreSQL and assigned to a driver.
+5. The driver receives the route through the PWA.
+6. Driver location and delivery status changes are sent to the dispatcher in real time through SignalR.
+7. When the driver is offline, actions are stored locally and synchronized after the connection is restored.
+
+### Project structure
+
+```text
+src/
+├── RouteOptimizer.Domain
+│   └── Domain entities, value objects and business rules
+│
+├── RouteOptimizer.Application
+│   └── CQRS handlers, validation, use cases and interfaces
+│
+├── RouteOptimizer.Infrastructure
+│   └── Database access and external service implementations
+│
+├── RouteOptimizer.API
+│   └── REST API, authentication, middleware and SignalR hubs
+│
+├── RouteOptimizer.Dispatcher.Wpf
+│   └── Windows desktop application for dispatchers
+│
+└── RouteOptimizer.Driver.Pwa
+    └── Blazor WebAssembly PWA for drivers
+```
+
 ## Tech stack
 
 **Backend (.NET 10)**
