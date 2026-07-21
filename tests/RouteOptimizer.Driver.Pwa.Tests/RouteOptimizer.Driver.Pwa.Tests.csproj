@@ -15,6 +15,7 @@
         <PackageReference Include="FluentAssertions" />
         <PackageReference Include="Moq" />
         <PackageReference Include="bunit" />
+        <PackageReference Include="AngleSharp" />
     </ItemGroup>
 
     <ItemGroup>
