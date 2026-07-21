@@ -8,7 +8,7 @@ using RouteOptimizer.Driver.Pwa.Services;
 
 namespace RouteOptimizer.Driver.Pwa.Tests.Components;
 
-public class StopCardTests : Bunit.TestContext
+public class StopCardTests : BunitContext
 {
     private readonly Mock<IRouteApi> _routeApi = new();
     private readonly Mock<IGeolocation> _geolocation = new();
@@ -97,7 +97,7 @@ public class StopCardTests : Bunit.TestContext
     }
 
     private IRenderedComponent<StopCard> RenderCard(RouteStop stop, bool routeInProgress, Action? onChanged = null) =>
-        RenderComponent<StopCard>(p => p
+        Render<StopCard>(p => p
             .Add(c => c.Stop, stop)
             .Add(c => c.RouteId, Guid.NewGuid())
             .Add(c => c.RouteInProgress, routeInProgress)

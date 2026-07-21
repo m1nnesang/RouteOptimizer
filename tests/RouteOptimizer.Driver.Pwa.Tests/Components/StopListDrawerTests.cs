@@ -5,7 +5,7 @@ using RouteOptimizer.Driver.Pwa.Models;
 
 namespace RouteOptimizer.Driver.Pwa.Tests.Components;
 
-public class StopListDrawerTests : Bunit.TestContext
+public class StopListDrawerTests : BunitContext
 {
     [Fact]
     public void RendersStopsOrderedBySequence()
@@ -13,7 +13,7 @@ public class StopListDrawerTests : Bunit.TestContext
         var first = Stop(0, "Alpha St", "InProgress", "Anna");
         var second = Stop(1, "Beta St", "Pending", "Boris");
 
-        var cut = RenderComponent<StopListDrawer>(p => p
+        var cut = Render<StopListDrawer>(p => p
             .Add(c => c.Open, true)
             .Add(c => c.Stops, new[] { second, first }));
 
@@ -24,13 +24,13 @@ public class StopListDrawerTests : Bunit.TestContext
     [Fact]
     public void Open_TogglesOpenModifierClass()
     {
-        var cut = RenderComponent<StopListDrawer>(p => p
+        var cut = Render<StopListDrawer>(p => p
             .Add(c => c.Open, false)
             .Add(c => c.Stops, new[] { Stop(0, "Alpha St", "Pending", "Anna") }));
 
         cut.Find(".allstops").ClassList.Should().NotContain("allstops--open");
 
-        cut.SetParametersAndRender(p => p.Add(c => c.Open, true));
+        cut.Render(p => p.Add(c => c.Open, true));
 
         cut.Find(".allstops").ClassList.Should().Contain("allstops--open");
     }
@@ -41,7 +41,7 @@ public class StopListDrawerTests : Bunit.TestContext
         var current = Stop(0, "Alpha St", "InProgress", "Anna");
         var other = Stop(1, "Beta St", "Pending", "Boris");
 
-        var cut = RenderComponent<StopListDrawer>(p => p
+        var cut = Render<StopListDrawer>(p => p
             .Add(c => c.Open, true)
             .Add(c => c.Stops, new[] { current, other })
             .Add(c => c.CurrentStopId, current.Id));
@@ -55,7 +55,7 @@ public class StopListDrawerTests : Bunit.TestContext
         var target = Stop(1, "Beta St", "Pending", "Boris");
         RouteStop? selected = null;
 
-        var cut = RenderComponent<StopListDrawer>(p => p
+        var cut = Render<StopListDrawer>(p => p
             .Add(c => c.Open, true)
             .Add(c => c.Stops, new[] { Stop(0, "Alpha St", "InProgress", "Anna"), target })
             .Add(c => c.OnSelect, (RouteStop s) => selected = s));
@@ -71,7 +71,7 @@ public class StopListDrawerTests : Bunit.TestContext
     {
         var closed = false;
 
-        var cut = RenderComponent<StopListDrawer>(p => p
+        var cut = Render<StopListDrawer>(p => p
             .Add(c => c.Open, true)
             .Add(c => c.Stops, new[] { Stop(0, "Alpha St", "InProgress", "Anna") })
             .Add(c => c.OnClose, () => closed = true));
